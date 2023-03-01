@@ -21,6 +21,20 @@
     const N = d3.range(elNum);
     const I = d3.range(N.length).filter((i) => !isNaN(V[i]));
 
+    // Chose a default color scheme based on cardinality.
+    let colors = undefined;
+    if (colors === undefined) {
+      colors = d3.schemeSpectral[elNum];
+    }
+    if (colors === undefined) {
+      colors = d3.quantize(
+        (t) => d3.interpolateSpectral(t * 0.8 + 0.1),
+        elNum
+      );
+    }
+
+    const color = d3.scaleOrdinal(V, colors);
+
     const arcs = d3
       .pie()
       .padAngle(1 / outerRadius)
@@ -30,16 +44,24 @@
 
     svg
       .append("g")
-      .attr("stroke", "white")
-      .attr("stroke-width", 1)
-      .attr("stroke-linejoin", "round")
+      // .attr("stroke", "white")
+      // .attr("stroke-width", 1)
+      // .attr("stroke-linejoin", "round")
       .selectAll("path")
       .data(arcs)
       .join("path")
-      .attr("fill", "#bbbbbb")
-      .attr("d", arc);
+      // .attr("fill", "#bbbbbb")
+      .attr("fill", d => color(N[d.data]))
+      .attr("d", arc)
+      .on("mouseover", mouseOvered);
 
     return svg.node();
+  };
+
+  const mouseOvered = (event) => {
+    d3.select(event.target)
+      // d3.select(this)
+      .attr("fill", "blue");
   };
 
   onMount(() => {
