@@ -1,17 +1,18 @@
 <script lang="ts">
-  import * as d3 from "d3";
-  import { onMount } from "svelte";
-    import SelectionWidget from "./lib/SelectionWidget.svelte";
+  import SelectionWidget from "./lib/SelectionWidget.svelte";
 
-  const width = 400;
-  const height = 400;
-  
+  const width = 600;
+  const height = 200;
+
+  let widgets = [{ binsNum: 100 }, { binsNum: 50 }, { binsNum: 10 }];
+  //~ TODO:
+  // - callback from SelectionWidget for adding a new widget (or changing the selection)
 </script>
 
 <div id="container">
-  <SelectionWidget width={600} height={200} N={100} /> 
-  <SelectionWidget width={600} height={200} N={50} /> 
-  <SelectionWidget width={600} height={200} N={10} /> 
+  {#each widgets as w}
+    <SelectionWidget {width} {height} N={w.binsNum} />
+  {/each}
 </div>
 <main />
 

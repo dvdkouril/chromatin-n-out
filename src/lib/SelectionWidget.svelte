@@ -95,44 +95,30 @@
     }
 
     const isInSelection = (binId) => {
-        // console.log(selection);
-        // console.log("noooo");
         if (selection === null) return false;
 
         if (binId >= selection.start && binId < selection.end) {
-            // console.log("yessss");
             return true;
         }
-
-        // return true;
     };
 
     const mouseOvered = (event) => {
-        // if (selectionInProgress) {
-        //     selection = {
-        //         start: selection.start,
-        //         end: event.target.__data__.data,
-        //     };
-        //     console.log(event);
-        // }
         if (selectionInProgress) {
-            // console.log("mouse overed");
             const binId = event.target.id.split("-")[1];
             selection = { ...selection, end: binId};
         }
     };
 
     const mouseDown = (event) => {
-        // console.log("mouse down");
-        // console.log(event.target.id);
-        
+        //~ => selection finished
         const binId = event.target.id.split("-")[1];
         selection = { start: binId, end: binId };
         selectionInProgress = true;
+
+        // selectionChanged();
     };
 
     const mouseUp = (event) => {
-        // console.log("mouse up");
         selectionInProgress = false;
     };
 </script>
@@ -154,6 +140,7 @@
                 style="fill:{binColors[i]}"
             />
         {/each}
+        <!-- Selection indication overlay -->
         <rect 
             x={0 + selection.start * pieceSize}
             y={0}
@@ -162,8 +149,7 @@
             style="fill:blue"
         />
     </svg>
-
-                <!-- style="fill:{binColors[i]}" -->
+    <!-- Debug info: -->
     <p>
         Selection: {selection.start} - {selection.end}
     </p>
