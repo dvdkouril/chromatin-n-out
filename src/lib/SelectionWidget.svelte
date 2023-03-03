@@ -78,7 +78,7 @@
             y={0}
             width={(selection.end - selection.start) * pieceSize}
             {height}
-            style="fill:blue; pointer-events:none"
+            style="stroke-width: 5px; stroke: blue; fill: none; pointer-events:none"
         />
         {/if}
     </svg>
