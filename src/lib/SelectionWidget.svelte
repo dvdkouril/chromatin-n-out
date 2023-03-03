@@ -1,5 +1,4 @@
 <script lang="ts">
-    import * as d3 from "d3";
     import { createEventDispatcher } from "svelte";
 
     const dispatch = createEventDispatcher();
@@ -7,45 +6,16 @@
     export let width;
     export let height;
     export let N;
+    export let colors;
+    export let widgetId;
 
     $: pieceSize = width / bins.length;
     $: bins = [...Array(N).keys()];
-    $: binColors = generateColors(N);
 
     let selectionInProgress = false;
-    // let selection = { start: 5, end: 10 };
     let selection = null;
-    let widgetId = 0;
-    // let bins = d3.range();
-    // let bins = [ 1, 2, 3, 4, 5, 6];
-
-    const generateColors = (numOfColors) => {
-        let colors = undefined;
-        if (colors === undefined) {
-            colors = d3.schemeSpectral[numOfColors];
-        }
-        if (colors === undefined) {
-            colors = d3.quantize(
-                (t) => d3.interpolateSpectral(t * 0.8 + 0.1),
-                numOfColors
-            );
-        }
-
-        // const color = d3.scaleOrdinal(bins, colors); //todo: do i need to grab bins from outside of local scope?
-        // console.log("bin colors:");
-        // console.log(color);
-        // return color;
-        return colors;
-    };
-
-    const colorOrSelection = (binId) => {
-        if (isInSelection(binId)) {
-            return "blue";
-        } else {
-            return binColors[binId];
-        }
-    };
-
+    // let widgetId = 0;
+    
     const isInSelection = (binId) => {
         if (selection === null) return false;
 
@@ -70,8 +40,6 @@
     const mouseUp = (event) => {
         //~ => selection finished
         selectionInProgress = false;
-        console.log("notifying parent");
-        console.log(selection);
         dispatch("selectionFinished", {
             selection: selection,
             sourceWidget: widgetId,
@@ -94,7 +62,7 @@
                 on:mouseup={mouseUp}
                 on:mouseover={mouseOvered}
                 on:focus={() => {}}
-                style="fill:{binColors[i]}"
+                style="fill:{colors[i]}"
             />
         {/each}
         <!-- Selection indication overlay -->
