@@ -26,8 +26,13 @@
 
     const mouseOvered = (event) => {
         if (selectionInProgress) {
-            const binId = event.target.id.split("-")[1];
-            selection = { ...selection, end: parseInt(binId) };
+            const binId = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+            //~ figure out which direction the selection is
+            if (binId < selection.start) {
+                selection = { ...selection, start: binId}
+            } else {
+                selection = { ...selection, end: binId };
+            }
         }
     };
 
@@ -39,6 +44,7 @@
 
     const mouseUp = (event) => {
         //~ => selection finished
+        console.log("mouse UP");
         selectionInProgress = false;
         dispatch("selectionFinished", {
             selection: selection,
@@ -72,7 +78,7 @@
             y={0}
             width={(selection.end - selection.start) * pieceSize}
             {height}
-            style="fill:blue"
+            style="fill:blue; pointer-events:none"
         />
         {/if}
     </svg>
