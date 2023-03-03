@@ -3,7 +3,10 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
 
 ## todo
 - [ ] rectangular widget mvp
-    - [ ] single path selection
-    - [ ]
+    - [x] single path selection
+    - [ ] individual levels selections can be edited/redefined (only one selection per level for now)
+    - [ ] selecting in both directions (0 -> N, N -> 0)
 - [ ] arc version of the selection widget
+    - [ ] multiple selections: each spawning a new tree
 - [ ] add 3D model rendering (probably threejs as baseline)
+- [ ] non-uniform, interactive and fluid layouting of 3D+widget
