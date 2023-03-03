@@ -44,29 +44,15 @@
     const sourceWidgetId = ev.detail.sourceWidget;
     const sourceWidget = widgets[sourceWidgetId]; 
     const offset = sourceWidget.domain.start;
-  //   widgets = [
-  //     ...widgets,
-  //     {
-  //       binsNum: sel.end - sel.start,
-  //       domain: { start: offset + sel.start, end: offset + sel.end} 
-  //     },
-  //   ];
-  // };
 
-  //~ TODO: when we get a selection that's edited, we want to scrub all the following widgets
-  const newWidgets = widgets.slice(0, sourceWidgetId + 1);
-  newWidgets.push(
+  widgets = [
+    ...widgets.slice(0, sourceWidgetId + 1),
     {
       binsNum: sel.end - sel.start,
       domain: { start: offset + sel.start, end: offset + sel.end} 
     }
-  )
+  ]
 
-  widgets = newWidgets;
-
-  //~ actions that will be reported:
-  // - new selection => spawn new widget
-  // - changed selection => update linked widget
   }
 </script>
 
