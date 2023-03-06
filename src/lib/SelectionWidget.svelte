@@ -8,13 +8,12 @@
     export let N;
     export let colors;
     export let widgetId;
+    export let selection = null;
 
     $: pieceSize = width / bins.length;
     $: bins = [...Array(N).keys()];
 
     let selectionInProgress = false;
-    let selection = null;
-    // let widgetId = 0;
     
     const isInSelection = (binId) => {
         if (selection === null) return false;

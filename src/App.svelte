@@ -14,6 +14,7 @@
         start: 0,
         end: topLevelBinsNum - 1,
       },
+      selection: null,
     },
   ];
   
@@ -49,7 +50,8 @@
     ...widgets.slice(0, sourceWidgetId + 1),
     {
       binsNum: sel.end - sel.start,
-      domain: { start: offset + sel.start, end: offset + sel.end} 
+      domain: { start: offset + sel.start, end: offset + sel.end},
+      selection: null,
     }
   ]
 
@@ -66,6 +68,7 @@
       colors={colorMap.slice(w.domain.start, w.domain.end)}
       widgetId={i}
       on:selectionFinished={newSelection}
+      bind:selection={w.selection}
     />
   {/each}
 </div>
