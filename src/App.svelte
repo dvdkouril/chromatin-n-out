@@ -1,10 +1,12 @@
 <script lang="ts">
   import * as d3 from "d3";
   import SelectionWidget from "./lib/SelectionWidget.svelte";
+  import SampleScene from "./lib/SampleScene.svelte";
 
   const width = 600;
   const height = 200;
-  const topLevelBinsNum = 100;
+  const topLevelBinsNum = 500;
+  // const topLevelBinsNum = 10000;
   $: colorMap = generateColors(topLevelBinsNum);
 
   let widgets = [
@@ -72,6 +74,7 @@
     />
   {/each}
 </div>
+<SampleScene />
 <main />
 
 <style>
