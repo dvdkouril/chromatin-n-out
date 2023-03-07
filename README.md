@@ -9,4 +9,6 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
 - [ ] arc version of the selection widget
     - [ ] multiple selections: each spawning a new tree
 - [ ] add 3D model rendering (probably threejs as baseline)
+    - [x] include some basic threejs scene
+    - [ ] connect the shown 3D with selection widgets
 - [ ] non-uniform, interactive and fluid layouting of 3D+widget
