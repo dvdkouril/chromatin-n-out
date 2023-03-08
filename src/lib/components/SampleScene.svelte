@@ -3,8 +3,8 @@
     import { onMount } from "svelte";
     import { spring } from "svelte/motion";
     import { degToRad } from "three/src/math/MathUtils";
-    import { parsePdb } from "./pdb";
-    import { brafl } from "./test_BRAFL";
+    import { parsePdb } from "../pdb";
+    import { brafl } from "../test_BRAFL";
 
     // const scale = spring(1);
     // const scale = 0.02;
