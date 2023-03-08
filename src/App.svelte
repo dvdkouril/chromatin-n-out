@@ -72,7 +72,7 @@
       on:selectionFinished={newSelection}
       bind:selection={w.selection}
     />
-    <SampleScene spheres={spheres.slice(w.domain.start, w.domain.end)} />
+    <SampleScene spheres={spheres.slice(w.domain.start, w.domain.end)} selection={w.selection} />
   {/each}
 </div>
 <div>

@@ -7,6 +7,9 @@
 
     export let spheres = [];
     $: spheresCentered = recenter(spheres).map((pos: vec3) => { return {x: pos[0], y: pos[1], z: pos[2]} });
+    // export let selection = { start: 0, end: 10};
+    export let selection;
+    // $: selectionRelative = 
 
     const recenter = (
         ogPositions: { x: number; y: number; z: number }[]
@@ -73,7 +76,7 @@
         <T.AmbientLight intensity={0.2} />
 
         <T.Group>
-            {#each spheresCentered as s}
+            {#each spheresCentered as s, i}
                 <T.Mesh
                     position.y={s.y}
                     position.x={s.x}
@@ -83,7 +86,11 @@
                     let:ref
                 >
                     <T.SphereGeometry />
-                    <T.MeshStandardMaterial color="#aaaaaa" />
+                    {#if selection != null && i <= selection.end && i >= selection.start}
+                        <T.MeshStandardMaterial color="#0000ff" />
+                    {:else} 
+                        <T.MeshStandardMaterial color="#aaaaaa" />
+                    {/if}
                 </T.Mesh>
             {/each}
         </T.Group>
