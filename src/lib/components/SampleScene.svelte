@@ -1,37 +1,24 @@
 <script lang="ts">
     import { Canvas, InteractiveObject, OrbitControls, T } from "@threlte/core";
-    import { onMount } from "svelte";
+    // import { onMount } from "svelte";
     import { spring } from "svelte/motion";
     import { degToRad } from "three/src/math/MathUtils";
-    import { parsePdb } from "../pdb";
-    import { brafl } from "../test_BRAFL";
+    // import { parsePdb } from "../pdb";
+    // import { brafl } from "../test_BRAFL";
 
     // const scale = spring(1);
     // const scale = 0.02;
-    const scale = 0.02;
+    // const scale = 0.02;
     const radiusScale = 0.2;
 
-    let spheres = [{ x: 0, y: 0, z: 0 }];
+    // let spheres = [{ x: 0, y: 0, z: 0 }];
+    export let spheres = [];
 
-    const randomPositions = (
-        num: number
-    ): { x: number; y: number; z: number }[] => {
-        let newSpheresArr = [];
-        const max = 50;
-        for (let i = 0; i < num; i++) {
-            const x = Math.random() * max;
-            const y = Math.random() * max;
-            const z = Math.random() * max;
-            newSpheresArr.push({ x: x, y: y, z: z });
-        }
-        return newSpheresArr;
-    };
-
-    onMount(() => {
-        // spheres = randomPositions(100);
-        // spheres = parsePdb(brafl).bins;
-        spheres = parsePdb(brafl).bins.map(({x , y, z}) => ({x: x*scale, y: y*scale, z: z*scale}));
-    });
+    // onMount(() => {
+    //     // spheres = randomPositions(100);
+    //     // spheres = parsePdb(brafl).bins;
+    //     spheres = parsePdb(brafl).bins.map(({x , y, z}) => ({x: x*scale, y: y*scale, z: z*scale}));
+    // });
 </script>
 
 <div style="width: 600px; height: 400px;">

@@ -2,41 +2,63 @@
   import { generateColors } from "./lib/util";
   import SelectionWidget from "./lib/components/SelectionWidget.svelte";
   import SampleScene from "./lib/components/SampleScene.svelte";
+  import { onMount } from "svelte";
+  import { parsePdb } from "./lib/pdb";
+  import { brafl } from "./lib/test_BRAFL";
 
   const width = 600;
   const height = 200;
-  const topLevelBinsNum = 500;
+  let topLevelBinsNum = 500;
   $: colorMap = generateColors(topLevelBinsNum);
 
-  let widgets = [
-    {
-      binsNum: topLevelBinsNum,
-      domain: {
-        start: 0,
-        end: topLevelBinsNum - 1,
-      },
-      selection: null,
-    },
-  ];
-  
+  //~ 3D data
+  const scale = 0.02;
+
+  let spheres = [{ x: 0, y: 0, z: 0 }];
+
+  let widgets = [];
+
   const newSelection = (ev) => {
     console.log("App: seeing change");
     console.log(ev);
     const sel = ev.detail.selection;
     const sourceWidgetId = ev.detail.sourceWidget;
-    const sourceWidget = widgets[sourceWidgetId]; 
+    const sourceWidget = widgets[sourceWidgetId];
     const offset = sourceWidget.domain.start;
 
-  widgets = [
-    ...widgets.slice(0, sourceWidgetId + 1),
-    {
-      binsNum: sel.end - sel.start,
-      domain: { start: offset + sel.start, end: offset + sel.end},
-      selection: null,
-    }
-  ]
+    widgets = [
+      ...widgets.slice(0, sourceWidgetId + 1),
+      {
+        binsNum: sel.end - sel.start,
+        domain: { start: offset + sel.start, end: offset + sel.end },
+        selection: null,
+      },
+    ];
+  };
 
-  }
+  onMount(() => {
+    console.log("onMount");
+
+    //~ load the PDB
+    spheres = parsePdb(brafl).bins.map(({ x, y, z }) => ({
+      x: x * scale,
+      y: y * scale,
+      z: z * scale,
+    }));
+    topLevelBinsNum = spheres.length;
+    console.log("num of spheres = " + topLevelBinsNum);
+
+    widgets = [
+      {
+        binsNum: topLevelBinsNum,
+        domain: {
+          start: 0,
+          end: topLevelBinsNum - 1,
+        },
+        selection: null,
+      },
+    ];
+  });
 </script>
 
 <div id="container">
@@ -50,9 +72,12 @@
       on:selectionFinished={newSelection}
       bind:selection={w.selection}
     />
+    <SampleScene spheres={spheres.slice(w.domain.start, w.domain.end)} />
   {/each}
 </div>
-<SampleScene />
+<div>
+  <!-- <SampleScene {spheres} /> -->
+</div>
 <main />
 
 <style>
