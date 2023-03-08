@@ -7,7 +7,7 @@
   import { brafl } from "./lib/test_BRAFL";
 
   const width = 600;
-  const height = 200;
+  const height = 50;
   let topLevelBinsNum = 500;
   $: colorMap = generateColors(topLevelBinsNum);
 

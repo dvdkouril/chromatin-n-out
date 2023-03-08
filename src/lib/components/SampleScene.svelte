@@ -1,24 +1,61 @@
 <script lang="ts">
     import { Canvas, InteractiveObject, OrbitControls, T } from "@threlte/core";
-    // import { onMount } from "svelte";
-    import { spring } from "svelte/motion";
     import { degToRad } from "three/src/math/MathUtils";
-    // import { parsePdb } from "../pdb";
-    // import { brafl } from "../test_BRAFL";
+    import { vec3 } from 'gl-matrix';
 
-    // const scale = spring(1);
-    // const scale = 0.02;
-    // const scale = 0.02;
     const radiusScale = 0.2;
 
-    // let spheres = [{ x: 0, y: 0, z: 0 }];
     export let spheres = [];
+    $: spheresCentered = recenter(spheres).map((pos: vec3) => { return {x: pos[0], y: pos[1], z: pos[2]} });
 
-    // onMount(() => {
-    //     // spheres = randomPositions(100);
-    //     // spheres = parsePdb(brafl).bins;
-    //     spheres = parsePdb(brafl).bins.map(({x , y, z}) => ({x: x*scale, y: y*scale, z: z*scale}));
-    // });
+    const recenter = (
+        ogPositions: { x: number; y: number; z: number }[]
+    ): vec3[] => {
+        let positions = ogPositions.map(({x, y, z}) => vec3.fromValues(x, y, z));
+
+        let bbMax = positions.reduce(
+            (a, b) => vec3.max(vec3.create(), a, b),
+            vec3.fromValues(
+                Number.MIN_VALUE,
+                Number.MIN_VALUE,
+                Number.MIN_VALUE
+            )
+        );
+        let bbMin = positions.reduce(
+            (a, b) => vec3.min(vec3.create(), a, b),
+            vec3.fromValues(
+                Number.MAX_VALUE,
+                Number.MAX_VALUE,
+                Number.MAX_VALUE
+            )
+        );
+        let bbCenter = vec3.scale(
+            vec3.create(),
+            vec3.add(vec3.create(), bbMax, bbMin),
+            0.5
+        );
+        let bbSides = vec3.sub(vec3.create(), bbMax, bbMin);
+        bbSides.forEach((v: number) => Math.abs(v));
+        const largestSide = Math.max(...bbSides);
+        let bbLength = vec3.fromValues(
+            1.0 / largestSide,
+            1.0 / largestSide,
+            1.0 / largestSide
+        );
+        const atomsNormalized = positions.map((a) =>
+            // vec3.mul(
+            //     vec3.create(),
+            //     vec3.sub(vec3.create(), a, bbCenter),
+            //     bbLength
+            // )
+            vec3.sub(vec3.create(), a, bbCenter)
+        );
+        // atoms = atomsNormalized;
+
+        // let test = spheres.map((pos: vec3) => { return {x: pos[0], y: pos[1], z: pos[2]} });
+
+        return atomsNormalized;
+    };
 </script>
 
 <div style="width: 600px; height: 400px;">
@@ -36,7 +73,7 @@
         <T.AmbientLight intensity={0.2} />
 
         <T.Group>
-            {#each spheres as s}
+            {#each spheresCentered as s}
                 <T.Mesh
                     position.y={s.y}
                     position.x={s.x}
@@ -52,10 +89,10 @@
         </T.Group>
 
         <!-- Floor -->
-        <T.Mesh receiveShadow rotation.x={degToRad(-90)}>
+        <!-- <T.Mesh receiveShadow rotation.x={degToRad(-90)}>
             <T.CircleGeometry args={[3, 72]} />
             <T.MeshStandardMaterial color="#333333" />
-        </T.Mesh>
+        </T.Mesh> -->
     </Canvas>
 </div>
 

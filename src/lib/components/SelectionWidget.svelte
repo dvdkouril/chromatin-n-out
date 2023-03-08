@@ -82,7 +82,7 @@
         {/if}
     </svg>
     <!-- Debug info: -->
-    {#if selection != null}
+    <!-- {#if selection != null}
     <p>
         Selection: {selection.start} - {selection.end}
     </p>
@@ -91,5 +91,5 @@
             ? String.fromCodePoint(0x2705)
             : String.fromCodePoint(0x274c)}
     </p>
-    {/if}
+    {/if} -->
 </div>
