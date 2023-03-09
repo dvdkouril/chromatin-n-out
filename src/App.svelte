@@ -5,6 +5,7 @@
   import { onMount } from "svelte";
   import { parsePdb } from "./lib/pdb";
   import { brafl } from "./lib/test_BRAFL";
+  import ArcSelectionWidget from "./lib/components/ArcSelectionWidget.svelte";
 
   const width = 600;
   const height = 50;
@@ -72,11 +73,19 @@
       on:selectionFinished={newSelection}
       bind:selection={w.selection}
     />
-    <SampleScene spheres={spheres.slice(w.domain.start, w.domain.end)} selection={w.selection} />
+    <ArcSelectionWidget
+      width={400}
+      height={400}
+      N={w.binsNum}
+      colors={colorMap.slice(w.domain.start, w.domain.end)}
+      widgetId={i}
+      bind:selection={w.selection}
+    />
+    <SampleScene
+      spheres={spheres.slice(w.domain.start, w.domain.end)}
+      selection={w.selection}
+    />
   {/each}
-</div>
-<div>
-  <!-- <SampleScene {spheres} /> -->
 </div>
 <main />
 
