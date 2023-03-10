@@ -17,6 +17,9 @@
     // $: bins = [...Array(N).keys()];
     $: bins = [...Array(N).fill(1)];
 
+    $: radius = Math.min(width, height) / 2;
+    let widgetThickness = 25;
+
     const arcGen = arc();
 
     // $: arcPath = arcGen({
@@ -30,8 +33,10 @@
 
     $: segments = arcs.map((arc) => {
         let input = {
-            innerRadius: 50,
-            outerRadius: 100,
+            // innerRadius: 50,
+            innerRadius: radius - widgetThickness,
+            // outerRadius: 100,
+            outerRadius: radius,
             startAngle: arc.startAngle,
             endAngle: arc.endAngle,
         };
@@ -40,8 +45,8 @@
 
     $: selectionArc = (selection != null) ?
         arcGen({
-            innerRadius: 50,
-            outerRadius: 100,
+            innerRadius: radius - widgetThickness,
+            outerRadius: radius,
             startAngle: arcs[selection.start].startAngle,
             endAngle: arcs[selection.end].endAngle,
             // startAngle: 0,
@@ -61,6 +66,7 @@
     };
 
     const mouseDown = (event) => {
+        console.log("Widget: mouse Down");
         const binId = event.target.id.split("-")[1];
         selection = { start: parseInt(binId), end: parseInt(binId) };
         selectionInProgress = true;
@@ -87,7 +93,9 @@
 //             "]"}
 </script>
 
-<div id="arc-selection-widget">
+<div id="arc-selection-widget" 
+    style="position: absolute; z-index: 2;"
+>
     <!-- <svg {width} {height}> -->
     <svg
         {width}

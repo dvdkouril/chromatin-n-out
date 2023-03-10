@@ -52,7 +52,7 @@
     };
 </script>
 
-<div id="widget">
+<div id="widget" style="position: relative; left: 0; top: 0">
     <svg {width} {height}>
         <!-- todo: viewbox and background -->
         {#each bins as bin, i}

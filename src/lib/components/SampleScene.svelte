@@ -61,7 +61,7 @@
     };
 </script>
 
-<div style="width: 600px; height: 400px;">
+<div style="width: 600px; height: 400px; z-index: 1;">
     <Canvas>
         <T.PerspectiveCamera makeDefault position={[10, 10, 20]} fov={24}>
             <OrbitControls

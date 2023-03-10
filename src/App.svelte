@@ -62,30 +62,33 @@
   });
 </script>
 
-<div id="container">
+<div id="container" style="display: flex;">
   {#each widgets as w, i}
-    <SelectionWidget
-      {width}
-      {height}
-      N={w.binsNum}
-      colors={colorMap.slice(w.domain.start, w.domain.end)}
-      widgetId={i}
-      on:selectionFinished={newSelection}
-      bind:selection={w.selection}
-    />
-    <ArcSelectionWidget
-      width={400}
-      height={400}
-      N={w.binsNum}
-      colors={colorMap.slice(w.domain.start, w.domain.end)}
-      widgetId={i}
-      on:selectionFinished={newSelection}
-      bind:selection={w.selection}
-    />
-    <SampleScene
-      spheres={spheres.slice(w.domain.start, w.domain.end)}
-      selection={w.selection}
-    />
+    <div class="widget-3d-combo" style="display: block; width: 100%; height: 100%, position: relative;">
+      <!-- <SelectionWidget
+        {width}
+        {height}
+        N={w.binsNum}
+        colors={colorMap.slice(w.domain.start, w.domain.end)}
+        widgetId={i}
+        on:selectionFinished={newSelection}
+        bind:selection={w.selection}
+      /> -->
+      
+      <ArcSelectionWidget
+        width={600}
+        height={400}
+        N={w.binsNum}
+        colors={colorMap.slice(w.domain.start, w.domain.end)}
+        widgetId={i}
+        on:selectionFinished={newSelection}
+        bind:selection={w.selection}
+      />
+      <SampleScene
+        spheres={spheres.slice(w.domain.start, w.domain.end)}
+        selection={w.selection}
+      />
+    </div>
   {/each}
 </div>
 <main />
