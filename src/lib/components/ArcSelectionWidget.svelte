@@ -16,57 +16,6 @@
     $: pieceSize = width / bins.length;
     // $: bins = [...Array(N).keys()];
     $: bins = [...Array(N).fill(1)];
-    // const SelectionWidget = (num = 100) => {
-    //         const svg = d3
-    //             .create("svg")
-    //             .attr("width", width)
-    //             .attr("height", height)
-    //             .style("background-color", "#aaaaaa")
-    //             .attr("viewBox", [-width / 2, -height / 2, width, height]);
-
-    //         const innerRadius = 160;
-    //         const outerRadius = 200;
-
-    //         const elNum = num;
-    //         const V = d3.range(elNum);
-    //         const N = d3.range(elNum);
-    //         const I = d3.range(N.length).filter((i) => !isNaN(V[i]));
-
-    //         // Chose a default color scheme based on cardinality.
-    //         let colors = undefined;
-    //         if (colors === undefined) {
-    //             colors = d3.schemeSpectral[elNum];
-    //         }
-    //         if (colors === undefined) {
-    //             colors = d3.quantize(
-    //                 (t) => d3.interpolateSpectral(t * 0.8 + 0.1),
-    //                 elNum
-    //             );
-    //         }
-
-    //         const color = d3.scaleOrdinal(V, colors);
-
-    //         const arcs = d3
-    //             .pie()
-    //             .padAngle(1 / outerRadius)
-    //             .sort(null)
-    //             .value(1)(I);
-    //         const arc = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius);
-
-    //         svg.append("g")
-    //             .selectAll("path")
-    //             .data(arcs)
-    //             .join("path")
-    //             .attr("fill", (d) =>
-    //                 isInSelection(d.data) ? "blue" : color(N[d.data])
-    //             )
-    //             .attr("d", arc)
-    //             .on("mouseover", mouseOvered)
-    //             .on("mousedown", mouseDown)
-    //             .on("mouseup", mouseUp);
-
-    //         return svg.node();
-    //     };
 
     const arcGen = arc();
 
@@ -88,6 +37,16 @@
         };
         return arcGen(input);
     });
+
+    $: selectionArc = (selection != null) ?
+        arcGen({
+            innerRadius: 50,
+            outerRadius: 100,
+            startAngle: arcs[selection.start].startAngle,
+            endAngle: arcs[selection.end].endAngle,
+            // startAngle: 0,
+            // endAngle: Math.PI / 4, // radians
+        }) : "";
 
     const mouseOvered = (event) => {
         if (selectionInProgress) {
@@ -116,14 +75,50 @@
             sourceWidget: widgetId,
         });
     };
+
+// viewBox={"[" +
+//             -width / 2 +
+//             ", " +
+//             -height / 2 +
+//             ", " +
+//             width +
+//             ", " +
+//             height +
+//             "]"}
 </script>
 
 <div id="arc-selection-widget">
     <!-- <svg {width} {height}> -->
-    <svg width={width} height={width} viewBox={"[" + -width / 2+ ", " + -height / 2 + ", " + width+ ", " + height + "]"}>
+    <svg
+        {width}
+        height={height}
+        viewBox={`${-width/2} ${-height/2} ${width} ${height}`}
+    >
         {#each segments as bin, i}
-            <path d={bin} style="transform:translate(150px,150px)" />
-            <!-- <path d={bin} /> -->
+            <path
+                d={bin}
+                id={"bin-" + i}
+                fill={colors[i]}
+                on:mousedown={mouseDown}
+                on:mouseup={mouseUp}
+                on:mouseover={mouseOvered}
+                on:focus={() => {}}
+            />
         {/each}
+        <!-- Selection indication overlay -->
+        {#if selection != null}
+            <path
+                d={selectionArc}
+                id={"selection-arc"}
+                style="stroke-width: 5px; stroke: blue; fill: none; pointer-events:none"
+            />
+            <!-- <rect
+                    x={0 + selection.start * pieceSize}
+                    y={0}
+                    width={(selection.end - selection.start) * pieceSize}
+                    {height}
+                    style="stroke-width: 5px; stroke: blue; fill: none; pointer-events:none"
+                /> -->
+        {/if}
     </svg>
 </div>

@@ -79,6 +79,7 @@
       N={w.binsNum}
       colors={colorMap.slice(w.domain.start, w.domain.end)}
       widgetId={i}
+      on:selectionFinished={newSelection}
       bind:selection={w.selection}
     />
     <SampleScene
