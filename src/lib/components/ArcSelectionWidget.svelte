@@ -94,19 +94,21 @@
 </script>
 
 <div id="arc-selection-widget" 
-    style="position: absolute; z-index: 2;"
+    style="position: absolute; z-index: 2; pointer-events: none"
 >
     <!-- <svg {width} {height}> -->
     <svg
         {width}
         height={height}
         viewBox={`${-width/2} ${-height/2} ${width} ${height}`}
+        pointer-events="none"     
     >
         {#each segments as bin, i}
             <path
                 d={bin}
                 id={"bin-" + i}
                 fill={colors[i]}
+                pointer-events="all"
                 on:mousedown={mouseDown}
                 on:mouseup={mouseUp}
                 on:mouseover={mouseOvered}

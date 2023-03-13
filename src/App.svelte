@@ -88,6 +88,15 @@
         spheres={spheres.slice(w.domain.start, w.domain.end)}
         selection={w.selection}
       />
+<!-- <SelectionWidget
+        {width}
+        {height}
+        N={w.binsNum}
+        colors={colorMap.slice(w.domain.start, w.domain.end)}
+        widgetId={i}
+        on:selectionFinished={newSelection}
+        bind:selection={w.selection}
+      /> -->
     </div>
   {/each}
 </div>
