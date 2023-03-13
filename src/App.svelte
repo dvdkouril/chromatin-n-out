@@ -7,8 +7,10 @@
   import { brafl } from "./lib/test_BRAFL";
   import ArcSelectionWidget from "./lib/components/ArcSelectionWidget.svelte";
 
-  const width = 600;
-  const height = 50;
+  // const width = 600;
+  // const height = 50;
+  const hyperWindowSize = 500;
+  const selectionWidgetThickness = 25;
   let topLevelBinsNum = 500;
   $: colorMap = generateColors(topLevelBinsNum);
 
@@ -76,8 +78,9 @@
       /> -->
       
       <ArcSelectionWidget
-        width={600}
-        height={400}
+        width={hyperWindowSize}
+        height={hyperWindowSize}
+        widgetThickness={selectionWidgetThickness}
         N={w.binsNum}
         colors={colorMap.slice(w.domain.start, w.domain.end)}
         widgetId={i}
@@ -85,6 +88,9 @@
         bind:selection={w.selection}
       />
       <SampleScene
+        width={hyperWindowSize - 2 * selectionWidgetThickness}
+        height={hyperWindowSize - 2 * selectionWidgetThickness}
+        offset={selectionWidgetThickness}
         spheres={spheres.slice(w.domain.start, w.domain.end)}
         selection={w.selection}
       />

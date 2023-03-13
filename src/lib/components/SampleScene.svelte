@@ -5,6 +5,9 @@
 
     const radiusScale = 0.2;
 
+    export let width;
+    export let height;
+    export let offset;
     export let spheres = [];
     $: spheresCentered = recenter(spheres).map((pos: vec3) => { return {x: pos[0], y: pos[1], z: pos[2]} });
     // export let selection = { start: 0, end: 10};
@@ -61,7 +64,7 @@
     };
 </script>
 
-<div style="width: 600px; height: 400px; z-index: 1;">
+<div style="width: {width}px; height: {height}px; margin: {offset}px; z-index: 1;">
     <Canvas>
         <T.PerspectiveCamera makeDefault position={[10, 10, 20]} fov={24}>
             <OrbitControls

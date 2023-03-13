@@ -18,7 +18,7 @@
     $: bins = [...Array(N).fill(1)];
 
     $: radius = Math.min(width, height) / 2;
-    let widgetThickness = 25;
+    export let widgetThickness = 25;
 
     const arcGen = arc();
 
