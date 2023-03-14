@@ -87,7 +87,7 @@
         height={hyperWindowSize}
         widgetThickness={selectionWidgetThickness}
         N={w.binsNum}
-        colors={grayColorMap.slice(w.domain.start, w.domain.end)}
+        colors={nicerColorMap.slice(w.domain.start, w.domain.end)}
         widgetId={i}
         selectionColor={w.selectionColor}
         on:selectionFinished={newSelection}
