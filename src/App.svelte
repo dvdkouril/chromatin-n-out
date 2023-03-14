@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { generateColors, generateGrayScale, generateNicerColors, getRandomInt } from "./lib/util";
+  import {
+    generateColors,
+    generateGrayScale,
+    generateNicerColors,
+    getRandomInt,
+    randomNiceColor,
+  } from "./lib/util";
   import SelectionWidget from "./lib/components/SelectionWidget.svelte";
   import SampleScene from "./lib/components/SampleScene.svelte";
   import { onMount } from "svelte";
@@ -7,21 +13,17 @@
   import { brafl } from "./lib/test_BRAFL";
   import ArcSelectionWidget from "./lib/components/ArcSelectionWidget.svelte";
 
-  // const width = 600;
-  // const height = 50;
   const hyperWindowSize = 500;
   const selectionWidgetThickness = 25;
-  let topLevelBinsNum = 500;
   $: colorMap = generateColors(topLevelBinsNum);
   $: grayColorMap = generateGrayScale(topLevelBinsNum);
   $: nicerColorMap = generateNicerColors(topLevelBinsNum);
 
   //~ 3D data
   const scale = 0.02;
-
-  let spheres = [{ x: 0, y: 0, z: 0 }];
-
+  let spheres = [];
   let widgets = [];
+  let topLevelBinsNum = 0;
 
   const newSelection = (ev) => {
     console.log("App: seeing change");
@@ -37,14 +39,14 @@
         binsNum: sel.end - sel.start,
         domain: { start: offset + sel.start, end: offset + sel.end },
         selection: null,
-        selectionColor: nicerColorMap[getRandomInt(nicerColorMap.length - 1)],
+        selectionColor: randomNiceColor(),
       },
     ];
   };
 
   onMount(() => {
     console.log("onMount");
-    
+
     //~ load the PDB
     spheres = parsePdb(brafl).bins.map(({ x, y, z }) => ({
       x: x * scale,
@@ -62,7 +64,7 @@
           end: topLevelBinsNum - 1,
         },
         selection: null,
-        selectionColor: nicerColorMap[getRandomInt(nicerColorMap.length - 1)],
+        selectionColor: randomNiceColor(),
       },
     ];
   });
@@ -70,24 +72,16 @@
 
 <div id="container" style="display: flex;">
   {#each widgets as w, i}
-    <div class="widget-3d-combo" style="display: block; width: 100%; height: 100%, position: relative;">
-      <!-- <SelectionWidget
-        {width}
-        {height}
-        N={w.binsNum}
-        colors={colorMap.slice(w.domain.start, w.domain.end)}
-        widgetId={i}
-        on:selectionFinished={newSelection}
-        bind:selection={w.selection}
-      /> -->
-      
-        <!-- colors={colorMap.slice(w.domain.start, w.domain.end)} -->
+    <div
+      class="widget-3d-combo"
+      style="display: block; width: 100%; height: 100%, position: relative;"
+    >
       <ArcSelectionWidget
         width={hyperWindowSize}
         height={hyperWindowSize}
         widgetThickness={selectionWidgetThickness}
         N={w.binsNum}
-        colors={nicerColorMap.slice(w.domain.start, w.domain.end)}
+        colors={nicerColorMap.slice(w.domain.start, w.domain.end + 1)}
         widgetId={i}
         selectionColor={w.selectionColor}
         on:selectionFinished={newSelection}
@@ -97,19 +91,10 @@
         width={hyperWindowSize - 2 * selectionWidgetThickness}
         height={hyperWindowSize - 2 * selectionWidgetThickness}
         offset={selectionWidgetThickness}
-        spheres={spheres.slice(w.domain.start, w.domain.end)}
+        spheres={spheres.slice(w.domain.start, w.domain.end + 1)}
         selection={w.selection}
         selectionColor={w.selectionColor}
       />
-<!-- <SelectionWidget
-        {width}
-        {height}
-        N={w.binsNum}
-        colors={colorMap.slice(w.domain.start, w.domain.end)}
-        widgetId={i}
-        on:selectionFinished={newSelection}
-        bind:selection={w.selection}
-      /> -->
     </div>
   {/each}
 </div>
