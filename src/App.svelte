@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { generateColors } from "./lib/util";
+  import { generateColors, generateGrayScale, generateNicerColors, getRandomInt } from "./lib/util";
   import SelectionWidget from "./lib/components/SelectionWidget.svelte";
   import SampleScene from "./lib/components/SampleScene.svelte";
   import { onMount } from "svelte";
@@ -13,6 +13,8 @@
   const selectionWidgetThickness = 25;
   let topLevelBinsNum = 500;
   $: colorMap = generateColors(topLevelBinsNum);
+  $: grayColorMap = generateGrayScale(topLevelBinsNum);
+  $: nicerColorMap = generateNicerColors(topLevelBinsNum);
 
   //~ 3D data
   const scale = 0.02;
@@ -35,13 +37,14 @@
         binsNum: sel.end - sel.start,
         domain: { start: offset + sel.start, end: offset + sel.end },
         selection: null,
+        selectionColor: nicerColorMap[getRandomInt(nicerColorMap.length - 1)],
       },
     ];
   };
 
   onMount(() => {
     console.log("onMount");
-
+    
     //~ load the PDB
     spheres = parsePdb(brafl).bins.map(({ x, y, z }) => ({
       x: x * scale,
@@ -59,6 +62,7 @@
           end: topLevelBinsNum - 1,
         },
         selection: null,
+        selectionColor: nicerColorMap[getRandomInt(nicerColorMap.length - 1)],
       },
     ];
   });
@@ -77,13 +81,15 @@
         bind:selection={w.selection}
       /> -->
       
+        <!-- colors={colorMap.slice(w.domain.start, w.domain.end)} -->
       <ArcSelectionWidget
         width={hyperWindowSize}
         height={hyperWindowSize}
         widgetThickness={selectionWidgetThickness}
         N={w.binsNum}
-        colors={colorMap.slice(w.domain.start, w.domain.end)}
+        colors={grayColorMap.slice(w.domain.start, w.domain.end)}
         widgetId={i}
+        selectionColor={w.selectionColor}
         on:selectionFinished={newSelection}
         bind:selection={w.selection}
       />
@@ -93,6 +99,7 @@
         offset={selectionWidgetThickness}
         spheres={spheres.slice(w.domain.start, w.domain.end)}
         selection={w.selection}
+        selectionColor={w.selectionColor}
       />
 <!-- <SelectionWidget
         {width}

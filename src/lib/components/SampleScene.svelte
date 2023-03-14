@@ -12,6 +12,7 @@
     $: spheresCentered = recenter(spheres).map((pos: vec3) => { return {x: pos[0], y: pos[1], z: pos[2]} });
     // export let selection = { start: 0, end: 10};
     export let selection;
+    export let selectionColor;
     // $: selectionRelative = 
 
     const recenter = (
@@ -90,7 +91,7 @@
                 >
                     <T.SphereGeometry />
                     {#if selection != null && i <= selection.end && i >= selection.start}
-                        <T.MeshStandardMaterial color="#0000ff" />
+                        <T.MeshStandardMaterial color={selectionColor} />
                     {:else} 
                         <T.MeshStandardMaterial color="#aaaaaa" />
                     {/if}

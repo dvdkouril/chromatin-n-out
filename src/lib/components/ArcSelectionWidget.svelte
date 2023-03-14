@@ -10,6 +10,7 @@
     export let widgetId;
     export let colors;
     export let selection = null;
+    export let selectionColor;
 
     let selectionInProgress = false;
 
@@ -120,7 +121,7 @@
             <path
                 d={selectionArc}
                 id={"selection-arc"}
-                style="stroke-width: 5px; stroke: blue; fill: none; pointer-events:none"
+                style="stroke-width: 5px; stroke: {selectionColor}; fill: none; pointer-events:none"
             />
             <!-- <rect
                     x={0 + selection.start * pieceSize}
