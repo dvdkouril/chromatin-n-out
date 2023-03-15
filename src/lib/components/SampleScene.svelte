@@ -1,14 +1,14 @@
 <script lang="ts">
     import { Canvas, InteractiveObject, OrbitControls, T } from "@threlte/core";
     import { degToRad } from "three/src/math/MathUtils";
-    import { vec3 } from 'gl-matrix';
+    import { vec3, quat } from 'gl-matrix';
 
     const radiusScale = 0.2;
 
     export let width;
     export let height;
     export let offset;
-    export let spheres = [];
+    export let spheres = [{x: 0, y: 0, z: 0}];
     $: spheresCentered = recenter(spheres).map((pos: vec3) => { return {x: pos[0], y: pos[1], z: pos[2]} });
     // export let selection = { start: 0, end: 10};
     export let selection;
@@ -64,6 +64,14 @@
 
         return atomsNormalized;
     };
+
+    const getRotationFromTwoPositions = (from: vec3, to: vec3) => {
+        const v = vec3.sub(vec3.create(), to, from);
+        const u = vec3.fromValues(0, 1, 0);
+        const rot = quat.rotationTo(quat.create(), u, v);
+        return rot;
+    }
+    
 </script>
 
 <div style="width: {width}px; height: {height}px; margin: {offset}px; z-index: 1;">
@@ -86,11 +94,16 @@
                     position.y={s.y}
                     position.x={s.x}
                     position.z={s.z}
-                    scale={radiusScale}
                     castShadow
+                    scale={radiusScale}
+                    rotation={[0, 0 , 0]}
                     let:ref
                 >
-                    <T.SphereGeometry />
+                    <!-- <T.SphereGeometry /> -->
+                    <!-- CylinderGeometry(radiusTop : Float, radiusBottom : Float, height : Float, radialSegments : Integer, heightSegments : Integer, openEnded : Boolean, thetaStart : Float, thetaLength : Float) -->
+                    <!-- <T.CylinderGeometry /> -->
+                    <T.CylinderGeometry args={[0.3, 0.3, 3]} />
+                    <!-- <T.CylinderGeometry args={[2, 2, 10]} /> -->
                     {#if selection != null && i <= selection.end && i >= selection.start}
                         <!-- <T.MeshStandardMaterial color={selectionColor} /> -->
                         <T.MeshStandardMaterial color={selectionColors[i - selection.start]} />

@@ -70,6 +70,7 @@
   });
 </script>
 
+        <!-- spheres={spheres.slice(w.domain.start, w.domain.end + 1)} -->
 <div id="container" style="display: flex;">
   {#each widgets as w, i}
     <div
