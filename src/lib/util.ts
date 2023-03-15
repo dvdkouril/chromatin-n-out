@@ -16,7 +16,10 @@ export const generateColors = (numOfColors) => {
 };
 
 export const generateGrayScale = (numOfColors) => {
-    return d3.quantize(d3.interpolateGreys, numOfColors);
+    const darkGray = "#919191";
+    const lightGray = "#cdcdcd";
+
+    return d3.quantize(d3.interpolate(lightGray, darkGray), numOfColors);
 }
 
 export const generateNicerColors = (numOfColors) => {
