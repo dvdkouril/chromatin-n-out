@@ -132,4 +132,9 @@
                 /> -->
         {/if}
     </svg>
+    {#if selection != null}
+    <p>
+        Selection: {selection.start} - {selection.end}
+    </p>
+    {/if}
 </div>

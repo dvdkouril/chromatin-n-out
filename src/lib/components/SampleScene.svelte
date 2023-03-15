@@ -13,6 +13,7 @@
     // export let selection = { start: 0, end: 10};
     export let selection;
     export let selectionColor;
+    export let selectionColors;
     // $: selectionRelative = 
 
     const recenter = (
@@ -91,7 +92,8 @@
                 >
                     <T.SphereGeometry />
                     {#if selection != null && i <= selection.end && i >= selection.start}
-                        <T.MeshStandardMaterial color={selectionColor} />
+                        <!-- <T.MeshStandardMaterial color={selectionColor} /> -->
+                        <T.MeshStandardMaterial color={selectionColors[i - selection.start]} />
                     {:else} 
                         <T.MeshStandardMaterial color="#aaaaaa" />
                     {/if}

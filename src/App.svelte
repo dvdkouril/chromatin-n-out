@@ -94,6 +94,7 @@
         spheres={spheres.slice(w.domain.start, w.domain.end + 1)}
         selection={w.selection}
         selectionColor={w.selectionColor}
+        selectionColors={w.selection != null ? nicerColorMap.slice(w.selection.start, w.selection.end + 1) : []}
       />
     </div>
   {/each}
