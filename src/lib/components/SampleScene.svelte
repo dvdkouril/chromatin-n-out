@@ -2,6 +2,7 @@
     import { Canvas, InteractiveObject, OrbitControls, T } from "@threlte/core";
     import { degToRad } from "three/src/math/MathUtils";
     import { vec3, quat } from 'gl-matrix';
+    import { Euler, Quaternion, Vector3 } from "three";
 
     const radiusScale = 0.2;
 
@@ -66,14 +67,42 @@
     };
 
     const getRotationFromTwoPositions = (from: vec3, to: vec3) => {
-        const v = vec3.sub(vec3.create(), to, from);
-        const u = vec3.fromValues(0, 1, 0);
-        const rot = quat.rotationTo(quat.create(), u, v);
+        const q = new Quaternion();
+        const f = new Vector3(from[0], from[1], from[2]);
+        const t = new Vector3(to[0], to[1], to[2]);
+        const u = new Vector3(0, 1, 0);
+        const v = t.sub(f).normalize();
+
+
+        q.setFromUnitVectors(u, v);      
+
+        const eulers = new Euler();
+        return eulers.setFromQuaternion(q);
+
+        // Quaternion.
+    }
+
+    // const getRotationFromTwoPositions = (from: vec3, to: vec3) => {
+    //     const v = vec3.sub(vec3.create(), to, from);
+    //     const u = vec3.fromValues(0, 1, 0);
+    //     const rot = quat.rotationTo(quat.create(), u, v);
+    //     // return rot;
+    //     return new Quaternion(rot[0], rot[1], rot[2], rot[3]);
+
+    //     // Quaternion.
+    // }
+    const getTestQuaternion = () : Quaternion => {
+        return new Quaternion().identity();
+    }
+
+    const getTestRotation = () : Euler => {
+        const rot = new Euler(); 
         return rot;
     }
     
 </script>
 
+                    <!-- quaternion={(i < spheresCentered.length - 1) ? getRotationFromTwoPositions(vec3.fromValues(s.x, s.y, s.z), vec3.fromValues(spheresCentered[i+1].x, spheresCentered[i+1].y, spheresCentered[i+1].z)) : new Quaternion()} -->
 <div style="width: {width}px; height: {height}px; margin: {offset}px; z-index: 1;">
     <Canvas>
         <T.PerspectiveCamera makeDefault position={[10, 10, 20]} fov={24}>
@@ -88,6 +117,9 @@
         <T.DirectionalLight position={[-3, 10, -10]} intensity={0.2} />
         <T.AmbientLight intensity={0.2} />
 
+                    <!-- rotation={[0, 0 , 0]} -->
+                    <!-- rotation={(i < spheresCentered.length - 1) ? getRotationFromTwoPositions(vec3.fromValues(s.x, s.y, s.z), vec3.fromValues(spheresCentered[i+1].x, spheresCentered[i+1].y, spheresCentered[i+1].z)) : new Quaternion()} -->
+                    <!-- quaternion={getRotationFromTwoPositions(vec3.fromValues(1, 0, 0), vec3.fromValues(0, 1, 0))} -->
         <T.Group>
             {#each spheresCentered as s, i}
                 <T.Mesh
@@ -96,7 +128,7 @@
                     position.z={s.z}
                     castShadow
                     scale={radiusScale}
-                    rotation={[0, 0 , 0]}
+                    rotation={(i < spheresCentered.length - 1) ? getRotationFromTwoPositions(vec3.fromValues(s.x, s.y, s.z), vec3.fromValues(spheresCentered[i+1].x, spheresCentered[i+1].y, spheresCentered[i+1].z)).toArray() : new Euler().toArray()}
                     let:ref
                 >
                     <!-- <T.SphereGeometry /> -->
@@ -104,6 +136,24 @@
                     <!-- <T.CylinderGeometry /> -->
                     <T.CylinderGeometry args={[0.3, 0.3, 3]} />
                     <!-- <T.CylinderGeometry args={[2, 2, 10]} /> -->
+                    {#if selection != null && i <= selection.end && i >= selection.start}
+                        <!-- <T.MeshStandardMaterial color={selectionColor} /> -->
+                        <T.MeshStandardMaterial color={selectionColors[i - selection.start]} />
+                    {:else} 
+                        <T.MeshStandardMaterial color="#aaaaaa" />
+                    {/if}
+                </T.Mesh>
+            {/each}
+            {#each spheresCentered as s, i}
+                <T.Mesh
+                    position.y={s.y}
+                    position.x={s.x}
+                    position.z={s.z}
+                    castShadow
+                    scale={radiusScale}
+                    let:ref
+                >
+                    <T.SphereGeometry />
                     {#if selection != null && i <= selection.end && i >= selection.start}
                         <!-- <T.MeshStandardMaterial color={selectionColor} /> -->
                         <T.MeshStandardMaterial color={selectionColors[i - selection.start]} />
