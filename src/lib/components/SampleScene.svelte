@@ -11,6 +11,7 @@
     export let offset;
     export let spheres = [{x: 0, y: 0, z: 0}];
     $: spheresCentered = recenter(spheres).map((pos: vec3) => { return {x: pos[0], y: pos[1], z: pos[2]} });
+    $: tubes = computeTubes(spheresCentered);
     // export let selection = { start: 0, end: 10};
     export let selection;
     export let selectionColor;
@@ -66,12 +67,26 @@
         return atomsNormalized;
     };
 
-    const getRotationFromTwoPositions = (from: vec3, to: vec3) => {
+    const computeTubes = (bins: { x: number; y: number; z: number }[]) => {
+        let tubes = [];
+        for (let i = 0; i < bins.length - 1; i++) {
+            const first = new Vector3(bins[i].x, bins[i].y, bins[i].z);
+            const second = new Vector3(bins[i + 1].x, bins[i + 1].y, bins[i + 1].z);
+
+            const tubePosition = first.add(second.sub(first).divideScalar(2));
+            const tubeRotation = getRotationFromTwoPositions(first, second);
+            tubes.push({position: tubePosition, rotation: tubeRotation});
+        }
+
+        return tubes;
+    }
+
+    const getRotationFromTwoPositions = (from: Vector3, to: Vector3) => {
         const q = new Quaternion();
-        const f = new Vector3(from[0], from[1], from[2]);
-        const t = new Vector3(to[0], to[1], to[2]);
+        // const f = new Vector3(from[0], from[1], from[2]);
+        // const t = new Vector3(to[0], to[1], to[2]);
         const u = new Vector3(0, 1, 0);
-        const v = t.sub(f).normalize();
+        const v = to.sub(from).normalize();
 
 
         q.setFromUnitVectors(u, v);      
@@ -121,14 +136,14 @@
                     <!-- rotation={(i < spheresCentered.length - 1) ? getRotationFromTwoPositions(vec3.fromValues(s.x, s.y, s.z), vec3.fromValues(spheresCentered[i+1].x, spheresCentered[i+1].y, spheresCentered[i+1].z)) : new Quaternion()} -->
                     <!-- quaternion={getRotationFromTwoPositions(vec3.fromValues(1, 0, 0), vec3.fromValues(0, 1, 0))} -->
         <T.Group>
-            {#each spheresCentered as s, i}
+            {#each tubes as tube, i}
                 <T.Mesh
-                    position.y={s.y}
-                    position.x={s.x}
-                    position.z={s.z}
+                    position.y={tube.position.y}
+                    position.x={tube.position.x}
+                    position.z={tube.position.z}
                     castShadow
                     scale={radiusScale}
-                    rotation={(i < spheresCentered.length - 1) ? getRotationFromTwoPositions(vec3.fromValues(s.x, s.y, s.z), vec3.fromValues(spheresCentered[i+1].x, spheresCentered[i+1].y, spheresCentered[i+1].z)).toArray() : new Euler().toArray()}
+                    rotation={tube.rotation.toArray()}
                     let:ref
                 >
                     <!-- <T.SphereGeometry /> -->
@@ -154,6 +169,10 @@
                     let:ref
                 >
                     <T.SphereGeometry />
+                    <!-- CylinderGeometry(radiusTop : Float, radiusBottom : Float, height : Float, radialSegments : Integer, heightSegments : Integer, openEnded : Boolean, thetaStart : Float, thetaLength : Float) -->
+                    <!-- <T.CylinderGeometry /> -->
+                    <!-- <T.CylinderGeometry args={[0.3, 0.3, 3]} /> -->
+                    <!-- <T.CylinderGeometry args={[2, 2, 10]} /> -->
                     {#if selection != null && i <= selection.end && i >= selection.start}
                         <!-- <T.MeshStandardMaterial color={selectionColor} /> -->
                         <T.MeshStandardMaterial color={selectionColors[i - selection.start]} />
