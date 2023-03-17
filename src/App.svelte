@@ -92,8 +92,8 @@
         width={hyperWindowSize - 2 * selectionWidgetThickness}
         height={hyperWindowSize - 2 * selectionWidgetThickness}
         offset={selectionWidgetThickness}
+        spheres={spheres.slice(w.domain.start, w.domain.end + 1)}
         selection={w.selection}
-spheres={spheres.slice(w.domain.start, w.domain.end + 1)}
         selectionColor={w.selectionColor}
         selectionColors={w.selection != null ? nicerColorMap.slice(w.selection.start, w.selection.end + 1) : []}
       />
