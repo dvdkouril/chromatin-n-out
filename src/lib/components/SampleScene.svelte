@@ -6,6 +6,8 @@
     // import { scale } from "svelte/types/runtime/transition";
 
     const radiusScale = 0.1;
+    const sphereRadius = 0.1;
+    const tubeBaseSize = 0.05;
 
     export let width;
     export let height;
@@ -72,74 +74,43 @@
     };
 
     const computeTubes = (bins: { x: number; y: number; z: number }[]) => {
-        let tubes = [];
+        let t = [];
         for (let i = 0; i < bins.length - 1; i++) {
-            // console.log("i = " + i);
             const first = new Vector3(bins[i].x, bins[i].y, bins[i].z);
             const second = new Vector3(bins[i + 1].x, bins[i + 1].y, bins[i + 1].z);
-            // console.log(`first = (${first.x}, ${first.y}, ${first.z})`);
-            // console.log(`second = (${second.x}, ${second.y}, ${second.z})`);
 
+            //~ position between the two bins
             const pos = new Vector3();
             pos.subVectors(second, first);
             pos.divideScalar(2);
             pos.addVectors(first, pos);
             const tubePosition = pos;
-            // const tubePosition = first.add(second.sub(first).divideScalar(2)); //~ LOL, this is actually the source of a bug in computing the rotation
+            //~ rotation
             const tubeRotation = getRotationFromTwoPositions(first, second);
-            // const tubeRotation = new Euler();
+            //~ tube length
             const betweenVec = new Vector3();
             betweenVec.subVectors(second, first);
             const tubeScale = betweenVec.length(); 
-            tubes.push({position: tubePosition, rotation: tubeRotation, scale: tubeScale});
+
+            t.push({position: tubePosition, rotation: tubeRotation, scale: tubeScale});
         }
 
-        return tubes;
+        console.log(t);
+        return t;
     }
 
     const getRotationFromTwoPositions = (from: Vector3, to: Vector3) => {
-        // console.log(`from = (${from.x}, ${from.y}, ${from.z})`);
-        // console.log(`to = (${to.x}, ${to.y}, ${to.z})`);
-
+        const fromCopy = new Vector3(from.x, from.y, from.z);
+        const toCopy = new Vector3(to.x, to.y, to.z);
         let q = new Quaternion();
-        // const f = new Vector3(from[0], from[1], from[2]);
-        // const t = new Vector3(to[0], to[1], to[2]);
         const u = new Vector3(0, 1, 0);
-        const v = to.sub(from).normalize();
-        // let v = to.sub(from);
-        // let v = new Vector3(to.x - from.x, to.y - from.y, to.z - from.z);
-        // v = v.subVectors(to, from);
-        // v = v.normalize();
-
-        // console.log(`u = (${u.x}, ${u.y}, ${u.z})`);
-        // console.log(`v = (${v.x}, ${v.y}, ${v.z})`);
+        const v = toCopy.sub(fromCopy).normalize();
 
         q.setFromUnitVectors(u, v);      
 
         const eulers = new Euler();
         return eulers.setFromQuaternion(q);
-        // return eulers;
-
-        // Quaternion.
-    }
-
-    // const getRotationFromTwoPositions = (from: vec3, to: vec3) => {
-    //     const v = vec3.sub(vec3.create(), to, from);
-    //     const u = vec3.fromValues(0, 1, 0);
-    //     const rot = quat.rotationTo(quat.create(), u, v);
-    //     // return rot;
-    //     return new Quaternion(rot[0], rot[1], rot[2], rot[3]);
-
-    //     // Quaternion.
-    // }
-    const getTestQuaternion = () : Quaternion => {
-        return new Quaternion().identity();
-    }
-
-    const getTestRotation = () : Euler => {
-        const rot = new Euler(); 
-        return rot;
-    }
+    } 
     
 </script>
 
@@ -158,25 +129,16 @@
         <T.DirectionalLight castShadow position={[3, 10, 10]} />
         <T.DirectionalLight position={[-3, 10, -10]} intensity={0.2} />
         <T.AmbientLight intensity={0.2} />
-
-                    <!-- rotation={[0, 0 , 0]} -->
-                    <!-- rotation={(i < spheresCentered.length - 1) ? getRotationFromTwoPositions(vec3.fromValues(s.x, s.y, s.z), vec3.fromValues(spheresCentered[i+1].x, spheresCentered[i+1].y, spheresCentered[i+1].z)) : new Quaternion()} -->
-                    <!-- quaternion={getRotationFromTwoPositions(vec3.fromValues(1, 0, 0), vec3.fromValues(0, 1, 0))} -->
+ 
         <T.Group>
             {#each tubes as tube, i}
-                <T.Mesh
-                    position.y={tube.position.y}
-                    position.x={tube.position.x}
-                    position.z={tube.position.z}
+                <T.Mesh position={tube.position.toArray()}
                     castShadow
                     rotation={tube.rotation.toArray()}
                     let:ref
                 >
-                    <!-- <T.SphereGeometry /> -->
-                    <!-- CylinderGeometry(radiusTop : Float, radiusBottom : Float, height : Float, radialSegments : Integer, heightSegments : Integer, openEnded : Boolean, thetaStart : Float, thetaLength : Float) -->
-                    <!-- <T.CylinderGeometry /> -->
-                    <T.CylinderGeometry args={[0.01, 0.01, tube.scale]} />
-                    <!-- <T.CylinderGeometry args={[2, 2, 10]} /> -->
+                    
+                    <T.CylinderGeometry args={[tubeBaseSize, tubeBaseSize, tube.scale]} />
                     {#if selection != null && i <= selection.end && i >= selection.start}
                         <!-- <T.MeshStandardMaterial color={selectionColor} /> -->
                         <T.MeshStandardMaterial color={selectionColors[i - selection.start]} />
@@ -191,14 +153,9 @@
                     position.x={s.x}
                     position.z={s.z}
                     castShadow
-                    scale={radiusScale}
                     let:ref
                 >
-                    <T.SphereGeometry />
-                    <!-- CylinderGeometry(radiusTop : Float, radiusBottom : Float, height : Float, radialSegments : Integer, heightSegments : Integer, openEnded : Boolean, thetaStart : Float, thetaLength : Float) -->
-                    <!-- <T.CylinderGeometry /> -->
-                    <!-- <T.CylinderGeometry args={[0.3, 0.3, 3]} /> -->
-                    <!-- <T.CylinderGeometry args={[2, 2, 10]} /> -->
+                    <T.SphereGeometry args={[sphereRadius]} />
                     {#if selection != null && i <= selection.end && i >= selection.start}
                         <!-- <T.MeshStandardMaterial color={selectionColor} /> -->
                         <T.MeshStandardMaterial color={selectionColors[i - selection.start]} />
@@ -208,13 +165,9 @@
                 </T.Mesh>
             {/each}
         </T.Group>
-
-        <!-- Floor -->
-        <!-- <T.Mesh receiveShadow rotation.x={degToRad(-90)}>
-            <T.CircleGeometry args={[3, 72]} />
-            <T.MeshStandardMaterial color="#333333" />
-        </T.Mesh> -->
     </Canvas>
+    <p># spheres = {spheres.length}</p>
+    <p># tubes = {tubes.length}</p>
 </div>
 
 <style>
