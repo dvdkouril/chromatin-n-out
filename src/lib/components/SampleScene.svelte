@@ -166,8 +166,8 @@
             {/each}
         </T.Group>
     </Canvas>
-    <p># spheres = {spheres.length}</p>
-    <p># tubes = {tubes.length}</p>
+    <!-- <p># spheres = {spheres.length}</p> -->
+    <!-- <p># tubes = {tubes.length}</p> -->
 </div>
 
 <style>
