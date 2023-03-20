@@ -12,6 +12,7 @@
   import { parsePdb } from "./lib/pdb";
   import { brafl } from "./lib/test_BRAFL";
   import ArcSelectionWidget from "./lib/components/ArcSelectionWidget.svelte";
+    import { fade } from 'svelte/transition';
 
   const hyperWindowSize = 500;
   const selectionWidgetThickness = 25;
@@ -74,6 +75,7 @@
 <div id="container" style="display: flex;">
   {#each widgets as w, i}
     <div
+      transition:fade={{duration: 2000}}
       class="widget-3d-combo"
       style="display: block; width: 100%; height: 100%, position: relative;"
     >
