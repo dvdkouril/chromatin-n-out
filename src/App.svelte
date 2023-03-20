@@ -12,6 +12,7 @@
   import { parsePdb } from "./lib/pdb";
   import { brafl } from "./lib/test_BRAFL";
   import ArcSelectionWidget from "./lib/components/ArcSelectionWidget.svelte";
+    import ForceTest from "./lib/components/ForceTest.svelte";
     import { fade } from 'svelte/transition';
 
   const hyperWindowSize = 500;
@@ -102,6 +103,7 @@
     </div>
   {/each}
 </div>
+<ForceTest />
 <main />
 
 <style>
