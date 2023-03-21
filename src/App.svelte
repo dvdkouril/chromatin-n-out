@@ -14,6 +14,7 @@
   import ArcSelectionWidget from "./lib/components/ArcSelectionWidget.svelte";
     import ForceTest from "./lib/components/ForceTest.svelte";
     import { fade } from 'svelte/transition';
+    import { WebGLMultipleRenderTargets } from "three";
 
   const hyperWindowSize = 500;
   const selectionWidgetThickness = 25;
@@ -43,7 +44,7 @@
         domain: { start: offset + sel.start, end: offset + sel.end },
         selection: null,
         selections: [],
-        selectionColor: randomNiceColor(),
+        // selectionColor: randomNiceColor(),
       },
     ];
   };
@@ -70,7 +71,7 @@
         selection: null,
         selections: [],
         // selections: [{start: 0, end: 10}, {start: 50, end: 100}], //~ test init data
-        selectionColor: randomNiceColor(),
+        // selectionColor: randomNiceColor(),
       },
     ];
   });
@@ -91,9 +92,7 @@
         N={w.binsNum}
         colors={grayColorMap.slice(w.domain.start, w.domain.end + 1)}
         widgetId={i}
-        selectionColor={w.selectionColor}
         on:selectionFinished={newSelection}
-        bind:selection={w.selection}
         bind:selections={w.selections}
       />
       <SampleScene
@@ -101,14 +100,33 @@
         height={hyperWindowSize - 2 * selectionWidgetThickness}
         offset={selectionWidgetThickness}
         spheres={spheres.slice(w.domain.start, w.domain.end + 1)}
-        selection={w.selection}
-        selectionColor={w.selectionColor}
-        selectionColors={w.selection != null ? nicerColorMap.slice(w.selection.start, w.selection.end + 1) : []}
+        bind:selections={w.selections}
       />
     </div>
   {/each}
+  
+<!-- {#if selections.length > 0}
+    <p>
+        Selections: {selections.map((sel) => { return "[" + sel.start.toString() + " - " + sel.end.toString() + "]"})}
+    </p>
+    {/if} -->
+
 </div>
-<ForceTest />
+<div style="width: 300px;">
+    <h3>debug</h3>
+    <ul>
+    {#each widgets as widget}
+      <li>{widget.binsNum}
+        <ul>
+          {#each widget.selections as sel}
+            <li>{ "[" + sel.start.toString() + " - " + sel.end.toString() + "]"} <span style="background-color: {sel.color}">{sel.color}</span></li>
+          {/each}
+        </ul>
+      </li>
+    {/each}
+    </ul>
+  </div>
+<!-- <ForceTest /> -->
 <main />
 
 <style>

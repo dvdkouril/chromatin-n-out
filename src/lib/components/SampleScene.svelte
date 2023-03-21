@@ -19,10 +19,10 @@
     $: spheresCentered = recenter(spheres).map((pos: vec3) => { return {x: pos[0], y: pos[1], z: pos[2]} });
     $: tubes = computeTubes(spheresCentered);
     // export let selection = { start: 0, end: 10};
-    export let selection;
-    export let selectionColor;
-    export let selectionColors;
-    // $: selectionRelative = 
+    // export let selection;
+    // export let selectionColor;
+    // export let selectionColors;
+    export let selections;
 
     const recenter = (
         ogPositions: { x: number; y: number; z: number }[]
@@ -95,7 +95,7 @@
             t.push({position: tubePosition, rotation: tubeRotation, scale: tubeScale});
         }
 
-        console.log(t);
+        // console.log(t);
         return t;
     }
 
@@ -111,6 +111,16 @@
         const eulers = new Euler();
         return eulers.setFromQuaternion(q);
     } 
+
+    const getSelectionOrBaseColor = (binId: number) => { 
+        for (let sel of selections) {
+            if ((binId <= sel.end) && (binId >= sel.start)) {
+                console.log("TESTTTTTTTTTTTT");
+                return sel.color;
+            }
+        }
+        return "#aaaaaa";
+    }
     
 </script>
 
@@ -139,12 +149,12 @@
                 >
                     
                     <T.CylinderGeometry args={[tubeBaseSize, tubeBaseSize, tube.scale]} />
-                    {#if selection != null && i <= selection.end && i >= selection.start}
-                        <!-- <T.MeshStandardMaterial color={selectionColor} /> -->
-                        <T.MeshStandardMaterial color={selectionColors[i - selection.start]} />
-                    {:else} 
-                        <T.MeshStandardMaterial color="#aaaaaa" />
-                    {/if}
+                    <!-- {#if selection != null && i <= selection.end && i >= selection.start} -->
+                        <!-- <T.MeshStandardMaterial color={selectionColors[i - selection.start]} /> -->
+                    <!-- {:else}  -->
+                        <!-- <T.MeshStandardMaterial color="#aaaaaa" /> -->
+                    <!-- {/if} -->
+                    <T.MeshStandardMaterial color={getSelectionOrBaseColor(i)} />
                 </T.Mesh>
             {/each}
             {#each spheresCentered as s, i}
@@ -156,12 +166,12 @@
                     let:ref
                 >
                     <T.SphereGeometry args={[sphereRadius]} />
-                    {#if selection != null && i <= selection.end && i >= selection.start}
-                        <!-- <T.MeshStandardMaterial color={selectionColor} /> -->
+                    <!-- {#if selection != null && i <= selection.end && i >= selection.start}
                         <T.MeshStandardMaterial color={selectionColors[i - selection.start]} />
-                    {:else} 
-                        <T.MeshStandardMaterial color="#aaaaaa" />
-                    {/if}
+                    {:else}  -->
+                        <!-- <T.MeshStandardMaterial color="#aaaaaa" /> -->
+                    <!-- {/if} -->
+                    <T.MeshStandardMaterial color={getSelectionOrBaseColor(i)} />
                 </T.Mesh>
             {/each}
         </T.Group>
@@ -169,6 +179,7 @@
     <!-- <p># spheres = {spheres.length}</p> -->
     <!-- <p># tubes = {tubes.length}</p> -->
 </div>
+<div>TEST</div>
 
 <style>
     div {
