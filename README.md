@@ -17,3 +17,6 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
 - [ ] arc selection widget + 3D view overlaid
     - [ ] figure out how to propagate mousedown/up/move events through svg to threlte canvas
 - [ ] non-uniform, interactive and fluid layouting of 3D+widget
+
+### too small to care
+- [ ] base arc widget colormap should always go from light gray to dark gray (don't take the slice of colormap because then you can't see the data segments)
