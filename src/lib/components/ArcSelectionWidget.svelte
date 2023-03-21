@@ -10,6 +10,7 @@
     export let widgetId;
     export let colors;
     export let selection = null;
+    export let selections = [];
     export let selectionColor;
 
     let selectionInProgress = false;
@@ -22,14 +23,6 @@
     export let widgetThickness = 25;
 
     const arcGen = arc();
-
-    // $: arcPath = arcGen({
-    //     innerRadius: 0,
-    //     outerRadius: 100,
-    //     startAngle: 0,
-    //     endAngle: Math.PI / 4, // radians
-    // });
-
     $: arcs = pie()(bins);
 
     $: segments = arcs.map((arc) => {
@@ -54,14 +47,30 @@
             // endAngle: Math.PI / 4, // radians
         }) : "";
 
+    $: selectionsArcs = selections.map((sel) => arcGen({
+            innerRadius: radius - widgetThickness,
+            outerRadius: radius,
+            startAngle: arcs[sel.start].startAngle,
+            endAngle: arcs[sel.end].endAngle,
+        }));
+    // $: selectionsArcs = (selections.length > 0) ?
+    //     arcGen({
+    //         innerRadius: radius - widgetThickness,
+    //         outerRadius: radius,
+    //         startAngle: arcs[selection.start].startAngle,
+    //         endAngle: arcs[selection.end].endAngle,
+    //     }) : "";
+
     const mouseOvered = (event) => {
         if (selectionInProgress) {
             const binId = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
             //~ figure out which direction the selection is
             if (binId < selection.start) {
                 selection = { ...selection, start: binId };
+                selections.push({ ...selection, start: binId });
             } else {
                 selection = { ...selection, end: binId };
+                selections.push({ ...selection, end: binId });
             }
         }
     };
@@ -70,6 +79,7 @@
         console.log("Widget: mouse Down");
         const binId = event.target.id.split("-")[1];
         selection = { start: parseInt(binId), end: parseInt(binId) };
+        selections.push({ start: parseInt(binId), end: parseInt(binId) });
         selectionInProgress = true;
     };
 
@@ -122,14 +132,16 @@
                 d={selectionArc}
                 id={"selection-arc"}
                 style="stroke-width: 5px; stroke: {selectionColor}; fill: none; pointer-events:none"
-            />
-            <!-- <rect
-                    x={0 + selection.start * pieceSize}
-                    y={0}
-                    width={(selection.end - selection.start) * pieceSize}
-                    {height}
-                    style="stroke-width: 5px; stroke: blue; fill: none; pointer-events:none"
-                /> -->
+            /> 
+        {/if}
+        {#if selections.length > 0}
+            {#each selectionsArcs as selArc, i}
+                <path
+                    d={selArc}
+                    id={"selection-arc-" + i}
+                    style="stroke-width: 5px; stroke: {selectionColor}; fill: none; pointer-events:none"
+                />
+            {/each}
         {/if}
     </svg>
     {#if selection != null}

@@ -35,12 +35,14 @@
     const sourceWidget = widgets[sourceWidgetId];
     const offset = sourceWidget.domain.start;
 
+    //~ spawns new widget
     widgets = [
       ...widgets.slice(0, sourceWidgetId + 1),
       {
         binsNum: sel.end - sel.start,
         domain: { start: offset + sel.start, end: offset + sel.end },
         selection: null,
+        selections: [],
         selectionColor: randomNiceColor(),
       },
     ];
@@ -66,6 +68,8 @@
           end: topLevelBinsNum - 1,
         },
         selection: null,
+        selections: [],
+        // selections: [{start: 0, end: 10}, {start: 50, end: 100}], //~ test init data
         selectionColor: randomNiceColor(),
       },
     ];
@@ -90,6 +94,7 @@
         selectionColor={w.selectionColor}
         on:selectionFinished={newSelection}
         bind:selection={w.selection}
+        bind:selections={w.selections}
       />
       <SampleScene
         width={hyperWindowSize - 2 * selectionWidgetThickness}
