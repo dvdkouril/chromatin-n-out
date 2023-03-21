@@ -77,13 +77,14 @@
             const binId = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
             const lastIndex = selections.length - 1;
             const activeSelection = selections.slice(-1)[0];
+            const selectionsMinusLast = selections.slice(0, selections.length - 1);
             //~ figure out which direction the selection is
             if (binId < activeSelection.start) {
-                // selection = { ...selection, start: binId };
-                selections[lastIndex] = { ...activeSelection, start: binId };
+                // selections[lastIndex] = { ...activeSelection, start: binId };
+                selections = [...selectionsMinusLast, {...activeSelection, start: binId}];
             } else {
-                // selection = { ...selection, end: binId };
-                selections[lastIndex] = { ...activeSelection, end: binId };
+                // selections[lastIndex] = { ...activeSelection, end: binId };
+                selections = [...selectionsMinusLast, {...activeSelection, end: binId}];
             }
         }
     };

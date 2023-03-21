@@ -112,8 +112,8 @@
         return eulers.setFromQuaternion(q);
     } 
 
-    const getSelectionOrBaseColor = (binId: number) => { 
-        for (let sel of selections) {
+    const getSelectionOrBaseColor = (sels, binId: number) => { 
+        for (let sel of sels) {
             if ((binId <= sel.end) && (binId >= sel.start)) {
                 console.log("TESTTTTTTTTTTTT");
                 return sel.color;
@@ -154,7 +154,7 @@
                     <!-- {:else}  -->
                         <!-- <T.MeshStandardMaterial color="#aaaaaa" /> -->
                     <!-- {/if} -->
-                    <T.MeshStandardMaterial color={getSelectionOrBaseColor(i)} />
+                    <T.MeshStandardMaterial color={getSelectionOrBaseColor(selections, i)} />
                 </T.Mesh>
             {/each}
             {#each spheresCentered as s, i}
@@ -171,7 +171,7 @@
                     {:else}  -->
                         <!-- <T.MeshStandardMaterial color="#aaaaaa" /> -->
                     <!-- {/if} -->
-                    <T.MeshStandardMaterial color={getSelectionOrBaseColor(i)} />
+                    <T.MeshStandardMaterial color={getSelectionOrBaseColor(selections, i)} />
                 </T.Mesh>
             {/each}
         </T.Group>
@@ -179,7 +179,7 @@
     <!-- <p># spheres = {spheres.length}</p> -->
     <!-- <p># tubes = {tubes.length}</p> -->
 </div>
-<div>TEST</div>
+<div>TEST: {selections.length}</div>
 
 <style>
     div {
