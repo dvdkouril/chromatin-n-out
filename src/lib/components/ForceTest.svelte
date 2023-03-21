@@ -23,9 +23,7 @@
             .on("tick", ticked);
     });
 
-    const ticked = (d) => {
-        
-    };
+    const ticked = () => {};
 </script>
 
 <div id="force-test">
