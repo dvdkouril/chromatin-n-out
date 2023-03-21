@@ -63,14 +63,27 @@
 
     const mouseOvered = (event) => {
         if (selectionInProgress) {
+            console.log("mouse overed");
             const binId = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
             //~ figure out which direction the selection is
             if (binId < selection.start) {
                 selection = { ...selection, start: binId };
-                selections.push({ ...selection, start: binId });
             } else {
                 selection = { ...selection, end: binId };
-                selections.push({ ...selection, end: binId });
+            }
+        }
+        //~ multiple selections version
+        if (selectionInProgress) {
+            const binId = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+            const lastIndex = selections.length - 1;
+            const activeSelection = selections.slice(-1)[0];
+            //~ figure out which direction the selection is
+            if (binId < activeSelection.start) {
+                // selection = { ...selection, start: binId };
+                selections[lastIndex] = { ...activeSelection, start: binId };
+            } else {
+                // selection = { ...selection, end: binId };
+                selections[lastIndex] = { ...activeSelection, end: binId };
             }
         }
     };
