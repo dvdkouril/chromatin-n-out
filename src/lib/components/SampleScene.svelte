@@ -18,10 +18,6 @@
     export let spheres = [{x: 0, y: 0, z: 0}, {x: 1, y: 0, z: 0}, {x: 1, y: 1, z: 0}, {x: 0, y: 1, z: 0}];
     $: spheresCentered = recenter(spheres).map((pos: vec3) => { return {x: pos[0], y: pos[1], z: pos[2]} });
     $: tubes = computeTubes(spheresCentered);
-    // export let selection = { start: 0, end: 10};
-    // export let selection;
-    // export let selectionColor;
-    // export let selectionColors;
     export let selections;
 
     const recenter = (
@@ -115,7 +111,6 @@
     const getSelectionOrBaseColor = (sels, binId: number) => { 
         for (let sel of sels) {
             if ((binId <= sel.end) && (binId >= sel.start)) {
-                console.log("TESTTTTTTTTTTTT");
                 return sel.color;
             }
         }
@@ -149,11 +144,6 @@
                 >
                     
                     <T.CylinderGeometry args={[tubeBaseSize, tubeBaseSize, tube.scale]} />
-                    <!-- {#if selection != null && i <= selection.end && i >= selection.start} -->
-                        <!-- <T.MeshStandardMaterial color={selectionColors[i - selection.start]} /> -->
-                    <!-- {:else}  -->
-                        <!-- <T.MeshStandardMaterial color="#aaaaaa" /> -->
-                    <!-- {/if} -->
                     <T.MeshStandardMaterial color={getSelectionOrBaseColor(selections, i)} />
                 </T.Mesh>
             {/each}
@@ -166,20 +156,13 @@
                     let:ref
                 >
                     <T.SphereGeometry args={[sphereRadius]} />
-                    <!-- {#if selection != null && i <= selection.end && i >= selection.start}
-                        <T.MeshStandardMaterial color={selectionColors[i - selection.start]} />
-                    {:else}  -->
-                        <!-- <T.MeshStandardMaterial color="#aaaaaa" /> -->
-                    <!-- {/if} -->
                     <T.MeshStandardMaterial color={getSelectionOrBaseColor(selections, i)} />
                 </T.Mesh>
             {/each}
         </T.Group>
     </Canvas>
-    <!-- <p># spheres = {spheres.length}</p> -->
-    <!-- <p># tubes = {tubes.length}</p> -->
 </div>
-<div>TEST: {selections.length}</div>
+<div># selections: {selections.length}</div>
 
 <style>
     div {

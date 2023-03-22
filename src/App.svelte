@@ -3,18 +3,13 @@
     generateColors,
     generateGrayScale,
     generateNicerColors,
-    getRandomInt,
-    randomNiceColor,
   } from "./lib/util";
-  import SelectionWidget from "./lib/components/SelectionWidget.svelte";
   import SampleScene from "./lib/components/SampleScene.svelte";
   import { onMount } from "svelte";
   import { parsePdb } from "./lib/pdb";
   import { brafl } from "./lib/test_BRAFL";
   import ArcSelectionWidget from "./lib/components/ArcSelectionWidget.svelte";
-    import ForceTest from "./lib/components/ForceTest.svelte";
-    import { fade } from 'svelte/transition';
-    import { WebGLMultipleRenderTargets } from "three";
+  import { fade } from 'svelte/transition';
 
   const hyperWindowSize = 500;
   const selectionWidgetThickness = 25;
@@ -37,22 +32,11 @@
     const offset = sourceWidget.domain.start;
 
     //~ spawns new widget
-    // widgets = [
-    //   ...widgets.slice(0, sourceWidgetId + 1),
-    //   {
-    //     binsNum: sel.end - sel.start,
-    //     domain: { start: offset + sel.start, end: offset + sel.end },
-    //     selection: null,
-    //     selections: [],
-    //   },
-    // ];
-
     widgets = [
       ...widgets,
       {
         binsNum: sel.end - sel.start,
         domain: { start: offset + sel.start, end: offset + sel.end },
-        selection: null,
         selections: [],
       },
     ];
@@ -77,16 +61,12 @@
           start: 0,
           end: topLevelBinsNum - 1,
         },
-        selection: null,
         selections: [],
-        // selections: [{start: 0, end: 10}, {start: 50, end: 100}], //~ test init data
-        // selectionColor: randomNiceColor(),
       },
     ];
   });
 </script>
 
-        <!-- spheres={spheres.slice(w.domain.start, w.domain.end + 1)} -->
 <div id="container" style="display: flex;">
   {#each widgets as w, i}
     <div
@@ -94,6 +74,7 @@
       class="widget-3d-combo"
       style="display: block; width: 100%; height: 100%, position: relative;"
     >
+    <!-- TODO: extract into HyperWindow component -->
       <ArcSelectionWidget
         width={hyperWindowSize}
         height={hyperWindowSize}
@@ -114,12 +95,6 @@
     </div>
   {/each}
   
-<!-- {#if selections.length > 0}
-    <p>
-        Selections: {selections.map((sel) => { return "[" + sel.start.toString() + " - " + sel.end.toString() + "]"})}
-    </p>
-    {/if} -->
-
 </div>
 <div style="width: 300px;">
     <h3>debug</h3>
