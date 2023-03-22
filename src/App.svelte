@@ -37,14 +37,23 @@
     const offset = sourceWidget.domain.start;
 
     //~ spawns new widget
+    // widgets = [
+    //   ...widgets.slice(0, sourceWidgetId + 1),
+    //   {
+    //     binsNum: sel.end - sel.start,
+    //     domain: { start: offset + sel.start, end: offset + sel.end },
+    //     selection: null,
+    //     selections: [],
+    //   },
+    // ];
+
     widgets = [
-      ...widgets.slice(0, sourceWidgetId + 1),
+      ...widgets,
       {
         binsNum: sel.end - sel.start,
         domain: { start: offset + sel.start, end: offset + sel.end },
         selection: null,
         selections: [],
-        // selectionColor: randomNiceColor(),
       },
     ];
   };
