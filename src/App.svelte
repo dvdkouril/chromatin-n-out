@@ -10,6 +10,7 @@
   import { brafl } from "./lib/test_BRAFL";
   import ArcSelectionWidget from "./lib/components/ArcSelectionWidget.svelte";
   import { fade } from 'svelte/transition';
+  import HyperWindow from "./lib/components/HyperWindow.svelte";
 
   const hyperWindowSize = 500;
   const selectionWidgetThickness = 25;
@@ -21,6 +22,10 @@
   const scale = 0.02;
   let spheres = [];
   let widgets = [];
+  let widgetHierarchy = [];
+  /*
+  widgetHierarchy = [[{}], [{}, {}], [{}, {}, {}]]
+  */
   let topLevelBinsNum = 0;
 
   const newSelection = (ev) => {
@@ -93,9 +98,22 @@
         bind:selections={w.selections}
       />
     </div>
-  {/each}
-  
+  {/each} 
 </div>
+
+<!-- columns test -->
+<div id="flex-container" style="display: flex;">
+  <HyperWindow />
+  {#each widgetHierarchy as widgetsColumn}
+    <div class="widgets-column">
+      {#each widgetsColumn as widget}
+        <HyperWindow />
+      {/each}
+    </div>
+  {/each}
+</div>
+
+<!-- DEBUG INFORMATION -->
 <div style="width: 300px;">
     <h3>debug</h3>
     <ul>
