@@ -3,17 +3,13 @@
     generateColors,
     generateGrayScale,
     generateNicerColors,
-    getRandomInt,
-    randomNiceColor,
   } from "./lib/util";
-  import SelectionWidget from "./lib/components/SelectionWidget.svelte";
   import SampleScene from "./lib/components/SampleScene.svelte";
   import { onMount } from "svelte";
   import { parsePdb } from "./lib/pdb";
   import { brafl } from "./lib/test_BRAFL";
   import ArcSelectionWidget from "./lib/components/ArcSelectionWidget.svelte";
-    import ForceTest from "./lib/components/ForceTest.svelte";
-    import { fade } from 'svelte/transition';
+  import { fade } from 'svelte/transition';
 
   const hyperWindowSize = 500;
   const selectionWidgetThickness = 25;
@@ -35,13 +31,13 @@
     const sourceWidget = widgets[sourceWidgetId];
     const offset = sourceWidget.domain.start;
 
+    //~ spawns new widget
     widgets = [
-      ...widgets.slice(0, sourceWidgetId + 1),
+      ...widgets,
       {
         binsNum: sel.end - sel.start,
         domain: { start: offset + sel.start, end: offset + sel.end },
-        selection: null,
-        selectionColor: randomNiceColor(),
+        selections: [],
       },
     ];
   };
@@ -65,14 +61,12 @@
           start: 0,
           end: topLevelBinsNum - 1,
         },
-        selection: null,
-        selectionColor: randomNiceColor(),
+        selections: [],
       },
     ];
   });
 </script>
 
-        <!-- spheres={spheres.slice(w.domain.start, w.domain.end + 1)} -->
 <div id="container" style="display: flex;">
   {#each widgets as w, i}
     <div
@@ -80,6 +74,7 @@
       class="widget-3d-combo"
       style="display: block; width: 100%; height: 100%, position: relative;"
     >
+    <!-- TODO: extract into HyperWindow component -->
       <ArcSelectionWidget
         width={hyperWindowSize}
         height={hyperWindowSize}
@@ -87,23 +82,35 @@
         N={w.binsNum}
         colors={grayColorMap.slice(w.domain.start, w.domain.end + 1)}
         widgetId={i}
-        selectionColor={w.selectionColor}
         on:selectionFinished={newSelection}
-        bind:selection={w.selection}
+        bind:selections={w.selections}
       />
       <SampleScene
         width={hyperWindowSize - 2 * selectionWidgetThickness}
         height={hyperWindowSize - 2 * selectionWidgetThickness}
         offset={selectionWidgetThickness}
         spheres={spheres.slice(w.domain.start, w.domain.end + 1)}
-        selection={w.selection}
-        selectionColor={w.selectionColor}
-        selectionColors={w.selection != null ? nicerColorMap.slice(w.selection.start, w.selection.end + 1) : []}
+        bind:selections={w.selections}
       />
     </div>
   {/each}
+  
 </div>
-<ForceTest />
+<div style="width: 300px;">
+    <h3>debug</h3>
+    <ul>
+    {#each widgets as widget}
+      <li>{widget.binsNum}
+        <ul>
+          {#each widget.selections as sel}
+            <li>{ "[" + sel.start.toString() + " - " + sel.end.toString() + "]"} <span style="background-color: {sel.color}">{sel.color}</span></li>
+          {/each}
+        </ul>
+      </li>
+    {/each}
+    </ul>
+  </div>
+<!-- <ForceTest /> -->
 <main />
 
 <style>
