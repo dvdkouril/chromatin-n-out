@@ -4,12 +4,9 @@
     generateGrayScale,
     generateNicerColors,
   } from "./lib/util";
-  import SampleScene from "./lib/components/SampleScene.svelte";
   import { onMount } from "svelte";
   import { parsePdb } from "./lib/pdb";
   import { brafl } from "./lib/test_BRAFL";
-  import ArcSelectionWidget from "./lib/components/ArcSelectionWidget.svelte";
-  import { fade } from 'svelte/transition';
   import HyperWindow from "./lib/components/HyperWindow.svelte";
 
   const hyperWindowSize = 500;
@@ -22,7 +19,7 @@
   const scale = 0.02;
   let spheres = [];
   let widgets = [];
-  let widgetHierarchy = [];
+  let widgetHierarchy = [[{}], [{}, {}], [{}, {}, {}]];
   /*
   widgetHierarchy = [[{}], [{}, {}], [{}, {}, {}]]
   */
@@ -40,6 +37,7 @@
     widgets = [
       ...widgets,
       {
+        id: sourceWidgetId + 1,
         binsNum: sel.end - sel.start,
         domain: { start: offset + sel.start, end: offset + sel.end },
         selections: [],
@@ -61,6 +59,7 @@
 
     widgets = [
       {
+        id: 0,
         binsNum: topLevelBinsNum,
         domain: {
           start: 0,
@@ -74,36 +73,18 @@
 
 <div id="container" style="display: flex;">
   {#each widgets as w, i}
-    <div
-      transition:fade={{duration: 2000}}
-      class="widget-3d-combo"
-      style="display: block; width: 100%; height: 100%, position: relative;"
-    >
-    <!-- TODO: extract into HyperWindow component -->
-      <ArcSelectionWidget
-        width={hyperWindowSize}
-        height={hyperWindowSize}
-        widgetThickness={selectionWidgetThickness}
-        N={w.binsNum}
-        colors={grayColorMap.slice(w.domain.start, w.domain.end + 1)}
-        widgetId={i}
-        on:selectionFinished={newSelection}
-        bind:selections={w.selections}
-      />
-      <SampleScene
-        width={hyperWindowSize - 2 * selectionWidgetThickness}
-        height={hyperWindowSize - 2 * selectionWidgetThickness}
-        offset={selectionWidgetThickness}
-        spheres={spheres.slice(w.domain.start, w.domain.end + 1)}
-        bind:selections={w.selections}
-      />
-    </div>
-  {/each} 
+    <HyperWindow
+      widget={w}
+      {hyperWindowSize}
+      {selectionWidgetThickness}
+      newSelectionCallback={newSelection}
+      bins={spheres.slice(w.domain.start, w.domain.end + 1)}
+    />
+  {/each}
 </div>
 
 <!-- columns test -->
-<div id="flex-container" style="display: flex;">
-  <HyperWindow />
+<!-- <div id="flex-container" style="display: flex;">
   {#each widgetHierarchy as widgetsColumn}
     <div class="widgets-column">
       {#each widgetsColumn as widget}
@@ -111,23 +92,27 @@
       {/each}
     </div>
   {/each}
-</div>
+</div> -->
 
 <!-- DEBUG INFORMATION -->
 <div style="width: 300px;">
-    <h3>debug</h3>
-    <ul>
+  <h3>debug</h3>
+  <ul>
     {#each widgets as widget}
-      <li>{widget.binsNum}
+      <li>
+        {widget.binsNum}
         <ul>
           {#each widget.selections as sel}
-            <li>{ "[" + sel.start.toString() + " - " + sel.end.toString() + "]"} <span style="background-color: {sel.color}">{sel.color}</span></li>
+            <li>
+              {"[" + sel.start.toString() + " - " + sel.end.toString() + "]"}
+              <span style="background-color: {sel.color}">{sel.color}</span>
+            </li>
           {/each}
         </ul>
       </li>
     {/each}
-    </ul>
-  </div>
+  </ul>
+</div>
 <!-- <ForceTest /> -->
 <main />
 
