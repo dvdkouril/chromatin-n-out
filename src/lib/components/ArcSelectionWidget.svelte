@@ -8,9 +8,10 @@
     export let width;
     export let height;
     export let N;
-    export let widgetId;
+    // export let widgetId;
     export let colors;
     export let selections = [];
+    export let widget;
 
     let selectionInProgress = false;
 
@@ -69,7 +70,8 @@
         selectionInProgress = false;
         dispatch("selectionFinished", {
             selection: selections.slice(-1)[0],
-            sourceWidget: widgetId,
+            // sourceWidget: widgetId,
+            sourceWidget: widget,
         });
     };
 

@@ -26,9 +26,9 @@
         widgetThickness={selectionWidgetThickness}
         N={widget.binsNum}
         colors={grayColorMap}
-        widgetId={widget.id}
         on:selectionFinished={newSelectionCallback}
         bind:selections={widget.selections}
+        widget={widget}
     />
     <SampleScene
         width={hyperWindowSize - 2 * selectionWidgetThickness}
