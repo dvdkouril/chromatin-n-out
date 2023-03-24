@@ -25,3 +25,4 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
 ### too small to care
 - [x] base arc widget colormap should always go from light gray to dark gray (don't take the slice of colormap because then you can't see the data segments)
 - [ ] make random colors more disparate (not getting two similar shades after one another)
+- [ ] indicate hovered bin (both on 3D and selection widget)

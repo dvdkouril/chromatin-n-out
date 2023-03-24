@@ -41,6 +41,7 @@
   let topLevelBinsNum = 0;
 
   function processTreeIntoColumns(root: Widget): Widget[][] {
+    console.log("Processing Tree.....");
     if (root == null) {
       return [];
     }
@@ -49,14 +50,21 @@
     let stack = [root];
     while (stack.length > 0) {
       let currentNode = stack.pop();
+      console.log(currentNode);
       const lvl = currentNode.level;
+      const paddingSize = currentNode.widgets.length - 1;
+      const padding = (paddingSize > 0) ? Array(paddingSize).fill(null) : [];
       if (columns[lvl] === undefined) {
         columns.push([currentNode]);
+        // columns.push([currentNode].concat(padding));
       } else {
+        // columns[lvl].concat(padding);
         columns[lvl].push(currentNode);
       }
 
-      for (let w of currentNode.widgets) {
+      const widgetsReversed = currentNode.widgets.slice().reverse(); //~ doing reversing because stack does opposite order by nature
+      // for (let w of currentNode.widgets) {
+      for (let w of widgetsReversed) {
         stack.push(w);
       }
     }
@@ -141,7 +149,7 @@
     //   ],
     // ];
     // widgetTreeRoot = widgetHierarchy[0][0]; //~ kinda weird, TODO: change
-    widgetTreeRoot = rootWidget; 
+    widgetTreeRoot = rootWidget;
   });
 </script>
 
@@ -150,14 +158,17 @@
   {#each widgetColumns as widgets}
     [
     {#each widgets as widget}
+      {#if widget == null}
+        /null/
+      {:else} 
       {widget.id}:
       {#each widget.selections as sel}
         <span style="background-color: {sel.color}">{sel.color}</span>&nbsp;
       {/each}
+      {/if}
     {/each}
     ]
   {/each}
-  <!-- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec fermentum risus non diam commodo, eget pretium massa condimentum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur consequat ullamcorper diam. Fusce ultricies a purus ac sodales. Praesent laoreet iaculis imperdiet. Proin semper id justo id ultricies. Phasellus pharetra ut nibh id posuere. Praesent efficitur hendrerit porta. Sed in tellus fringilla, pulvinar sem a, rutrum lectus. Vestibulum gravida rhoncus pretium. Aenean odio ligula, laoreet in sodales vitae, pretium nec odio. Pellentesque viverra metus posuere euismod volutpat. -->
 </div>
 
 <div id="flex-container" style="display: flex;">
@@ -165,13 +176,18 @@
   {#each widgetColumns as widgetsColumn}
     <div class="widgets-column">
       {#each widgetsColumn as widget}
-        <HyperWindow
-          {widget}
-          {hyperWindowSize}
-          {selectionWidgetThickness}
-          newSelectionCallback={newSelection}
-          bins={spheres.slice(widget.domain.start, widget.domain.end + 1)}
-        />
+        {#if widget == null}
+          <div style="display: block; width: {hyperWindowSize}px; height: {hyperWindowSize}px; background-color: red">
+          </div>
+        {:else}
+          <HyperWindow
+            {widget}
+            {hyperWindowSize}
+            {selectionWidgetThickness}
+            newSelectionCallback={newSelection}
+            bins={spheres.slice(widget.domain.start, widget.domain.end + 1)}
+          />
+        {/if}
       {/each}
     </div>
   {/each}
