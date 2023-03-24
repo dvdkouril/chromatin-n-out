@@ -19,4 +19,5 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
 - [ ] non-uniform, interactive and fluid layouting of 3D+widget
 
 ### too small to care
-- [ ] base arc widget colormap should always go from light gray to dark gray (don't take the slice of colormap because then you can't see the data segments)
+- [x] base arc widget colormap should always go from light gray to dark gray (don't take the slice of colormap because then you can't see the data segments)
+- [ ] make random colors more disparate (not getting two similar shades after one another)
