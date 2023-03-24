@@ -8,7 +8,6 @@
   import { parsePdb } from "./lib/pdb";
   import { brafl } from "./lib/test_BRAFL";
   import HyperWindow from "./lib/components/HyperWindow.svelte";
-    import { WebGLMultipleRenderTargets } from "three";
 
   const hyperWindowSize = 500;
   const selectionWidgetThickness = 25;
@@ -21,15 +20,47 @@
     id: number;
     level: number;
     binsNum: number;
-    domain: { start: number; end: number};
-    selections: { start: number; end: number; color: string}[];
+    domain: { start: number; end: number };
+    selections: { start: number; end: number; color: string }[];
+    widgets: Widget[];
   };
 
   //~ 3D data
   const scale = 0.02;
   let spheres = [];
-  let widgetHierarchy: Widget[][] = [];
+  // let widgetHierarchy: Widget[][] = [];
+  let widgetTreeRoot: Widget = null;
+  // let widgetColumns: Widget[][] = []; //~ this will probably be computed from widgetTree
+  // let widgetColumns: Widget[][] = processTreeIntoColumns(widgetTreeRoot);
+  $: widgetColumns = processTreeIntoColumns(widgetTreeRoot);
   let topLevelBinsNum = 0;
+
+  // const processTreeIntoColumns = (root: Widget): Widget[][] => {
+  function processTreeIntoColumns(root: Widget): Widget[][] {
+    if (root == null) {
+      return [];
+    }
+
+    let columns = [];
+    let stack = [root];
+    while (stack.length > 0) {
+      let currentNode = stack.pop();
+      const lvl = currentNode.level;
+      if (columns[lvl] === undefined) {
+        columns.push([currentNode]);
+      } else {
+        columns[lvl].push(currentNode);
+      }
+
+      for (let w of currentNode.widgets) {
+        stack.push(w);
+      }
+    }
+
+    console.log("columns");
+    console.log(columns);
+    return columns;
+  }
 
   const newSelection = (ev) => {
     console.log("App: seeing change");
@@ -38,8 +69,8 @@
     const sourceWidget = ev.detail.sourceWidget;
     const offset = sourceWidget.domain.start;
 
-    const newWidgetId = nextAvailableId; nextAvailableId += 1;
-    
+    const newWidgetId = nextAvailableId;
+    nextAvailableId += 1;
 
     const changedLevel = sourceWidget.level + 1;
     const newWidget = {
@@ -48,14 +79,22 @@
       binsNum: sel.end - sel.start,
       domain: { start: offset + sel.start, end: offset + sel.end },
       selections: [],
+      widgets: [],
     };
 
-    if (widgetHierarchy[changedLevel] === undefined) {
-      widgetHierarchy.push([newWidget]);
-    } else {
-      widgetHierarchy[changedLevel].push(newWidget);
-    }
-    widgetHierarchy = widgetHierarchy;
+    // if (widgetHierarchy[changedLevel] === undefined) {
+    //   widgetHierarchy.push([newWidget]);
+    // } else {
+    //   widgetHierarchy[changedLevel].push(newWidget);
+    // }
+    // widgetHierarchy = widgetHierarchy;
+
+    //~ new
+    sourceWidget.widgets.push(newWidget);
+    widgetTreeRoot = widgetTreeRoot; //~ because...reactivity
+    console.log("current hierarchy:");
+    // console.log(widgetHierarchy[0]);
+    console.log(widgetTreeRoot);
   };
 
   onMount(() => {
@@ -70,39 +109,56 @@
     topLevelBinsNum = spheres.length;
     console.log("num of spheres = " + topLevelBinsNum);
 
-    widgetHierarchy = [
-      [
-        {
-          id: 0,
-          level: 0,
-          binsNum: topLevelBinsNum,
-          domain: {
-            start: 0,
-            end: topLevelBinsNum - 1,
-          },
-          selections: [],
-        },
-      ],
-    ];
+    const rootWidget = {
+      id: 0,
+      level: 0,
+      binsNum: topLevelBinsNum,
+      domain: {
+        start: 0,
+        end: topLevelBinsNum - 1,
+      },
+      selections: [],
+      widgets: [],
+    };
+
+    // widgetHierarchy = [
+    //   [
+    //     {
+    //       id: 0,
+    //       level: 0,
+    //       binsNum: topLevelBinsNum,
+    //       domain: {
+    //         start: 0,
+    //         end: topLevelBinsNum - 1,
+    //       },
+    //       selections: [],
+    //       widgets: [],
+    //     },
+    //   ],
+    // ];
+    // widgetTreeRoot = widgetHierarchy[0][0]; //~ kinda weird, TODO: change
+    widgetTreeRoot = rootWidget; 
   });
 </script>
 
 <div id="debug-info-bar" style="width: 100%;">
-  {#each widgetHierarchy as widgets}
-  [ 
+  <!-- {#each widgetHierarchy as widgets} -->
+  {#each widgetColumns as widgets}
+    [
     {#each widgets as widget}
-       {widget.id}: 
-       {#each widget.selections as sel }
+      {widget.id}:
+      {#each widget.selections as sel}
         <span style="background-color: {sel.color}">{sel.color}</span>&nbsp;
-        {/each}
+      {/each}
     {/each}
-  ]
+    ]
   {/each}
-<!-- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec fermentum risus non diam commodo, eget pretium massa condimentum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur consequat ullamcorper diam. Fusce ultricies a purus ac sodales. Praesent laoreet iaculis imperdiet. Proin semper id justo id ultricies. Phasellus pharetra ut nibh id posuere. Praesent efficitur hendrerit porta. Sed in tellus fringilla, pulvinar sem a, rutrum lectus. Vestibulum gravida rhoncus pretium. Aenean odio ligula, laoreet in sodales vitae, pretium nec odio. Pellentesque viverra metus posuere euismod volutpat. -->
+  <!-- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec fermentum risus non diam commodo, eget pretium massa condimentum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur consequat ullamcorper diam. Fusce ultricies a purus ac sodales. Praesent laoreet iaculis imperdiet. Proin semper id justo id ultricies. Phasellus pharetra ut nibh id posuere. Praesent efficitur hendrerit porta. Sed in tellus fringilla, pulvinar sem a, rutrum lectus. Vestibulum gravida rhoncus pretium. Aenean odio ligula, laoreet in sodales vitae, pretium nec odio. Pellentesque viverra metus posuere euismod volutpat. -->
 </div>
 
 <div id="flex-container" style="display: flex;">
-  {#each widgetHierarchy as widgetsColumn}
+  <!-- {#each widgetHierarchy as widgetsColumn} -->
+  {#each widgetColumns as widgetsColumn}
     <div class="widgets-column">
       {#each widgetsColumn as widget}
         <HyperWindow
@@ -117,25 +173,6 @@
   {/each}
 </div>
 
-<!-- DEBUG INFORMATION -->
-<!-- <div style="width: 300px;">
-  <h3>debug</h3>
-  <ul>
-    {#each widgets as widget}
-      <li>
-        {widget.binsNum}
-        <ul>
-          {#each widget.selections as sel}
-            <li>
-              {"[" + sel.start.toString() + " - " + sel.end.toString() + "]"}
-              <span style="background-color: {sel.color}">{sel.color}</span>
-            </li>
-          {/each}
-        </ul>
-      </li>
-    {/each}
-  </ul>
-</div> -->
 <!-- <ForceTest /> -->
 <main />
 
