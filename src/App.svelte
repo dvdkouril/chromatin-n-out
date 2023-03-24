@@ -25,17 +25,21 @@
     widgets: Widget[];
   };
 
+  let widgetTreeRoot: Widget = null;
+  $: widgetColumns = processTreeIntoColumns(widgetTreeRoot);
+  /*
+  widgetColumns = [
+    [ {widget}, {widget}, ...],
+    [ {widget}, ...],
+    [ null, null, {widget}, ...], //~ null here means padding div for layouting purposes
+  ]
+  */
+
   //~ 3D data
   const scale = 0.02;
   let spheres = [];
-  // let widgetHierarchy: Widget[][] = [];
-  let widgetTreeRoot: Widget = null;
-  // let widgetColumns: Widget[][] = []; //~ this will probably be computed from widgetTree
-  // let widgetColumns: Widget[][] = processTreeIntoColumns(widgetTreeRoot);
-  $: widgetColumns = processTreeIntoColumns(widgetTreeRoot);
   let topLevelBinsNum = 0;
 
-  // const processTreeIntoColumns = (root: Widget): Widget[][] => {
   function processTreeIntoColumns(root: Widget): Widget[][] {
     if (root == null) {
       return [];
