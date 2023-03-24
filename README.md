@@ -8,15 +8,19 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
     - [x] selecting in both directions (0 -> N, N -> 0)
 - [ ] arc version of the selection widget
     - [x] basic functionality: like the rect version
-    - [ ] multiple selections: each spawning a new tree
-    - [ ] fancy colors for selections; base widget should be grayscale gradient
-- [ ] add 3D model rendering (probably threejs as baseline)
+    - [x] multiple selections: each spawning a new tree
+    - [x] fancy colors for selections; base widget should be grayscale gradient
+- [x] add 3D model rendering (probably threejs as baseline)
     - [x] include some basic threejs scene
     - [x] connect the shown 3D with selection widgets
-    - [ ] tube representation
-- [ ] arc selection widget + 3D view overlaid
-    - [ ] figure out how to propagate mousedown/up/move events through svg to threlte canvas
+    - [x] tube representation
+- [x] arc selection widget + 3D view overlaid
+    - [x] figure out how to propagate mousedown/up/move events through svg to threlte canvas
+- [ ] base hiearchical layout
 - [ ] non-uniform, interactive and fluid layouting of 3D+widget
+- [ ] support for larger models
+    - [ ] aggregating the selection widget segments
+    - [ ] replace Threlte by chromoskein graphics library?
 
 ### too small to care
 - [x] base arc widget colormap should always go from light gray to dark gray (don't take the slice of colormap because then you can't see the data segments)
