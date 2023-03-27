@@ -57,34 +57,46 @@
       // return columns;
     };
 
-    const concatToColumn = (columns, arrayToConcat, index) => {
+    const addPaddingToColumn = (columns, paddingSize, index) => {
+      // const paddingSize = currentNode.widgets.length - 1;
+      const padding = paddingSize > 0 ? Array(paddingSize).fill(null) : [];
+
       if (columns[index] === undefined) {
-        columns.push(arrayToConcat);
+        columns.push(padding);
       } else {
-        columns[index] = columns[index].concat(arrayToConcat);
+        columns[index] = columns[index].concat(padding);
       }
-    }
+    };
 
     let columns = [];
-    let stack = [root];
+    // let stack = [root];
+    let stack: [Widget, number][] = [[root, 0]];
     let currentLayer = 0;
     while (stack.length > 0) {
-      let currentNode = stack.pop();
+      let [currentNode, layer] = stack.pop();
       console.log(currentNode);
+      console.log("layer: " + layer);
       const lvl = currentNode.level;
-      const paddingSize = currentNode.widgets.length - 1;
-      const padding = paddingSize > 0 ? Array(paddingSize).fill(null) : [];
-      // if (paddingSize > 0) { console.log("PADDING: " + paddingSize + "!!!!!"); }
+      
+      const existingColumnContent = (columns[lvl] === undefined) ? 0 : columns[lvl].length;
+      let paddingSize = (layer) - existingColumnContent;
+      console.log("padding: " + paddingSize);
+      if (paddingSize > 0) {
+        addPaddingToColumn(columns, paddingSize, lvl);
+      }
 
       addToColumn(columns, currentNode, lvl);
       //~ add padding to previous columns based on # of children
+      paddingSize = currentNode.widgets.length - 1;
       for (let i = 0; i <= lvl; i++) {
-        concatToColumn(columns, padding, i);
+        addPaddingToColumn(columns, paddingSize, i);
       }
 
       const widgetsReversed = currentNode.widgets.slice().reverse(); //~ doing reversing because stack does opposite order by nature
+      let childNumber = widgetsReversed.length - 1;
       for (let w of widgetsReversed) {
-        stack.push(w);
+        stack.push([w, layer + childNumber]);
+        childNumber -= 1;
       }
     }
 
