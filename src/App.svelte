@@ -9,7 +9,8 @@
   import { brafl } from "./lib/test_BRAFL";
   import HyperWindow from "./lib/components/HyperWindow.svelte";
 
-  const hyperWindowSize = 500;
+  // const hyperWindowSize = 500;
+  const hyperWindowSize = 200;
   const selectionWidgetThickness = 25;
   $: colorMap = generateColors(topLevelBinsNum);
   $: grayColorMap = generateGrayScale(topLevelBinsNum);
@@ -46,24 +47,42 @@
       return [];
     }
 
+    const addToColumn = (columns, thingToAdd, index) => {
+      // const newColumns = columns.slice();
+      if (columns[index] === undefined) {
+        columns.push([thingToAdd]);
+      } else {
+        columns[index].push(thingToAdd);
+      }
+      // return columns;
+    };
+
+    const concatToColumn = (columns, arrayToConcat, index) => {
+      if (columns[index] === undefined) {
+        columns.push(arrayToConcat);
+      } else {
+        columns[index] = columns[index].concat(arrayToConcat);
+      }
+    }
+
     let columns = [];
     let stack = [root];
+    let currentLayer = 0;
     while (stack.length > 0) {
       let currentNode = stack.pop();
       console.log(currentNode);
       const lvl = currentNode.level;
       const paddingSize = currentNode.widgets.length - 1;
-      const padding = (paddingSize > 0) ? Array(paddingSize).fill(null) : [];
-      if (columns[lvl] === undefined) {
-        columns.push([currentNode]);
-        // columns.push([currentNode].concat(padding));
-      } else {
-        // columns[lvl].concat(padding);
-        columns[lvl].push(currentNode);
+      const padding = paddingSize > 0 ? Array(paddingSize).fill(null) : [];
+      // if (paddingSize > 0) { console.log("PADDING: " + paddingSize + "!!!!!"); }
+
+      addToColumn(columns, currentNode, lvl);
+      //~ add padding to previous columns based on # of children
+      for (let i = 0; i <= lvl; i++) {
+        concatToColumn(columns, padding, i);
       }
 
       const widgetsReversed = currentNode.widgets.slice().reverse(); //~ doing reversing because stack does opposite order by nature
-      // for (let w of currentNode.widgets) {
       for (let w of widgetsReversed) {
         stack.push(w);
       }
@@ -160,11 +179,11 @@
     {#each widgets as widget}
       {#if widget == null}
         /null/
-      {:else} 
-      {widget.id}:
-      {#each widget.selections as sel}
-        <span style="background-color: {sel.color}">{sel.color}</span>&nbsp;
-      {/each}
+      {:else}
+        {widget.id}:
+        {#each widget.selections as sel}
+          <span style="background-color: {sel.color}">{sel.color}</span>&nbsp;
+        {/each}
       {/if}
     {/each}
     ]
@@ -177,8 +196,9 @@
     <div class="widgets-column">
       {#each widgetsColumn as widget}
         {#if widget == null}
-          <div style="display: block; width: {hyperWindowSize}px; height: {hyperWindowSize}px; background-color: red">
-          </div>
+          <div
+            style="display: block; width: {hyperWindowSize}px; height: {hyperWindowSize}px; background-color: none"
+          />
         {:else}
           <HyperWindow
             {widget}

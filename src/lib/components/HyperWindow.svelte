@@ -15,10 +15,14 @@
 </script>
 
 <div
-    transition:fade={{ duration: 2000 }}
     class="widget-3d-combo"
     style="display: block; width: 100%; height: 100%, position: relative;"
 >
+<!-- <div
+    transition:fade={{ duration: 2000 }}
+    class="widget-3d-combo"
+    style="display: block; width: 100%; height: 100%, position: relative;"
+> -->
     <!-- TODO: extract into HyperWindow component -->
     <ArcSelectionWidget
         width={hyperWindowSize}
