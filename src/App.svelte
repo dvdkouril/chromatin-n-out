@@ -209,7 +209,7 @@
       {#each widgetsColumn as widget}
         {#if widget == null}
           <div
-            style="display: block; width: {hyperWindowSize}px; height: {hyperWindowSize}px; background-color: none"
+            style="display: block; width: {hyperWindowSize}px; height: {hyperWindowSize + 25}px; background-color: none"
           />
         {:else}
           <HyperWindow

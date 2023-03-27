@@ -120,8 +120,8 @@
 </script>
 
                     <!-- quaternion={(i < spheresCentered.length - 1) ? getRotationFromTwoPositions(vec3.fromValues(s.x, s.y, s.z), vec3.fromValues(spheresCentered[i+1].x, spheresCentered[i+1].y, spheresCentered[i+1].z)) : new Quaternion()} -->
-<div style="width: {width}px; height: {height}px; margin: {offset}px; z-index: 1;">
-    <Canvas>
+<div style="width: {width}px; height: {height}px; padding: {offset}px; z-index: 1;">
+    <Canvas size={{width: width, height: height}}>
         <!-- <T.PerspectiveCamera makeDefault position={[10, 10, 20]} fov={24}> -->
         <T.PerspectiveCamera makeDefault position={[0, 0, 20]} fov={24}>
             <OrbitControls
@@ -165,8 +165,8 @@
 <div># selections: {selections.length}</div>
 
 <style>
-    div {
+    /* div {
         height: 100%;
         width: 100%;
-    }
+    } */
 </style>
