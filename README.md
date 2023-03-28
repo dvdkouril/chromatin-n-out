@@ -18,11 +18,13 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
     - [x] tube representation
 - [x] arc selection widget + 3D view overlaid
     - [x] figure out how to propagate mousedown/up/move events through svg to threlte canvas
-- [ ] base hiearchical layout
+- [x] base hiearchical layout
 - [ ] non-uniform, interactive and fluid layouting of 3D+widget
 - [ ] support for larger models
     - [ ] aggregating the selection widget segments
     - [ ] replace Threlte by chromoskein graphics library?
+- [ ] load chromosomes segmentation
+- [ ] load gene annotation
 
 ### too small to care
 - [x] base arc widget colormap should always go from light gray to dark gray (don't take the slice of colormap because then you can't see the data segments)
