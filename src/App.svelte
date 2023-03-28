@@ -7,103 +7,23 @@
   import { onMount } from "svelte";
   import { parsePdb } from "./lib/pdb";
   import { brafl } from "./lib/test_BRAFL";
-  import HyperWindow from "./lib/components/HyperWindow.svelte";
+  import ColumnsHierarchicalLayout from "./lib/components/ColumnsHierarchicalLayout.svelte";
+  import type { Widget } from "./lib/widget";
 
-  // const hyperWindowSize = 500;
-  const hyperWindowSize = 200;
+  const hyperWindowSize = 500;
   const selectionWidgetThickness = 25;
   $: colorMap = generateColors(topLevelBinsNum);
   $: grayColorMap = generateGrayScale(topLevelBinsNum);
   $: nicerColorMap = generateNicerColors(topLevelBinsNum);
   let nextAvailableId = 1; //~ 0 is hardcoded onMount
 
-  type Widget = {
-    id: number;
-    level: number;
-    binsNum: number;
-    domain: { start: number; end: number };
-    selections: { start: number; end: number; color: string }[];
-    widgets: Widget[];
-  };
-
   let widgetTreeRoot: Widget = null;
   let maxLevel: number = 0;
-  $: widgetColumns = processTreeIntoColumns(widgetTreeRoot); 
 
   //~ 3D data
   const scale = 0.02;
   let spheres = [];
   let topLevelBinsNum = 0;
-
-  function processTreeIntoColumns(root: Widget): Widget[][] {
-    console.log("Processing Tree.....");
-    console.log("Max level = " + maxLevel);
-    if (root == null) {
-      return [];
-    }
-
-    const addToColumn = (columns, thingToAdd, index) => {
-      if (columns[index] === undefined) {
-        columns.push([thingToAdd]);
-      } else {
-        columns[index].push(thingToAdd);
-      }
-    };
-
-    const addPaddingToColumn = (columns, paddingSize, index) => {
-      const padding = paddingSize > 0 ? Array(paddingSize).fill(null) : [];
-
-      if (columns[index] === undefined) {
-        columns.push(padding);
-      } else {
-        columns[index] = columns[index].concat(padding);
-      }
-    };
-
-    let columns = [];
-    let stack: [Widget, number][] = [[root, 0]];
-    let currentLayer = 0;
-    while (stack.length > 0) {
-      let [currentNode, layer] = stack.pop();
-      console.log(currentNode);
-      console.log("layer: " + layer);
-      const lvl = currentNode.level;
-      
-      // const existingColumnContent = (columns[lvl] === undefined) ? 0 : columns[lvl].length;
-      // let paddingSize = (layer) - existingColumnContent;
-      // if (paddingSize > 0) {
-      //   addPaddingToColumn(columns, paddingSize, lvl);
-      // }
-
-      //~ add the node
-      addToColumn(columns, currentNode, lvl);
-      //~ add padding to previous columns based on # of children
-      let paddingSize = currentNode.widgets.length - 1;
-      for (let i = 0; i <= lvl; i++) {
-        addPaddingToColumn(columns, paddingSize, i);
-      }
-
-      //~ prepare next column
-      let childrenNum = currentNode.widgets.length;
-      if (childrenNum == 0) { //~ it's a leaf
-        for (let i = lvl + 1; i <= maxLevel; i++) {
-          addPaddingToColumn(columns, 1, i);
-        }
-        // addPaddingToColumn(columns, 1, lvl + 1);
-      }
-
-      const widgetsReversed = currentNode.widgets.slice().reverse(); //~ doing reversing because stack does opposite order by nature
-      let childNumber = widgetsReversed.length - 1;
-      for (let w of widgetsReversed) {
-        stack.push([w, layer + childNumber]);
-        childNumber -= 1;
-      }
-    }
-
-    console.log("columns");
-    console.log(columns);
-    return columns;
-  }
 
   const newSelection = (ev) => {
     console.log("App: seeing change");
@@ -126,11 +46,9 @@
       widgets: [],
     };
 
-    //~ new
     sourceWidget.widgets.push(newWidget);
     widgetTreeRoot = widgetTreeRoot; //~ because...reactivity
     console.log("current hierarchy:");
-    // console.log(widgetHierarchy[0]);
     console.log(widgetTreeRoot);
   };
 
@@ -163,45 +81,7 @@
   });
 </script>
 
-<div id="debug-info-bar" style="width: 100%;">
-  maxLevel = {maxLevel}
-  {#each widgetColumns as widgets}
-    [
-    {#each widgets as widget}
-      {#if widget == null}
-        /null/
-      {:else}
-        {widget.id}:
-        {#each widget.selections as sel}
-          <span style="background-color: {sel.color}">{sel.color}</span>&nbsp;
-        {/each}
-      {/if}
-    {/each}
-    ]
-  {/each}
-</div>
-
-<div id="flex-container" style="display: flex;">
-  {#each widgetColumns as widgetsColumn}
-    <div class="widgets-column">
-      {#each widgetsColumn as widget}
-        {#if widget == null}
-          <div
-            style="display: block; width: {hyperWindowSize}px; height: {hyperWindowSize + 25}px; background-color: none"
-          />
-        {:else}
-          <HyperWindow
-            {widget}
-            {hyperWindowSize}
-            {selectionWidgetThickness}
-            newSelectionCallback={newSelection}
-            bins={spheres.slice(widget.domain.start, widget.domain.end + 1)}
-          />
-        {/if}
-      {/each}
-    </div>
-  {/each}
-</div>
+<ColumnsHierarchicalLayout {widgetTreeRoot} {maxLevel} {hyperWindowSize} {selectionWidgetThickness} newSelectionCallback={newSelection} {spheres} />
 
 <!-- <ForceTest /> -->
 <main />
