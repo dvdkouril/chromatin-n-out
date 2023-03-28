@@ -1,12 +1,14 @@
 # chromatin-n-out
 Prototyping visualization & interaction methods for intuitive hierarchical navigation of 3D data that have a linear component (i.e., 3D chromatin models).
 
+![chromatin-n-out WIP screenshot](screenshots/20230317145700.png)
+
 ## todo
 - [x] rectangular widget mvp
     - [x] single path selection
     - [x] individual levels selections can be edited/redefined (only one selection per level for now)
     - [x] selecting in both directions (0 -> N, N -> 0)
-- [ ] arc version of the selection widget
+- [x] arc version of the selection widget
     - [x] basic functionality: like the rect version
     - [x] multiple selections: each spawning a new tree
     - [x] fancy colors for selections; base widget should be grayscale gradient
