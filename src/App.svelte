@@ -27,14 +27,8 @@
   };
 
   let widgetTreeRoot: Widget = null;
-  $: widgetColumns = processTreeIntoColumns(widgetTreeRoot);
-  /*
-  widgetColumns = [
-    [ {widget}, {widget}, ...],
-    [ {widget}, ...],
-    [ null, null, {widget}, ...], //~ null here means padding div for layouting purposes
-  ]
-  */
+  let maxLevel: number = 0;
+  $: widgetColumns = processTreeIntoColumns(widgetTreeRoot); 
 
   //~ 3D data
   const scale = 0.02;
@@ -43,22 +37,20 @@
 
   function processTreeIntoColumns(root: Widget): Widget[][] {
     console.log("Processing Tree.....");
+    console.log("Max level = " + maxLevel);
     if (root == null) {
       return [];
     }
 
     const addToColumn = (columns, thingToAdd, index) => {
-      // const newColumns = columns.slice();
       if (columns[index] === undefined) {
         columns.push([thingToAdd]);
       } else {
         columns[index].push(thingToAdd);
       }
-      // return columns;
     };
 
     const addPaddingToColumn = (columns, paddingSize, index) => {
-      // const paddingSize = currentNode.widgets.length - 1;
       const padding = paddingSize > 0 ? Array(paddingSize).fill(null) : [];
 
       if (columns[index] === undefined) {
@@ -69,7 +61,6 @@
     };
 
     let columns = [];
-    // let stack = [root];
     let stack: [Widget, number][] = [[root, 0]];
     let currentLayer = 0;
     while (stack.length > 0) {
@@ -78,18 +69,27 @@
       console.log("layer: " + layer);
       const lvl = currentNode.level;
       
-      const existingColumnContent = (columns[lvl] === undefined) ? 0 : columns[lvl].length;
-      let paddingSize = (layer) - existingColumnContent;
-      console.log("padding: " + paddingSize);
-      if (paddingSize > 0) {
-        addPaddingToColumn(columns, paddingSize, lvl);
-      }
+      // const existingColumnContent = (columns[lvl] === undefined) ? 0 : columns[lvl].length;
+      // let paddingSize = (layer) - existingColumnContent;
+      // if (paddingSize > 0) {
+      //   addPaddingToColumn(columns, paddingSize, lvl);
+      // }
 
+      //~ add the node
       addToColumn(columns, currentNode, lvl);
       //~ add padding to previous columns based on # of children
-      paddingSize = currentNode.widgets.length - 1;
+      let paddingSize = currentNode.widgets.length - 1;
       for (let i = 0; i <= lvl; i++) {
         addPaddingToColumn(columns, paddingSize, i);
+      }
+
+      //~ prepare next column
+      let childrenNum = currentNode.widgets.length;
+      if (childrenNum == 0) { //~ it's a leaf
+        for (let i = lvl + 1; i <= maxLevel; i++) {
+          addPaddingToColumn(columns, 1, i);
+        }
+        // addPaddingToColumn(columns, 1, lvl + 1);
       }
 
       const widgetsReversed = currentNode.widgets.slice().reverse(); //~ doing reversing because stack does opposite order by nature
@@ -116,21 +116,15 @@
     nextAvailableId += 1;
 
     const changedLevel = sourceWidget.level + 1;
+    if (changedLevel > maxLevel) maxLevel = changedLevel;
     const newWidget = {
       id: newWidgetId,
-      level: sourceWidget.level + 1,
+      level: changedLevel,
       binsNum: sel.end - sel.start,
       domain: { start: offset + sel.start, end: offset + sel.end },
       selections: [],
       widgets: [],
     };
-
-    // if (widgetHierarchy[changedLevel] === undefined) {
-    //   widgetHierarchy.push([newWidget]);
-    // } else {
-    //   widgetHierarchy[changedLevel].push(newWidget);
-    // }
-    // widgetHierarchy = widgetHierarchy;
 
     //~ new
     sourceWidget.widgets.push(newWidget);
@@ -164,28 +158,13 @@
       widgets: [],
     };
 
-    // widgetHierarchy = [
-    //   [
-    //     {
-    //       id: 0,
-    //       level: 0,
-    //       binsNum: topLevelBinsNum,
-    //       domain: {
-    //         start: 0,
-    //         end: topLevelBinsNum - 1,
-    //       },
-    //       selections: [],
-    //       widgets: [],
-    //     },
-    //   ],
-    // ];
-    // widgetTreeRoot = widgetHierarchy[0][0]; //~ kinda weird, TODO: change
     widgetTreeRoot = rootWidget;
+    maxLevel = 0;
   });
 </script>
 
 <div id="debug-info-bar" style="width: 100%;">
-  <!-- {#each widgetHierarchy as widgets} -->
+  maxLevel = {maxLevel}
   {#each widgetColumns as widgets}
     [
     {#each widgets as widget}
@@ -203,7 +182,6 @@
 </div>
 
 <div id="flex-container" style="display: flex;">
-  <!-- {#each widgetHierarchy as widgetsColumn} -->
   {#each widgetColumns as widgetsColumn}
     <div class="widgets-column">
       {#each widgetsColumn as widget}
