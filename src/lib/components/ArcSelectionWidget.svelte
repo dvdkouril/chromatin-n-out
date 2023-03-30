@@ -14,6 +14,7 @@
     export let widget;
 
     let selectionInProgress = false;
+    let hoveredBin = null;
 
     $: pieceSize = width / bins.length;
     $: bins = [...Array(N).fill(1)];
@@ -42,6 +43,7 @@
         }));
 
     const mouseOvered = (event) => {
+        hoveredBin = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
         //~ multiple selections version
         if (selectionInProgress) {
             const binId = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
@@ -55,6 +57,10 @@
             }
         }
     };
+
+    const mouseOut = (event) => {
+        hoveredBin = null;
+    }
 
     const mouseDown = (event) => {
         console.log("Selection started.");
@@ -90,11 +96,12 @@
             <path
                 d={bin}
                 id={"bin-" + i}
-                fill={colors[i]}
+                fill={i == hoveredBin ? "red" : colors[i]}
                 pointer-events="all"
                 on:mousedown={mouseDown}
                 on:mouseup={mouseUp}
                 on:mouseover={mouseOvered}
+                on:mouseout={mouseOut}
                 on:focus={() => {}}
             />
         {/each}
