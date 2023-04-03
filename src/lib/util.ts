@@ -38,6 +38,10 @@ export const randomNiceColor = () => {
     return warm [getRandomInt(warm.length - 1)];
 }
 
+export const randomColorFromRange = (colormap) => {
+    return colormap[getRandomInt(colormap.length - 1)];
+}
+
 export const randomPositions = (
     num: number
 ): { x: number; y: number; z: number }[] => {

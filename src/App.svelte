@@ -10,11 +10,12 @@
   import ColumnsHierarchicalLayout from "./lib/components/ColumnsHierarchicalLayout.svelte";
   import type { Widget } from "./lib/widget";
 
-  const hyperWindowSize = 500;
+  const hyperWindowSize = 200;
   const selectionWidgetThickness = 25;
-  $: colorMap = generateColors(topLevelBinsNum);
-  $: grayColorMap = generateGrayScale(topLevelBinsNum);
-  $: nicerColorMap = generateNicerColors(topLevelBinsNum);
+  // $: colorMap = generateColors(topLevelBinsNum);
+  // $: grayColorMap = generateGrayScale(topLevelBinsNum);
+  // $: nicerColorMap = generateNicerColors(topLevelBinsNum);
+  $: selectionsColormap = generateNicerColors(topLevelBinsNum);
   let nextAvailableId = 1; //~ 0 is hardcoded onMount
 
   let widgetTreeRoot: Widget = null;
@@ -81,7 +82,7 @@
   });
 </script>
 
-<ColumnsHierarchicalLayout {widgetTreeRoot} {maxLevel} {hyperWindowSize} {selectionWidgetThickness} newSelectionCallback={newSelection} {spheres} />
+<ColumnsHierarchicalLayout {widgetTreeRoot} {maxLevel} {hyperWindowSize} {selectionWidgetThickness} newSelectionCallback={newSelection} {selectionsColormap} {spheres} />
 
 <!-- <ForceTest /> -->
 <main />

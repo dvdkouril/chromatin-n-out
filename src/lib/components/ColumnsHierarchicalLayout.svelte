@@ -8,6 +8,7 @@
     export let hyperWindowSize;
     export let selectionWidgetThickness;
     export let newSelectionCallback;
+    export let selectionsColormap;
     export let spheres;
 
     $: widgetColumns = processTreeIntoColumns(widgetTreeRoot);
@@ -88,6 +89,7 @@
                         {hyperWindowSize}
                         {selectionWidgetThickness}
                         {newSelectionCallback}
+                        {selectionsColormap}
                         bins={spheres.slice(
                             widget.domain.start,
                             widget.domain.end + 1

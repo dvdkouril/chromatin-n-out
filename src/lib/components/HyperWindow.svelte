@@ -8,10 +8,14 @@
     export let hyperWindowSize;
     export let selectionWidgetThickness;
     export let newSelectionCallback;
+    export let selectionsColormap;
     export let bins;
+
+    let hoveredBin: number = null;
 
 //   $: grayColorMap = generateGrayScale(topLevelBinsNum);
   $: grayColorMap = generateGrayScale(bins.length);
+  $: selectionColorsRange = selectionsColormap.slice(widget.domain.start, widget.domain.end);
 </script>
 
 <div
@@ -30,9 +34,11 @@
         widgetThickness={selectionWidgetThickness}
         N={widget.binsNum}
         colors={grayColorMap}
+        {selectionColorsRange}
         on:selectionFinished={newSelectionCallback}
         bind:selections={widget.selections}
         widget={widget}
+        bind:hoveredBin={hoveredBin}
     />
     <SampleScene
         width={hyperWindowSize - 2 * selectionWidgetThickness}
@@ -40,6 +46,7 @@
         offset={selectionWidgetThickness}
         spheres={bins}
         bind:selections={widget.selections}
+        bind:hoveredBin={hoveredBin}
     />
 </div>
 

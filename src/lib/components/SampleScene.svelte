@@ -20,6 +20,8 @@
     $: tubes = computeTubes(spheresCentered);
     export let selections;
 
+    export let hoveredBin = null;
+
     const recenter = (
         ogPositions: { x: number; y: number; z: number }[]
     ): vec3[] => {
@@ -110,6 +112,9 @@
 
     const getSelectionOrBaseColor = (sels, binId: number) => { 
         for (let sel of sels) {
+            if (binId == hoveredBin) {
+                return "red";
+            }
             if ((binId <= sel.end) && (binId >= sel.start)) {
                 return sel.color;
             }

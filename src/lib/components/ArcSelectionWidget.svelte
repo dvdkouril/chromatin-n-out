@@ -1,7 +1,8 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { arc, pie } from "d3-shape";
-    import { randomNiceColor } from "../util";
+    import { randomColorFromRange, randomNiceColor } from "../util";
+    import { chroma } from "chroma-js";
 
     const dispatch = createEventDispatcher();
 
@@ -10,11 +11,12 @@
     export let N;
     // export let widgetId;
     export let colors;
+    export let selectionColorsRange;
     export let selections = [];
     export let widget;
 
     let selectionInProgress = false;
-    let hoveredBin = null;
+    export let hoveredBin = null;
 
     $: pieceSize = width / bins.length;
     $: bins = [...Array(N).fill(1)];
@@ -42,6 +44,10 @@
             endAngle: arcs[sel.end].endAngle,
         }));
 
+    function pickSelectionColor() {
+
+    }
+
     const mouseOvered = (event) => {
         hoveredBin = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
         //~ multiple selections version
@@ -65,7 +71,9 @@
     const mouseDown = (event) => {
         console.log("Selection started.");
         const binId = event.target.id.split("-")[1];
-        const selColor = randomNiceColor();
+        // const selColor = randomNiceColor();
+        // const selColor = "red";
+        const selColor = randomColorFromRange(selectionColorsRange);
         selections.push({ start: parseInt(binId), end: parseInt(binId), color: selColor });
         selectionInProgress = true;
     };
@@ -114,6 +122,6 @@
                     style="stroke-width: 5px; stroke: {selections[i].color}; fill: none; pointer-events:none"
                 />
             {/each}
-        {/if}
+        {/if} 
     </svg>
 </div>
