@@ -11,7 +11,8 @@
     export let N;
     // export let widgetId;
     export let colors;
-    export let selectionColorsRange;
+    // export let selectionColorsRange;
+    export let colorForSelection = null; //~ if this is null, generate new color; otherwise use this one
     export let selections = [];
     export let widget;
 
@@ -73,7 +74,8 @@
         const binId = event.target.id.split("-")[1];
         // const selColor = randomNiceColor();
         // const selColor = "red";
-        const selColor = randomColorFromRange(selectionColorsRange);
+        // const selColor = randomColorFromRange(selectionColorsRange);
+        const selColor = (colorForSelection == null) ? randomNiceColor() : colorForSelection;
         selections.push({ start: parseInt(binId), end: parseInt(binId), color: selColor });
         selectionInProgress = true;
     };

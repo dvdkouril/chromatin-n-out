@@ -44,6 +44,7 @@
       binsNum: sel.end - sel.start,
       domain: { start: offset + sel.start, end: offset + sel.end },
       selections: [],
+      colorForSelections: sel.color,
       widgets: [],
     };
 
@@ -74,6 +75,7 @@
         end: topLevelBinsNum - 1,
       },
       selections: [],
+      colorForSelections: null,
       widgets: [],
     };
 

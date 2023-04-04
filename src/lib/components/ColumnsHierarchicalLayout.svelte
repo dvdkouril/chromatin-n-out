@@ -89,7 +89,7 @@
                         {hyperWindowSize}
                         {selectionWidgetThickness}
                         {newSelectionCallback}
-                        {selectionsColormap}
+                        colorForSelection={widget.colorForSelections}
                         bins={spheres.slice(
                             widget.domain.start,
                             widget.domain.end + 1
