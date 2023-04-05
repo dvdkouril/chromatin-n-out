@@ -30,8 +30,8 @@
 > -->
     <!-- TODO: extract into HyperWindow component -->
     <ArcSelectionWidget
-        width={hyperWindowSize}
-        height={hyperWindowSize}
+        width={100}
+        height={100}
         widgetThickness={selectionWidgetThickness}
         N={widget.binsNum}
         colors={grayColorMap}

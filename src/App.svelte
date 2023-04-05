@@ -7,10 +7,11 @@
   import { onMount } from "svelte";
   import { parsePdb } from "./lib/pdb";
   import { brafl } from "./lib/test_BRAFL";
+  import { cell7 } from "./lib/test_cell7";
   import ColumnsHierarchicalLayout from "./lib/components/ColumnsHierarchicalLayout.svelte";
   import type { Widget } from "./lib/widget";
 
-  const hyperWindowSize = 200;
+  const hyperWindowSize = 250;
   const selectionWidgetThickness = 25;
   // $: colorMap = generateColors(topLevelBinsNum);
   // $: grayColorMap = generateGrayScale(topLevelBinsNum);
@@ -59,6 +60,7 @@
 
     //~ load the PDB
     spheres = parsePdb(brafl).bins.map(({ x, y, z }) => ({
+    // spheres = parsePdb(cell7).bins.map(({ x, y, z }) => ({
       x: x * scale,
       y: y * scale,
       z: z * scale,
@@ -81,6 +83,7 @@
 
     widgetTreeRoot = rootWidget;
     maxLevel = 0;
+    console.log("onMount finished");
   });
 </script>
 
