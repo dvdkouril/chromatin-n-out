@@ -10,6 +10,7 @@
   import { cell7 } from "./lib/test_cell7";
   import ColumnsHierarchicalLayout from "./lib/components/ColumnsHierarchicalLayout.svelte";
   import type { Widget } from "./lib/widget";
+    import BubblesPrototype from "./lib/components/BubblesPrototype.svelte";
 
   const hyperWindowSize = 250;
   const selectionWidgetThickness = 25;
@@ -90,6 +91,7 @@
 <ColumnsHierarchicalLayout {widgetTreeRoot} {maxLevel} {hyperWindowSize} {selectionWidgetThickness} newSelectionCallback={newSelection} {selectionsColormap} {spheres} />
 
 <!-- <ForceTest /> -->
+<BubblesPrototype />
 <main />
 
 <style>
