@@ -4,12 +4,15 @@
     generateGrayScale,
     generateNicerColors,
   } from "./lib/util";
-  import { onMount } from "svelte";
+  import { setContext, onMount } from "svelte";
+  import { writable, type Writable } from "svelte/store";
   import { parsePdb } from "./lib/pdb";
   import { brafl } from "./lib/test_BRAFL";
   import { cell7 } from "./lib/test_cell7";
   import ColumnsHierarchicalLayout from "./lib/components/ColumnsHierarchicalLayout.svelte";
   import type { Widget } from "./lib/widget";
+    import Viewport3D from "./lib/components/Viewport3D.svelte";
+  import * as Graphics from "lib-graphics";
 
   const hyperWindowSize = 250;
   const selectionWidgetThickness = 25;
@@ -26,6 +29,25 @@
   const scale = 0.02;
   let spheres = [];
   let topLevelBinsNum = 0;
+
+
+  const adapter: Writable<GPUAdapter | null> = writable(null);
+  const device: Writable<GPUDevice | null> = writable(null);
+  const graphicsLibrary: Writable<Graphics.GraphicsLibrary | null> = writable(null);
+
+  let viewport: Graphics.Viewport3D = null;
+  setContext("adapter", adapter);
+  setContext("device", device);
+  setContext("graphicsLibrary", graphicsLibrary);
+
+  async function getGPU() {
+    $adapter = await navigator.gpu.requestAdapter();
+
+    if ($adapter) {
+      $device = await $adapter.requestDevice();
+      $graphicsLibrary = new Graphics.GraphicsLibrary($adapter, $device);
+    }
+  }
 
   const newSelection = (ev) => {
     console.log("App: seeing change");
@@ -55,8 +77,9 @@
     console.log(widgetTreeRoot);
   };
 
-  onMount(() => {
+  onMount(async () => {
     console.log("onMount");
+    await getGPU();
 
     //~ load the PDB
     spheres = parsePdb(brafl).bins.map(({ x, y, z }) => ({
@@ -88,6 +111,7 @@
 </script>
 
 <ColumnsHierarchicalLayout {widgetTreeRoot} {maxLevel} {hyperWindowSize} {selectionWidgetThickness} newSelectionCallback={newSelection} {selectionsColormap} {spheres} />
+<Viewport3D />
 
 <!-- <ForceTest /> -->
 <main />
