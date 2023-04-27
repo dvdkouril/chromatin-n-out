@@ -23,6 +23,9 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
     - [ ] basic physics-based bubbles layout 
     - [ ] interaction: zoom in/out triggers enlarging/shrinking which leads to fluid layout change
     - [ ] clicking on bubble makes spawn another one (neighbor/child)
+- [ ] connect 2D physics with 3D models
+    - [ ] single canvas & scene for all 3D parts
+    - [ ] moving a 2D proxy (in physics engine) translates the coordinates into the 3D scene and moves the particular 3D part
 - [ ] support for larger models
     - [ ] aggregating the selection widget segments
     - [ ] replace Threlte by chromoskein graphics library?
