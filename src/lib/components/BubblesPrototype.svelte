@@ -47,7 +47,6 @@
     };
 
     onMount(() => {
-
         // create a renderer
         let render = Render.create({
             // element: document.body,
@@ -84,26 +83,26 @@
             topWall,
         ]);
 
-    //     var mouse = Mouse.create(render.canvas),
-    //     mouseConstraint = MouseConstraint.create(engine, {
-    //         mouse: mouse,
-    //         constraint: {
-    //             stiffness: 0.2,
-    //             render: {
-    //                 visible: false
-    //             }
-    //         }
-    //     });
+        //     var mouse = Mouse.create(render.canvas),
+        //     mouseConstraint = MouseConstraint.create(engine, {
+        //         mouse: mouse,
+        //         constraint: {
+        //             stiffness: 0.2,
+        //             render: {
+        //                 visible: false
+        //             }
+        //         }
+        //     });
 
-    // Composite.add(world, mouseConstraint);
+        // Composite.add(world, mouseConstraint);
 
         let mouse = Mouse.create(render.canvas);
         mouseConstraint = MouseConstraint.create(engine, {
             mouse: mouse,
             constraint: {
                 stiffness: 0.2,
-                render: {visible: false}
-            }
+                render: { visible: false },
+            },
         });
 
         Composite.add(engine.world, mouseConstraint);
@@ -122,15 +121,21 @@
         generateStartingPositions(25);
     });
 
-    const onClickTest = () => {
+    const onClickTest = (event) => {
         console.log("CLICK");
         console.log(mouseConstraint ? mouseConstraint.body : "no");
+        console.log(event);
         if (mouseConstraint && mouseConstraint.body) {
-            // mouseConstraint.body.circleRadius *= 1.5;
             const body = mouseConstraint.body;
-            Body.scale(body, 1.2, 1.2);
+
+            if (event.mouse.button == 0) {
+                Body.scale(body, 1.2, 1.2);
+            // } else if (event.mouse.button == 2 ) {
+            } else {
+                Body.scale(body, 0.8, 0.8); // yeah, not inverse operation...but whatever for now
+            }
         }
-    }
+    };
 </script>
 
 <div bind:this={parentElement}>Bubbles!!!</div>
