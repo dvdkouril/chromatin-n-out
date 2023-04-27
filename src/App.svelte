@@ -1,5 +1,5 @@
 <script lang="ts">
-  import BubblesPrototype from "./lib/components/BubblesPrototype.svelte";
+  import BubblesPrototype from "./lib/prototypes/BubblesPrototype.svelte";
   import HierarchicalSelectionsPrototype from "./lib/prototypes/HierarchicalSelectionsPrototype.svelte";
 
   let prototypes = ["hierarchical-selections", "bubbles"];
