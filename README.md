@@ -20,7 +20,9 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
     - [x] figure out how to propagate mousedown/up/move events through svg to threlte canvas
 - [x] base hiearchical layout
 - [ ] non-uniform, interactive and fluid layouting of 3D+widget
-    - [ ] physics-based bubbles layout and interaction: zoom in/out triggers enlarging/shrinking which leads to fluid layout change
+    - [ ] basic physics-based bubbles layout 
+    - [ ] interaction: zoom in/out triggers enlarging/shrinking which leads to fluid layout change
+    - [ ] clicking on bubble makes spawn another one (neighbor/child)
 - [ ] support for larger models
     - [ ] aggregating the selection widget segments
     - [ ] replace Threlte by chromoskein graphics library?

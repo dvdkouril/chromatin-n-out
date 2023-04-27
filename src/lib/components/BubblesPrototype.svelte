@@ -7,10 +7,12 @@
     let Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
+        Body = Matter.Body,
         Bodies = Matter.Bodies,
         Composite = Matter.Composite,
         Mouse = Matter.Mouse,
-        MouseConstraint = Matter.MouseConstraint;
+        MouseConstraint = Matter.MouseConstraint,
+        Events = Matter.Events;
 
     // create an engine
     let engine = Engine.create();
@@ -19,6 +21,11 @@
     let mouseConstraint = null;
 
     $: selectedBubble = mouseConstraint ? mouseConstraint.body : null;
+    // $: selectedBubble = mouseConstraint.body;
+    $: console.log(mouseConstraint);
+    $: console.log("TST");
+    // $: console.log(mouseConstraint ? mouseConstraint.body : "nothing");
+    // $: console.log(mouseConstraint ? mouseConstraint.mouse.absolute.x : "nothing");
 
     const generateStartingPositions = (n: number) => {
         let positions: { x: number; y: number; r: number }[] = [];
@@ -100,7 +107,9 @@
         });
 
         Composite.add(engine.world, mouseConstraint);
+        render.mouse = mouse;
 
+        Events.on(mouseConstraint, "mousedown", onClickTest);
         // run the renderer
         Render.run(render);
 
@@ -112,7 +121,17 @@
 
         generateStartingPositions(25);
     });
+
+    const onClickTest = () => {
+        console.log("CLICK");
+        console.log(mouseConstraint ? mouseConstraint.body : "no");
+        if (mouseConstraint && mouseConstraint.body) {
+            // mouseConstraint.body.circleRadius *= 1.5;
+            const body = mouseConstraint.body;
+            Body.scale(body, 1.2, 1.2);
+        }
+    }
 </script>
 
 <div bind:this={parentElement}>Bubbles!!!</div>
-<div>selected: {selectedBubble}</div>
+<div>selected: {mouseConstraint ? mouseConstraint.body : ""}</div>
