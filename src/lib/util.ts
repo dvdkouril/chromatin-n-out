@@ -1,4 +1,6 @@
 import * as d3 from "d3";
+import { vec3 } from "gl-matrix";
+import { Euler, Quaternion, Vector3 } from "three";
 
 export const generateColors = (numOfColors) => {
     let colors = undefined;
@@ -60,3 +62,65 @@ export const randomPositions = (
 export const getRandomInt = (max: number) => {
     return Math.floor(Math.random() * max);
 }
+
+export const recenter = (
+        ogPositions: { x: number; y: number; z: number }[]
+    ): vec3[] => {
+        let positions = ogPositions.map(({x, y, z}) => vec3.fromValues(x, y, z));
+
+        let bbMax = positions.reduce(
+            (a, b) => vec3.max(vec3.create(), a, b),
+            vec3.fromValues(
+                Number.MIN_VALUE,
+                Number.MIN_VALUE,
+                Number.MIN_VALUE
+            )
+        );
+        let bbMin = positions.reduce(
+            (a, b) => vec3.min(vec3.create(), a, b),
+            vec3.fromValues(
+                Number.MAX_VALUE,
+                Number.MAX_VALUE,
+                Number.MAX_VALUE
+            )
+        );
+        let bbCenter = vec3.scale(
+            vec3.create(),
+            vec3.add(vec3.create(), bbMax, bbMin),
+            0.5
+        );
+        let bbSides = vec3.sub(vec3.create(), bbMax, bbMin);
+        bbSides.forEach((v: number) => Math.abs(v));
+        const largestSide = Math.max(...bbSides);
+        let bbLength = vec3.fromValues(
+            1.0 / largestSide,
+            1.0 / largestSide,
+            1.0 / largestSide
+        );
+        const atomsNormalized = positions.map((a) =>
+            // vec3.mul(
+            //     vec3.create(),
+            //     vec3.sub(vec3.create(), a, bbCenter),
+            //     bbLength
+            // )
+            vec3.sub(vec3.create(), a, bbCenter)
+        );
+        // atoms = atomsNormalized;
+
+        // let test = spheres.map((pos: vec3) => { return {x: pos[0], y: pos[1], z: pos[2]} });
+
+        return atomsNormalized;
+    };
+
+export const getRotationFromTwoPositions = (from: Vector3, to: Vector3) => {
+        const fromCopy = new Vector3(from.x, from.y, from.z);
+        const toCopy = new Vector3(to.x, to.y, to.z);
+        let q = new Quaternion();
+        const u = new Vector3(0, 1, 0);
+        const v = toCopy.sub(fromCopy).normalize();
+
+        q.setFromUnitVectors(u, v);      
+
+        const eulers = new Euler();
+        return eulers.setFromQuaternion(q);
+    }
