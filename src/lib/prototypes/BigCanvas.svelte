@@ -2,15 +2,17 @@
     import { degToRad } from "three/src/math/MathUtils";
     import SampleScene from "../components/SampleScene.svelte";
     import { Canvas, OrbitControls, T } from "@threlte/core";
-    import type { vec3 } from "gl-matrix";
+    import type { vec2, vec3 } from "gl-matrix";
     import { getRotationFromTwoPositions, recenter } from "../util";
-    import { Vector3 } from "three";
+    import { Vector2, Vector3 } from "three";
 
     let width = 800;
     let height = 600;
 
     const sphereRadius = 0.1;
     const tubeBaseSize = 0.05;
+
+    let camera;
 
 
     let selections = [];
@@ -78,11 +80,21 @@
         }
         return "#aaaaaa";
     };
+
+    const getWorldPositionFromScreenCoordinates = (coordinates: Vector2) => {
+        console.log(camera.projectionMatrix);
+    }
+
+    const onclickTest = (e) => {
+        console.log("canvas click");
+        console.log(camera.projectionMatrix);
+    }
 </script>
 
 <div>Big canvas!</div>
+<button on:click={onclickTest}>debug</button>
 <Canvas size={{ width: width, height: height }}>
-    <T.PerspectiveCamera makeDefault position={[0, 0, 20]} fov={24}>
+    <T.PerspectiveCamera bind:ref={camera} makeDefault position={[0, 0, 20]} fov={24}>
         <OrbitControls
             maxPolarAngle={degToRad(90)}
             enableZoom={true}
@@ -96,6 +108,7 @@
 
     {#each models as model}
         <T.Group position={[0, 0, 0]}>
+        <!-- <T.Group position={[model.position.x, model.position.y, model.position.z]}> -->
         </T.Group>
     {/each}
 
@@ -121,6 +134,8 @@
                 position.x={s.x}
                 position.z={s.z}
                 castShadow
+                interactive
+                on:click={onclickTest}
                 let:ref
             >
                 <T.SphereGeometry args={[sphereRadius]} />
