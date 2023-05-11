@@ -28,6 +28,7 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
     - [ ] moving a 2D proxy (in physics engine) translates the coordinates into the 3D scene and moves the particular 3D part
 - [ ] support for larger models
     - [ ] aggregating the selection widget segments
+    - [ ] instancing the meshes (in threlte)
     - [ ] replace Threlte by chromoskein graphics library?
 - [ ] switching between base hierarchical prototype and fluid layout (presentation purposes)
 - [ ] load chromosomes segmentation

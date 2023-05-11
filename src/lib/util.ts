@@ -124,3 +124,38 @@ export const getRotationFromTwoPositions = (from: Vector3, to: Vector3) => {
         const eulers = new Euler();
         return eulers.setFromQuaternion(q);
     }
+
+
+export const computeTubes = (bins: { x: number; y: number; z: number }[]) => {
+        let t = [];
+        for (let i = 0; i < bins.length - 1; i++) {
+            const first = new Vector3(bins[i].x, bins[i].y, bins[i].z);
+            const second = new Vector3(
+                bins[i + 1].x,
+                bins[i + 1].y,
+                bins[i + 1].z
+            );
+
+            //~ position between the two bins
+            const pos = new Vector3();
+            pos.subVectors(second, first);
+            pos.divideScalar(2);
+            pos.addVectors(first, pos);
+            const tubePosition = pos;
+            //~ rotation
+            const tubeRotation = getRotationFromTwoPositions(first, second);
+            //~ tube length
+            const betweenVec = new Vector3();
+            betweenVec.subVectors(second, first);
+            const tubeScale = betweenVec.length();
+
+            t.push({
+                position: tubePosition,
+                rotation: tubeRotation,
+                scale: tubeScale,
+            });
+        }
+
+        // console.log(t);
+        return t;
+    };
