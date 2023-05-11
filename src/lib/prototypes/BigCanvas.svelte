@@ -7,6 +7,7 @@
     import { brafl } from "../test_BRAFL";
     import { onMount } from "svelte";
     import { parsePdb } from "../pdb";
+    import ModelPart from "../components/ModelPart.svelte";
 
     let width = 800;
     let height = 600;
@@ -30,14 +31,8 @@
         { x: 1, y: 1, z: 0 },
         { x: 0, y: 1, z: 0 },
     ];
-    // $: spheresCentered = recenter(spheres).map((pos: vec3) => {
-    //     return { x: pos[0], y: pos[1], z: pos[2] };
-    // });
-    // $: tubes = computeTubes(spheresCentered);
     $: tubes = computeTubes(spheres);
 
-    // let models = []; //~ [bins = {x, y, z}[], ....]
-    // let models = [{ position: new Vector3(0, 0, 0), spheres: [{0, 0, 0}] }];
     let models = [];
 
     const getSelectionOrBaseColor = (sels, binId: number) => {
@@ -112,75 +107,7 @@
     <T.AmbientLight intensity={0.2} />
 
     {#each models as model}
-        <!-- <T.Group position={[0, 0, 0]}> -->
-        <T.Group
-            position={[model.position.x, model.position.y, model.position.z]}
-        >
-            {#each model.tubes as tube, i}
-                <T.Mesh
-                    position={tube.position.toArray()}
-                    castShadow
-                    rotation={tube.rotation.toArray()}
-                    let:ref
-                >
-                    <T.CylinderGeometry
-                        args={[tubeBaseSize, tubeBaseSize, tube.scale]}
-                    />
-                    <T.MeshStandardMaterial
-                        color={getSelectionOrBaseColor(selections, i)}
-                    />
-                </T.Mesh>
-            {/each}
-            {#each model.spheres as s, i}
-                <T.Mesh
-                    position.y={s.y}
-                    position.x={s.x}
-                    position.z={s.z}
-                    castShadow
-                    interactive
-                    on:click={onclickTest}
-                    let:ref
-                >
-                    <T.SphereGeometry args={[sphereRadius]} />
-                    <T.MeshStandardMaterial
-                        color={getSelectionOrBaseColor(selections, i)}
-                    />
-                </T.Mesh>
-            {/each}
-        </T.Group>
+        <ModelPart {model}/>
     {/each}
 
-    <!-- <T.Group> -->
-    <!-- {#each tubes as tube, i}
-            <T.Mesh
-                position={tube.position.toArray()}
-                castShadow
-                rotation={tube.rotation.toArray()}
-                let:ref
-            >
-                <T.CylinderGeometry
-                    args={[tubeBaseSize, tubeBaseSize, tube.scale]}
-                />
-                <T.MeshStandardMaterial
-                    color={getSelectionOrBaseColor(selections, i)}
-                />
-            </T.Mesh>
-        {/each} -->
-    <!-- {#each spheresCentered as s, i}
-            <T.Mesh
-                position.y={s.y}
-                position.x={s.x}
-                position.z={s.z}
-                castShadow
-                interactive
-                on:click={onclickTest}
-                let:ref
-            >
-                <T.SphereGeometry args={[sphereRadius]} />
-                <T.MeshStandardMaterial
-                    color={getSelectionOrBaseColor(selections, i)}
-                />
-            </T.Mesh>
-        {/each} -->
-    <!-- </T.Group> -->
 </Canvas>
