@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Canvas, T } from "@threlte/core";
-    // import { OrbitControls } from '@threlte/extras';
+    import { OrbitControls } from '@threlte/extras';
     // import { Canvas, OrbitControls, T } from "@threlte/core";
     import { degToRad } from "three/src/math/MathUtils";
     import { vec3, quat } from 'gl-matrix';
@@ -136,7 +136,7 @@
                 enableZoom={true}
                 target={{ y: 0.5 }}
             /> -->
-            <!-- <OrbitControls enableDamping /> -->
+            <OrbitControls enableDamping />
         </T.PerspectiveCamera>
 
         <T.DirectionalLight castShadow position={[3, 10, 10]} />

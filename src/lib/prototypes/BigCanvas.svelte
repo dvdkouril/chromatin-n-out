@@ -2,6 +2,7 @@
     import { degToRad } from "three/src/math/MathUtils";
     import SampleScene from "../components/SampleScene.svelte";
     import { Canvas, T } from "@threlte/core";
+    import { OrbitControls } from "@threlte/extras";
     import type { vec2, vec3 } from "gl-matrix";
     import { getRotationFromTwoPositions, recenter } from "../util";
     import { Vector2, Vector3 } from "three";
@@ -100,6 +101,7 @@
             enableZoom={true}
             target={{ y: 0.5 }}
         /> -->
+        <OrbitControls enableDamping />
     </T.PerspectiveCamera>
 
     <T.DirectionalLight castShadow position={[3, 10, 10]} />
