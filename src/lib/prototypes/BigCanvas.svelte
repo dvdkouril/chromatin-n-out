@@ -1,7 +1,7 @@
 <script lang="ts">
     import { degToRad } from "three/src/math/MathUtils";
     import SampleScene from "../components/SampleScene.svelte";
-    import { Canvas, OrbitControls, T } from "@threlte/core";
+    import { Canvas, T } from "@threlte/core";
     import type { vec2, vec3 } from "gl-matrix";
     import { getRotationFromTwoPositions, recenter } from "../util";
     import { Vector2, Vector3 } from "three";
@@ -95,11 +95,11 @@
 <button on:click={onclickTest}>debug</button>
 <Canvas size={{ width: width, height: height }}>
     <T.PerspectiveCamera bind:ref={camera} makeDefault position={[0, 0, 20]} fov={24}>
-        <OrbitControls
+        <!-- <OrbitControls
             maxPolarAngle={degToRad(90)}
             enableZoom={true}
             target={{ y: 0.5 }}
-        />
+        /> -->
     </T.PerspectiveCamera>
 
     <T.DirectionalLight castShadow position={[3, 10, 10]} />

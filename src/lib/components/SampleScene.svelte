@@ -1,5 +1,7 @@
 <script lang="ts">
-    import { Canvas, InteractiveObject, OrbitControls, T } from "@threlte/core";
+    import { Canvas, T } from "@threlte/core";
+    // import { OrbitControls } from '@threlte/extras';
+    // import { Canvas, OrbitControls, T } from "@threlte/core";
     import { degToRad } from "three/src/math/MathUtils";
     import { vec3, quat } from 'gl-matrix';
     import { Euler, Quaternion, Vector3 } from "three";
@@ -129,11 +131,12 @@
     <Canvas size={{width: width, height: height}}>
         <!-- <T.PerspectiveCamera makeDefault position={[10, 10, 20]} fov={24}> -->
         <T.PerspectiveCamera makeDefault position={[0, 0, 20]} fov={24}>
-            <OrbitControls
+            <!-- <OrbitControls
                 maxPolarAngle={degToRad(90)}
                 enableZoom={true}
                 target={{ y: 0.5 }}
-            />
+            /> -->
+            <!-- <OrbitControls enableDamping /> -->
         </T.PerspectiveCamera>
 
         <T.DirectionalLight castShadow position={[3, 10, 10]} />
