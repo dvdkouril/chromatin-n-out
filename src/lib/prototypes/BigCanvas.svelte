@@ -10,8 +10,8 @@
     import ModelPart from "../components/ModelPart.svelte";
     import ModelPartWithInstancing from "../components/ModelPartWithInstancing.svelte";
 
-    let width = 800;
-    let height = 600;
+    let width = 1920;
+    let height = 1080;
 
     const scale = 0.02;
     const sphereRadius = 0.1;
