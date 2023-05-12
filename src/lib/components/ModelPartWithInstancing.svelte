@@ -15,7 +15,7 @@
         <T.MeshStandardMaterial color="#aaaaaa" />
 
         {#each model.tubes as tube, i}
-            <Instance position={tube.position.toArray()} rotation={tube.rotation.toArray()} />
+            <Instance position={tube.position.toArray()} rotation={tube.rotation.toArray()} scale.y={tube.scale} />
         {/each}
     </InstancedMesh>
    
