@@ -9,6 +9,8 @@
     import { parsePdb } from "../pdb";
     import ModelPart from "../components/ModelPart.svelte";
     import ModelPartWithInstancing from "../components/ModelPartWithInstancing.svelte";
+    import { Debug, World, Collider } from "@threlte/rapier";
+    // import { World } from "@threlte/rapier";
 
     let width = 1920;
     let height = 1080;
@@ -130,21 +132,26 @@
 <div>Big canvas!</div>
 <button on:click={onclickTest}>debug</button>
 <Canvas size={{ width: width, height: height }}>
-    <T.PerspectiveCamera
-        bind:ref={camera}
-        makeDefault
-        position={[0, 0, 50]}
-        fov={24}
-    >
-        <OrbitControls enableDamping />
-    </T.PerspectiveCamera>
+    <World>
+        <T.PerspectiveCamera
+            bind:ref={camera}
+            makeDefault
+            position={[0, 0, 50]}
+            fov={24}
+        >
+            <OrbitControls enableDamping />
+        </T.PerspectiveCamera>
 
-    <T.DirectionalLight castShadow position={[3, 10, 10]} />
-    <T.DirectionalLight position={[-3, 10, -10]} intensity={0.2} />
-    <T.AmbientLight intensity={0.2} />
+        <T.DirectionalLight castShadow position={[3, 10, 10]} />
+        <T.DirectionalLight position={[-3, 10, -10]} intensity={0.2} />
+        <T.AmbientLight intensity={0.2} />
 
-    {#each models as model}
-        <!-- <ModelPart {model}/> -->
-        <ModelPartWithInstancing {model} />
-    {/each}
+        {#each models as model}
+            <!-- <ModelPart {model}/> -->
+            <Collider shape={'cuboid'} args={[1, 1, 1]}/>
+            <ModelPartWithInstancing {model} />
+        {/each}
+
+        <Debug depthTest={false} depthWrite={false} />
+    </World>
 </Canvas>
