@@ -8,6 +8,7 @@
     import { onMount } from "svelte";
     import { parsePdb } from "../pdb";
     import ModelPart from "../components/ModelPart.svelte";
+    import ModelPartWithInstancing from "../components/ModelPartWithInstancing.svelte";
 
     let width = 800;
     let height = 600;
@@ -87,6 +88,42 @@
             spheres: spheres,
             tubes: tubesLocal,
         });
+
+        models.push({
+            position: new Vector3(-10, 10, 0),
+            spheres: spheres,
+            tubes: tubesLocal,
+        });
+
+        models.push({
+            position: new Vector3(0, 10, 0),
+            spheres: spheres,
+            tubes: tubesLocal,
+        });
+
+        models.push({
+            position: new Vector3(10, 10, 0),
+            spheres: spheres,
+            tubes: tubesLocal,
+        });
+
+        models.push({
+            position: new Vector3(-10, -10, 0),
+            spheres: spheres,
+            tubes: tubesLocal,
+        });
+
+        models.push({
+            position: new Vector3(0, -10, 0),
+            spheres: spheres,
+            tubes: tubesLocal,
+        });
+
+        models.push({
+            position: new Vector3(10, -10, 0),
+            spheres: spheres,
+            tubes: tubesLocal,
+        });
     });
 </script>
 
@@ -107,7 +144,7 @@
     <T.AmbientLight intensity={0.2} />
 
     {#each models as model}
-        <ModelPart {model}/>
+        <!-- <ModelPart {model}/> -->
+        <ModelPartWithInstancing {model} />
     {/each}
-
 </Canvas>
