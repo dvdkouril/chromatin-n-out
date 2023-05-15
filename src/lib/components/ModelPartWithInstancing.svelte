@@ -1,18 +1,32 @@
 <script lang="ts">
     import { T } from "@threlte/core";
     import { Instance, InstancedMesh } from "@threlte/extras";
-    import { AutoColliders, RigidBody } from "@threlte/rapier";
+    import { AutoColliders, RigidBody, useRapier } from "@threlte/rapier";
+    import { onMount } from "svelte";
     export let model;
 
     const sphereRadius = 0.1;
     const tubeBaseSize = 0.05;
+
+    let instMesh;
+    $: console.log("instMesh changed: " + instMesh);
+    let bSphere = (instMesh) ? instMesh.computeBoundingSphere() : null; 
+    
+    onMount(() => {
+        // console.log("instMesh");
+        // console.log(instMesh);
+        // if (instMesh )
+    }
+    );
 </script>
 
-    <RigidBody>
-        <AutoColliders shape={"ball"}>
-<T.Group position={[model.position.x, model.position.y, model.position.z]}>
+<RigidBody>
+    <AutoColliders shape={"ball"}>
+        <T.Group
+            position={[model.position.x, model.position.y, model.position.z]}
+        >
             <!-- Tubes connecting bin positions -->
-            <InstancedMesh>
+            <InstancedMesh bind={instMesh}>
                 <T.CylinderGeometry args={[tubeBaseSize, tubeBaseSize, 1.0]} />
                 <T.MeshStandardMaterial color="#aaaaaa" />
 
@@ -38,6 +52,6 @@
                     />
                 {/each}
             </InstancedMesh>
-</T.Group>
-        </AutoColliders>
-    </RigidBody>
+        </T.Group>
+    </AutoColliders>
+</RigidBody>

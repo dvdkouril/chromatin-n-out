@@ -3,14 +3,14 @@
     import { OrbitControls } from "@threlte/extras";
     import type { vec3 } from "gl-matrix";
     import { recenter, computeTubes } from "../util";
-    import { Vector3, type Vector2, BoxGeometry, MeshStandardMaterial } from "three";
+    import { Vector3, type Vector2, BoxGeometry, MeshStandardMaterial, PerspectiveCamera } from "three";
     import { brafl } from "../test_BRAFL";
     import { onMount } from "svelte";
     import { parsePdb } from "../pdb";
     import ModelPart from "../components/ModelPart.svelte";
     import ModelPartWithInstancing from "../components/ModelPartWithInstancing.svelte";
-    import { Debug, World, Collider, AutoColliders } from "@threlte/rapier";
-    // import { World } from "@threlte/rapier";
+    import { Debug, World, Collider, AutoColliders  } from "@threlte/rapier";
+    import Scene from "../components/Scene.svelte";
 
     let width = 1920;
     let height = 1080;
@@ -19,7 +19,7 @@
     const sphereRadius = 0.1;
     const tubeBaseSize = 0.05;
 
-    let camera;
+    let camera: PerspectiveCamera;
 
     let selections = [];
     let hoveredBin = null;
@@ -126,6 +126,7 @@
             spheres: spheres,
             tubes: tubesLocal,
         });
+
     });
 </script>
 
@@ -133,35 +134,7 @@
 <button on:click={onclickTest}>debug</button>
 <Canvas size={{ width: width, height: height }}>
     <World>
-        <T.PerspectiveCamera
-            bind:ref={camera}
-            makeDefault
-            position={[0, 0, 50]}
-            fov={24}
-        >
-            <OrbitControls enableDamping />
-        </T.PerspectiveCamera>
-
-        <T.DirectionalLight castShadow position={[3, 10, 10]} />
-        <T.DirectionalLight position={[-3, 10, -10]} intensity={0.2} />
-        <T.AmbientLight intensity={0.2} />
-
-        {#each models as model}
-            <!-- <ModelPart {model}/> -->
-            <!-- <Collider shape={'cuboid'} args={[1, 1, 1]}/> -->
-            <ModelPartWithInstancing {model} />
-        {/each}
-
-        <T.Group position={[0, -20, 0]}>
-            <AutoColliders shape={'cuboid'}>
-              <T.Mesh
-                receiveShadow
-                geometry={new BoxGeometry(50, 1, 50)}
-                material={new MeshStandardMaterial()}
-              />
-            </AutoColliders>
-          </T.Group>
-
+        <Scene bind:camera={camera} {models} />
         <Debug depthTest={false} depthWrite={false} />
     </World>
 </Canvas>
