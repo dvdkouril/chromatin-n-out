@@ -4,7 +4,7 @@
   import BigCanvas from "./lib/prototypes/BigCanvas.svelte";
 
   let prototypes = ["hierarchical-selections", "bubbles", "big-canvas"];
-  let currentPrototype = "hierarchical-selections";
+  let currentPrototype = "big-canvas";
 </script>
 
 <div id="prototypes-menu">

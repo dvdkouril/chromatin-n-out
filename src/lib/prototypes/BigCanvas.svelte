@@ -3,13 +3,13 @@
     import { OrbitControls } from "@threlte/extras";
     import type { vec3 } from "gl-matrix";
     import { recenter, computeTubes } from "../util";
-    import { Vector3, type Vector2 } from "three";
+    import { Vector3, type Vector2, BoxGeometry, MeshStandardMaterial } from "three";
     import { brafl } from "../test_BRAFL";
     import { onMount } from "svelte";
     import { parsePdb } from "../pdb";
     import ModelPart from "../components/ModelPart.svelte";
     import ModelPartWithInstancing from "../components/ModelPartWithInstancing.svelte";
-    import { Debug, World, Collider } from "@threlte/rapier";
+    import { Debug, World, Collider, AutoColliders } from "@threlte/rapier";
     // import { World } from "@threlte/rapier";
 
     let width = 1920;
@@ -148,9 +148,19 @@
 
         {#each models as model}
             <!-- <ModelPart {model}/> -->
-            <Collider shape={'cuboid'} args={[1, 1, 1]}/>
+            <!-- <Collider shape={'cuboid'} args={[1, 1, 1]}/> -->
             <ModelPartWithInstancing {model} />
         {/each}
+
+        <T.Group position={[0, -20, 0]}>
+            <AutoColliders shape={'cuboid'}>
+              <T.Mesh
+                receiveShadow
+                geometry={new BoxGeometry(50, 1, 50)}
+                material={new MeshStandardMaterial()}
+              />
+            </AutoColliders>
+          </T.Group>
 
         <Debug depthTest={false} depthWrite={false} />
     </World>
