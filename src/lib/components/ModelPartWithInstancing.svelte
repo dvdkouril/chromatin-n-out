@@ -1,8 +1,7 @@
 <script lang="ts">
-    import { T } from "@threlte/core";
+    import { T, useFrame } from "@threlte/core";
     import { Instance, InstancedMesh } from "@threlte/extras";
-    import { AutoColliders, RigidBody, useRapier } from "@threlte/rapier";
-    import { onMount } from "svelte";
+    import { AutoColliders, RigidBody } from "@threlte/rapier";
     export let model;
 
     const sphereRadius = 0.1;
@@ -11,13 +10,8 @@
     let instMesh;
     $: console.log("instMesh changed: " + instMesh);
     let bSphere = (instMesh) ? instMesh.computeBoundingSphere() : null; 
+
     
-    onMount(() => {
-        // console.log("instMesh");
-        // console.log(instMesh);
-        // if (instMesh )
-    }
-    );
 </script>
 
 <RigidBody>
@@ -26,7 +20,7 @@
             position={[model.position.x, model.position.y, model.position.z]}
         >
             <!-- Tubes connecting bin positions -->
-            <InstancedMesh bind={instMesh}>
+            <InstancedMesh bind:ref={instMesh}>
                 <T.CylinderGeometry args={[tubeBaseSize, tubeBaseSize, 1.0]} />
                 <T.MeshStandardMaterial color="#aaaaaa" />
 
@@ -40,7 +34,8 @@
             </InstancedMesh>
 
             <!-- Spheres at bin positions -->
-            <InstancedMesh>
+            <!-- <InstancedMesh id={"spheres"}> -->
+            <!-- <InstancedMesh>
                 <T.SphereGeometry args={[sphereRadius]} />
                 <T.MeshStandardMaterial color="#aaaaaa" />
 
@@ -51,7 +46,7 @@
                         position.z={s.z}
                     />
                 {/each}
-            </InstancedMesh>
+            </InstancedMesh> -->
         </T.Group>
     </AutoColliders>
 </RigidBody>
