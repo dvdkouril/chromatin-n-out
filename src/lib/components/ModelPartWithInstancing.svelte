@@ -1,7 +1,7 @@
 <script lang="ts">
     import { T, useFrame } from "@threlte/core";
     import { Instance, InstancedMesh } from "@threlte/extras";
-    import { AutoColliders, RigidBody } from "@threlte/rapier";
+    import { AutoColliders, Collider, RigidBody } from "@threlte/rapier";
     export let model;
 
     const sphereRadius = 0.1;
@@ -9,44 +9,37 @@
 
     let instMesh;
     $: console.log("instMesh changed: " + instMesh);
-    let bSphere = (instMesh) ? instMesh.computeBoundingSphere() : null; 
-
-    
+    let bSphere = instMesh ? instMesh.computeBoundingSphere() : null;
 </script>
 
 <RigidBody>
-    <AutoColliders shape={"ball"}>
-        <T.Group
-            position={[model.position.x, model.position.y, model.position.z]}
-        >
-            <!-- Tubes connecting bin positions -->
-            <InstancedMesh bind:ref={instMesh}>
-                <T.CylinderGeometry args={[tubeBaseSize, tubeBaseSize, 1.0]} />
-                <T.MeshStandardMaterial color="#aaaaaa" />
+    <!-- <AutoColliders shape={"ball"}> -->
 
-                {#each model.tubes as tube, i}
-                    <Instance
-                        position={tube.position.toArray()}
-                        rotation={tube.rotation.toArray()}
-                        scale.y={tube.scale}
-                    />
-                {/each}
-            </InstancedMesh>
+    <T.Group position={[model.position.x, model.position.y, model.position.z]}>
+        <Collider shape={"ball"} args={[5]} />
+        <!-- Tubes connecting bin positions -->
+        <InstancedMesh bind:ref={instMesh}>
+            <T.CylinderGeometry args={[tubeBaseSize, tubeBaseSize, 1.0]} />
+            <T.MeshStandardMaterial color="#aaaaaa" />
 
-            <!-- Spheres at bin positions -->
-            <!-- <InstancedMesh id={"spheres"}> -->
-            <!-- <InstancedMesh>
-                <T.SphereGeometry args={[sphereRadius]} />
-                <T.MeshStandardMaterial color="#aaaaaa" />
+            {#each model.tubes as tube, i}
+                <Instance
+                    position={tube.position.toArray()}
+                    rotation={tube.rotation.toArray()}
+                    scale.y={tube.scale}
+                />
+            {/each}
+        </InstancedMesh>
 
-                {#each model.spheres as s, i}
-                    <Instance
-                        position.x={s.x}
-                        position.y={s.y}
-                        position.z={s.z}
-                    />
-                {/each}
-            </InstancedMesh> -->
-        </T.Group>
-    </AutoColliders>
+        <!-- Spheres at bin positions -->
+        <InstancedMesh>
+            <T.SphereGeometry args={[sphereRadius]} />
+            <T.MeshStandardMaterial color="#aaaaaa" />
+
+            {#each model.spheres as s, i}
+                <Instance position.x={s.x} position.y={s.y} position.z={s.z} />
+            {/each}
+        </InstancedMesh>
+    </T.Group>
+    <!-- </AutoColliders> -->
 </RigidBody>
