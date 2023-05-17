@@ -20,19 +20,24 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
     - [x] figure out how to propagate mousedown/up/move events through svg to threlte canvas
 - [x] base hiearchical layout
 - [ ] non-uniform, interactive and fluid layouting of 3D+widget
-    - [ ] basic physics-based bubbles layout 
+    - [x] basic physics-based bubbles layout 
     - [ ] interaction: zoom in/out triggers enlarging/shrinking which leads to fluid layout change
     - [ ] clicking on bubble makes spawn another one (neighbor/child)
-- [ ] connect 2D physics with 3D models
-    - [ ] single canvas & scene for all 3D parts
-    - [ ] moving a 2D proxy (in physics engine) translates the coordinates into the 3D scene and moves the particular 3D part
+- [ ] threlte/rapier physics layout
+    - [ ] model local orbiting: don't move camera but rotation model
+    - [ ] model local zooming: don't move camera but scale model
 - [ ] support for larger models
     - [ ] aggregating the selection widget segments
     - [x] instancing the meshes (in threlte)
-    - [ ] replace Threlte by chromoskein graphics library?
 - [x] switching between base hierarchical prototype and fluid layout (presentation purposes)
 - [ ] load chromosomes segmentation
 - [ ] load gene annotation
+
+### not doing (anymore)
+- [ ] connect 2D physics with 3D models
+    - [ ] single canvas & scene for all 3D parts
+    - [ ] moving a 2D proxy (in physics engine) translates the coordinates into the 3D scene and moves the particular 3D part
+- [ ] replace Threlte by chromoskein graphics library?
 
 ### too small to care
 - [x] base arc widget colormap should always go from light gray to dark gray (don't take the slice of colormap because then you can't see the data segments)

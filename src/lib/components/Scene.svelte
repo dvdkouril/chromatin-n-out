@@ -1,6 +1,6 @@
 <script lang="ts">
     import { T } from "@threlte/core";
-    import { Instance, InstancedMesh, OrbitControls } from "@threlte/extras";
+    import { Instance, InstancedMesh, OrbitControls, interactivity } from "@threlte/extras";
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
     import { AutoColliders, useRapier } from "@threlte/rapier";
     import {
@@ -9,6 +9,8 @@
         PerspectiveCamera,
     } from "three";
     import { onMount } from "svelte";
+
+    interactivity();
 
     export let camera: PerspectiveCamera;
     export let models;
@@ -47,6 +49,7 @@
             receiveShadow
             geometry={new BoxGeometry(50, 1, 50)}
             material={new MeshStandardMaterial()}
+            on:click={() => {console.log("test test test")}}
         />
     </AutoColliders>
 </T.Group>
