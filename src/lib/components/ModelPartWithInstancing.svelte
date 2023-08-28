@@ -1,9 +1,17 @@
 <script lang="ts">
     import { T, useFrame } from "@threlte/core";
     import { Instance, InstancedMesh, interactivity } from "@threlte/extras";
+    import { unprojectToWorldSpace } from "../util";
+    import { Vector3 } from "three";
 
     export let model;
+    export let camera;
     //~ TODO: calculate world position from screen space position
+
+    $: modelWorldPosition = camera ? unprojectToWorldSpace(model.screenPosition, camera) : new Vector3(0, 0, 0);
+    // $: modelWorldPosition = new Vector3(0, 0, 0);
+    // $: modelWorldPosition = unprojectToWorldSpace(model.screenPosition, camera);
+    $: console.log("camera is " + camera);
 
     const sphereRadius = 0.1;
     const tubeBaseSize = 0.05;
@@ -18,7 +26,7 @@
 </script>
 
     <T.Group
-        position={[model.position.x, model.position.y, model.position.z]}
+        position={[modelWorldPosition.x, modelWorldPosition.y, modelWorldPosition.z]}
         scale={[modelScale, modelScale, modelScale]}
         on:click={() => {
             console.log("clicked");

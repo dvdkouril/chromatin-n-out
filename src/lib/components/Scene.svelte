@@ -12,6 +12,7 @@
     import { onMount } from "svelte";
     import { useThrelte } from "@threlte/core";
     import { debug } from "svelte/internal";
+    import { unprojectToWorldSpace } from "../util";
 
     const { renderer } = useThrelte();
     const canvas = renderer?.domElement;
@@ -24,19 +25,7 @@
 
     let debugPos_ObjectSpace = new Vector3(0, 0, 0);
 
-    const unproject = (screenPosition: Vector2): Vector3 => {
-        var vec = new Vector3(); // create once and reuse
-        var pos = new Vector3(); // create once and reuse
-
-        vec.set(screenPosition.x * 2 - 1, -screenPosition.y * 2 + 1, 0.5);
-        vec.unproject(camera);
-        vec.sub(camera.position).normalize();
-        var distance = -camera.position.z / vec.z;
-        pos.copy(camera.position).add(vec.multiplyScalar(distance));
-
-        return pos;
-    };
-
+    
     const onMouseMove = (e) => {
         let rect = e.target.getBoundingClientRect();
         let x = e.clientX - rect.left; //x position within the element.
@@ -45,8 +34,9 @@
         let canvasWidth = rect.width;
         let canvasHeight = rect.height;
 
-        debugPos_ObjectSpace = unproject(
-            new Vector2(x / canvasWidth, y / canvasHeight)
+        debugPos_ObjectSpace = unprojectToWorldSpace(
+            new Vector2(x / canvasWidth, y / canvasHeight),
+            camera
         );
         
     };
@@ -70,6 +60,7 @@
 <T.DirectionalLight position={[-3, 10, -10]} intensity={0.2} />
 <T.AmbientLight intensity={0.2} />
 
+<!-- DEBUG cube under cursor -->
 <T.Group
     position={[
         debugPos_ObjectSpace.x,
@@ -86,7 +77,7 @@
 
 {#each models as model}
     <!-- <ModelPart {model}/> -->
-    <ModelPartWithInstancing {model} />
+    <ModelPartWithInstancing {model} {camera} />
 {/each}
 
 <T.Group position={[0, -20, 0]}>

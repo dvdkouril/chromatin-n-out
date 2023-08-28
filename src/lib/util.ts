@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import { vec3 } from "gl-matrix";
-import { Euler, Quaternion, Vector3 } from "three";
+import { Euler, PerspectiveCamera, Quaternion, Vector2, Vector3 } from "three";
 
 export const generateColors = (numOfColors) => {
     let colors = undefined;
@@ -158,4 +158,18 @@ export const computeTubes = (bins: { x: number; y: number; z: number }[]) => {
 
         // console.log(t);
         return t;
+    };
+
+
+export const unprojectToWorldSpace = (screenPosition: Vector2, camera: PerspectiveCamera): Vector3 => {
+        var vec = new Vector3(); // create once and reuse
+        var pos = new Vector3(); // create once and reuse
+
+        vec.set(screenPosition.x * 2 - 1, -screenPosition.y * 2 + 1, 0.5);
+        vec.unproject(camera);
+        vec.sub(camera.position).normalize();
+        var distance = -camera.position.z / vec.z;
+        pos.copy(camera.position).add(vec.multiplyScalar(distance));
+
+        return pos;
     };
