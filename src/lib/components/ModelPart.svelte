@@ -1,14 +1,10 @@
 <script lang="ts">
     import { T } from "@threlte/core";
-    import { AutoColliders, RigidBody } from "@threlte/rapier";
     export let model;
 
     const sphereRadius = 0.1;
     const tubeBaseSize = 0.05;
 </script>
-
-<!-- <RigidBody>
-        <AutoColliders shape={"ball"}> -->
 
 <T.Group position={[model.position.x, model.position.y, model.position.z]}>
     {#each model.tubes as tube, i}
@@ -42,5 +38,3 @@
         </T.Mesh>
     {/each}
 </T.Group>
-    <!-- </AutoColliders>
-    </RigidBody> -->

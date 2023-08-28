@@ -1,18 +1,15 @@
 <script lang="ts">
     import { Canvas, T } from "@threlte/core";
-    import { OrbitControls } from "@threlte/extras";
     import type { vec3 } from "gl-matrix";
     import { recenter, computeTubes } from "../util";
     import { Vector3, type Vector2, BoxGeometry, MeshStandardMaterial, PerspectiveCamera } from "three";
     import { brafl } from "../test_BRAFL";
     import { onMount } from "svelte";
     import { parsePdb } from "../pdb";
-    import ModelPart from "../components/ModelPart.svelte";
-    import ModelPartWithInstancing from "../components/ModelPartWithInstancing.svelte";
     import Scene from "../components/Scene.svelte";
 
-    let width = 1920;
-    let height = 1080;
+    let width = 800;
+    let height = 600;
 
     const scale = 0.02;
     const sphereRadius = 0.1;
@@ -78,55 +75,57 @@
             tubes: tubesLocal,
         });
 
-        models.push({
-            position: new Vector3(10, 0, 0),
-            spheres: spheres,
-            tubes: tubesLocal,
-        });
+        // models.push({
+        //     position: new Vector3(10, 0, 0),
+        //     spheres: spheres,
+        //     tubes: tubesLocal,
+        // });
 
-        models.push({
-            position: new Vector3(-10, 0, 0),
-            spheres: spheres,
-            tubes: tubesLocal,
-        });
+        // models.push({
+        //     position: new Vector3(-10, 0, 0),
+        //     spheres: spheres,
+        //     tubes: tubesLocal,
+        // });
 
-        models.push({
-            position: new Vector3(-10, 10, 0),
-            spheres: spheres,
-            tubes: tubesLocal,
-        });
+        // models.push({
+        //     position: new Vector3(-10, 10, 0),
+        //     spheres: spheres,
+        //     tubes: tubesLocal,
+        // });
 
-        models.push({
-            position: new Vector3(0, 10, 0),
-            spheres: spheres,
-            tubes: tubesLocal,
-        });
+        // models.push({
+        //     position: new Vector3(0, 10, 0),
+        //     spheres: spheres,
+        //     tubes: tubesLocal,
+        // });
 
-        models.push({
-            position: new Vector3(10, 10, 0),
-            spheres: spheres,
-            tubes: tubesLocal,
-        });
+        // models.push({
+        //     position: new Vector3(10, 10, 0),
+        //     spheres: spheres,
+        //     tubes: tubesLocal,
+        // });
 
-        models.push({
-            position: new Vector3(-10, -10, 0),
-            spheres: spheres,
-            tubes: tubesLocal,
-        });
+        // models.push({
+        //     position: new Vector3(-10, -10, 0),
+        //     spheres: spheres,
+        //     tubes: tubesLocal,
+        // });
 
-        models.push({
-            position: new Vector3(0, -10, 0),
-            spheres: spheres,
-            tubes: tubesLocal,
-        });
+        // models.push({
+        //     position: new Vector3(0, -10, 0),
+        //     spheres: spheres,
+        //     tubes: tubesLocal,
+        // });
 
-        models.push({
-            position: new Vector3(10, -10, 0),
-            spheres: spheres,
-            tubes: tubesLocal,
-        });
+        // models.push({
+        //     position: new Vector3(10, -10, 0),
+        //     spheres: spheres,
+        //     tubes: tubesLocal,
+        // });
 
     });
+
+
 </script>
 
 <div>Big canvas!</div>

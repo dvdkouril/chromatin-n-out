@@ -14,7 +14,7 @@
     $: console.log("instMesh changed: " + instMesh);
     let bSphere = instMesh ? instMesh.computeBoundingSphere() : null;
 
-    interactivity();
+    // interactivity();
 </script>
 
     <T.Group
