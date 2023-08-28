@@ -28,21 +28,12 @@
         var vec = new Vector3(); // create once and reuse
         var pos = new Vector3(); // create once and reuse
 
-        vec.set(
-            screenPosition.x * 2 - 1,
-            - screenPosition.y * 2 + 1,
-            0.5
-        );
-
+        vec.set(screenPosition.x * 2 - 1, -screenPosition.y * 2 + 1, 0.5);
         vec.unproject(camera);
-
         vec.sub(camera.position).normalize();
-
         var distance = -camera.position.z / vec.z;
-
         pos.copy(camera.position).add(vec.multiplyScalar(distance));
 
-        // return new Vector3();
         return pos;
     };
 
@@ -50,13 +41,14 @@
         let rect = e.target.getBoundingClientRect();
         let x = e.clientX - rect.left; //x position within the element.
         let y = e.clientY - rect.top; //y position within the element.
-        console.log(`move (client): ${e.clientX}, ${e.clientY}`);
-        console.log(`move (relative): ${x}, ${y}`);
 
-        let canvasWidth = 800; //~ I can hardcode now but it should be computed from target?
-        let canvasHeight = 600;
-        debugPos_ObjectSpace = unproject(new Vector2(x / canvasWidth, y / canvasHeight));
-        console.log("world = " + debugPos_ObjectSpace.x + ", " + debugPos_ObjectSpace.y + ", " + debugPos_ObjectSpace.z);
+        let canvasWidth = rect.width;
+        let canvasHeight = rect.height;
+
+        debugPos_ObjectSpace = unproject(
+            new Vector2(x / canvasWidth, y / canvasHeight)
+        );
+        
     };
 
     onMount(() => {
