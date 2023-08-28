@@ -2,7 +2,6 @@
     import { T } from "@threlte/core";
     import { Instance, InstancedMesh, OrbitControls, interactivity } from "@threlte/extras";
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
-    import { AutoColliders, useRapier } from "@threlte/rapier";
     import {
         BoxGeometry,
         MeshStandardMaterial,
@@ -15,8 +14,8 @@
     export let camera: PerspectiveCamera;
     export let models;
 
-    const { world } = useRapier();
-    const noGravity = () => (world.gravity = { x: 0, y: 0, z: 0 });
+    // const { world } = useRapier();
+    // const noGravity = () => (world.gravity = { x: 0, y: 0, z: 0 });
 
     onMount(() => {
         // noGravity();
@@ -39,17 +38,14 @@
 
 {#each models as model}
     <!-- <ModelPart {model}/> -->
-    <!-- <Collider shape={'cuboid'} args={[1, 1, 1]}/> -->
     <ModelPartWithInstancing {model} />
 {/each}
 
 <T.Group position={[0, -20, 0]}>
-    <AutoColliders shape={"cuboid"}>
         <T.Mesh
             receiveShadow
             geometry={new BoxGeometry(50, 1, 50)}
             material={new MeshStandardMaterial()}
             on:click={() => {console.log("test test test")}}
         />
-    </AutoColliders>
 </T.Group>

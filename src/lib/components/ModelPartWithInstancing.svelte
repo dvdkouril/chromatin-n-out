@@ -1,8 +1,6 @@
 <script lang="ts">
-    import type { RigidBody as RapierRigidBody } from '@dimforge/rapier3d-compat';
     import { T, useFrame } from "@threlte/core";
     import { Instance, InstancedMesh, interactivity } from "@threlte/extras";
-    import { AutoColliders, Collider, RigidBody } from "@threlte/rapier";
 
     export let model;
     //~ TODO: calculate world position from screen space position
@@ -10,22 +8,14 @@
     const sphereRadius = 0.1;
     const tubeBaseSize = 0.05;
 
-    let rigidBody: RapierRigidBody;
-
     let modelScale = 1.0;
-    $: colliderRadius = 5 * modelScale;
 
     let instMesh;
     $: console.log("instMesh changed: " + instMesh);
     let bSphere = instMesh ? instMesh.computeBoundingSphere() : null;
 
-    let colliderRefreshed = 0;
-
     interactivity();
 </script>
-
-<RigidBody bind:rigidBody>
-    <!-- <AutoColliders shape={"ball"}> -->
 
     <T.Group
         position={[model.position.x, model.position.y, model.position.z]}
@@ -33,14 +23,8 @@
         on:click={() => {
             console.log("clicked");
             modelScale = modelScale * 1.01;
-            colliderRefreshed = colliderRefreshed + 1;
-            // rigidBody.set
         }}
     >
-        <!-- <Collider shape={"ball"} args={[5]} /> -->
-        {#key colliderRefreshed}
-        <Collider shape={"ball"} args={[colliderRadius]} />
-        {/key}
         <!-- Tubes connecting bin positions -->
         <InstancedMesh bind:ref={instMesh}>
             <T.CylinderGeometry args={[tubeBaseSize, tubeBaseSize, 1.0]} />
@@ -65,5 +49,3 @@
             {/each}
         </InstancedMesh>
     </T.Group>
-    <!-- </AutoColliders> -->
-</RigidBody>

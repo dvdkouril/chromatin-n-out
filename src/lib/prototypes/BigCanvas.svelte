@@ -9,7 +9,6 @@
     import { parsePdb } from "../pdb";
     import ModelPart from "../components/ModelPart.svelte";
     import ModelPartWithInstancing from "../components/ModelPartWithInstancing.svelte";
-    import { Debug, World, Collider, AutoColliders  } from "@threlte/rapier";
     import Scene from "../components/Scene.svelte";
 
     let width = 1920;
@@ -133,8 +132,5 @@
 <div>Big canvas!</div>
 <button on:click={onclickTest}>debug</button>
 <Canvas size={{ width: width, height: height }}>
-    <World>
-        <Scene bind:camera={camera} {models} />
-        <Debug depthTest={false} depthWrite={false} />
-    </World>
+    <Scene bind:camera={camera} {models} />
 </Canvas>
