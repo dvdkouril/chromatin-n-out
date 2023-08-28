@@ -3,10 +3,6 @@ Prototyping visualization & interaction methods for intuitive hierarchical navig
 
 ![chromatin-n-out WIP screenshot](screenshots/20230317145700.png)
 
-## babylonjs rework
-Doing everything declaratively is still somewhat difficult for me and I get stuck on how to access different properties and link the physics engine and the rendering. Also I don't think using Threlte at this point is feasible for actual projects at HMS, and I need to explore different options, Babylon.js being one of them.
-- [ ] 
-
 ## todo
 - [x] rectangular widget mvp
     - [x] single path selection
