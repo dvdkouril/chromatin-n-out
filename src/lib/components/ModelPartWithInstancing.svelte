@@ -3,7 +3,9 @@
     import { T, useFrame } from "@threlte/core";
     import { Instance, InstancedMesh, interactivity } from "@threlte/extras";
     import { AutoColliders, Collider, RigidBody } from "@threlte/rapier";
+
     export let model;
+    //~ TODO: calculate world position from screen space position
 
     const sphereRadius = 0.1;
     const tubeBaseSize = 0.05;
