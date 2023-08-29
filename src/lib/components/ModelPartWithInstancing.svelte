@@ -3,8 +3,9 @@
     import { Instance, InstancedMesh, interactivity } from "@threlte/extras";
     import { unprojectToWorldSpace } from "../util";
     import { Vector3 } from "three";
+    import type { HyperWindow } from "../hyperwindows-types";
 
-    export let model;
+    export let model: HyperWindow;
     export let camera;
     //~ TODO: calculate world position from screen space position
 
@@ -38,7 +39,7 @@
             <T.CylinderGeometry args={[tubeBaseSize, tubeBaseSize, 1.0]} />
             <T.MeshStandardMaterial color="#aaaaaa" />
 
-            {#each model.tubes as tube, i}
+            {#each model.model.tubes as tube, i}
                 <Instance
                     position={tube.position.toArray()}
                     rotation={tube.rotation.toArray()}
@@ -52,7 +53,7 @@
             <T.SphereGeometry args={[sphereRadius]} />
             <T.MeshStandardMaterial color="#aaaaaa" />
 
-            {#each model.spheres as s, i}
+            {#each model.model.spheres as s, i}
                 <Instance position.x={s.x} position.y={s.y} position.z={s.z} />
             {/each}
         </InstancedMesh>
