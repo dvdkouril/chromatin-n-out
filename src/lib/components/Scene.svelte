@@ -67,16 +67,16 @@
         console.log("CLICK");
         console.log(mouseConstraint ? mouseConstraint.body : "no");
         console.log(event);
-        if (mouseConstraint && mouseConstraint.body) {
-            const body = mouseConstraint.body;
+        // if (mouseConstraint && mouseConstraint.body) {
+        //     const body = mouseConstraint.body;
 
-            if (event.mouse.button == 0) {
-                Matter.Body.scale(body, 1.2, 1.2);
-                // } else if (event.mouse.button == 2 ) {
-            } else {
-                Matter.Body.scale(body, 0.8, 0.8); // yeah, not inverse operation...but whatever for now
-            }
-        }
+        //     if (event.mouse.button == 0) {
+        //         Matter.Body.scale(body, 1.2, 1.2);
+        //         // } else if (event.mouse.button == 2 ) {
+        //     } else {
+        //         Matter.Body.scale(body, 0.8, 0.8); // yeah, not inverse operation...but whatever for now
+        //     }
+        // }
     };
     const generateStartingPositions = (
         n: number
@@ -87,7 +87,8 @@
         for (let i = 0; i < n; i++) {
             const xPos = getRandomInt(width);
             const yPos = getRandomInt(height);
-            const radius = getRandomInt(100);
+            // const radius = getRandomInt(100);
+            const radius = 80;
             positions.push({ x: xPos, y: yPos, r: radius });
         }
 
@@ -183,20 +184,25 @@
     useFrame(() => {
         console.log("test");
         console.log(engine.world.bodies);
-        const newModels = [];
+        const newModels: HyperWindow[] = [];
         let i = 0;
         for (let b of engine.world.bodies) {
             if (b.label == "Circle Body") {
                 console.log("circle");
                 const oldModel = models[i];
+                // newModels.push({
+                //     screenPosition: b.position.x,
+                //     ...oldModel,
+                // })
+                const width = 800; const height = 600;
                 newModels.push({
-                    screenPosition: b.position,
-                    ...oldModel,
-                })
+                    screenPosition: new Vector2(b.position.x / width, b.position.y / height),
+                    model: oldModel.model, 
+                });
                 i += 1;
             }
         }
-        // models = newModels;
+        models = newModels;
     });
 </script>
 
