@@ -29,6 +29,7 @@
     <T.Group
         position={[modelWorldPosition.x, modelWorldPosition.y, modelWorldPosition.z]}
         scale={[modelScale, modelScale, modelScale]}
+        rotation={[0, model.model.rotationX * Math.PI / 180, 0]}
         on:click={() => {
             console.log("clicked");
             modelScale = modelScale * 1.01;

@@ -33,6 +33,8 @@
     //~ DOM
     export let parentElement;
     const canvas = renderer?.domElement;
+    let lastMousePos = { x: 0, y: 0 };
+    let dragging = false;
 
     //~ Actual scene content
     let models: HyperWindow[] = [];
@@ -44,14 +46,60 @@
     //~ debug
     let debugPos_ObjectSpace = new Vector3(0, 0, 0);
 
+    const onMouseDown = (e) => {
+        dragging = true;
+
+        let rect = e.target.getBoundingClientRect();
+        let x = e.clientX - rect.left; //x position within the element.
+        let y = e.clientY - rect.top; //y position within the element.
+
+        lastMousePos = { x: x, y: y };
+        console.log("mouse down!");
+
+        //~ debuggggg
+        console.log(engine.world.bodies);
+    };
+
+    const onMouseUp = (e) => {
+        dragging = false;
+        console.log("mouse up!");
+    };
+
     const onMouseMove = (e) => {
         let rect = e.target.getBoundingClientRect();
         let x = e.clientX - rect.left; //x position within the element.
         let y = e.clientY - rect.top; //y position within the element.
 
+        if (!dragging) {
+            return;
+        }
+
+        //~ use the x,y to query the physics engine; get the body under cursor
+        let hitBodies = Matter.Query.point(engine.world.bodies, { x: x, y: y });
+        if (hitBodies.length > 0) {
+            console.log("HIT SOME BODY!");
+            let b = hitBodies[0]; //~ assume for now that we don't have overlapping bodies
+            const bodyId = b.id;
+
+            //TODO: fetch hyperwindow associated with this body (probably need some map structure)
+            let hprWindow = models[0]; // just for testing
+            for (let m of models) {
+                if (m.associatedBodyId == bodyId) {
+                    hprWindow = m;
+                }
+            }
+
+            const delta = x - lastMousePos.x;
+            const orbitingSpeed = 0.8;
+            hprWindow.model.rotationX += orbitingSpeed * delta;
+
+            console.log(hprWindow);
+            lastMousePos = {x: x, y: y};
+        }
+
+        //~ debug: draw cube under cursor
         let canvasWidth = rect.width;
         let canvasHeight = rect.height;
-
         debugPos_ObjectSpace = unprojectToWorldSpace(
             new Vector2(x / canvasWidth, y / canvasHeight),
             camera
@@ -76,8 +124,11 @@
 
     const generateStartingPositions = (
         n: number
-    ): { x: number; y: number; r: number }[] => {
+    ): [{ x: number; y: number; r: number }[], number[]] => {
+
         let positions: { x: number; y: number; r: number }[] = [];
+        let ids: number[] = [];
+
         const width = 800;
         const height = 600;
         for (let i = 0; i < n; i++) {
@@ -89,15 +140,18 @@
 
         let bodies = [];
         for (let c of positions) {
-            bodies.push(Matter.Bodies.circle(c.x, c.y, c.r, {
-                restitution: 0,
-                friction: 1,
-            }));
+            const newBody = Matter.Bodies.circle(c.x, c.y, c.r, {
+                    restitution: 0,
+                    friction: 1,
+                });
+            bodies.push(newBody);
+            ids.push(newBody.id);
         }
 
         Matter.Composite.add(engine.world, bodies);
 
-        return positions;
+        // return positions;
+        return [positions, ids];
     };
 
     onMount(() => {
@@ -162,21 +216,27 @@
         var runner = Matter.Runner.create();
         Matter.Runner.run(runner, engine);
 
-        let screenPositions = generateStartingPositions(5);
+        let [screenPositions, ids] = generateStartingPositions(5);
 
+        let i = 0;
         for (const p of screenPositions) {
             const uv = new Vector2(p.x / 800, p.y / 600);
             models.push({
                 screenPosition: new Vector2(uv.x, uv.y),
+                associatedBodyId: ids[i],
                 model: {
                     spheres: spheres,
                     tubes: tubesLocal,
+                    rotationX: 0,
                 },
             });
+            i += 1;
         }
 
         // noGravity();
         canvas.addEventListener("mousemove", onMouseMove);
+        canvas.addEventListener("mousedown", onMouseDown);
+        canvas.addEventListener("mouseup", onMouseUp);
     });
 
     useFrame(() => {
@@ -197,6 +257,7 @@
                         b.position.y / height
                     ),
                     model: oldModel.model,
+                    associatedBodyId: oldModel.associatedBodyId,
                 });
                 i += 1;
             }
@@ -211,7 +272,7 @@
     position={[0, 0, 50]}
     fov={24}
 >
-    <OrbitControls enableDamping />
+    <!-- <OrbitControls enableDamping /> -->
 </T.PerspectiveCamera>
 
 <T.DirectionalLight castShadow position={[3, 10, 10]} />
