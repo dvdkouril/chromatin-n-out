@@ -23,32 +23,26 @@
     import { brafl } from "../test_BRAFL";
     import type { vec3 } from "gl-matrix";
 
-    // create an engine
+    //~ Matter.js physics
     let engine = Matter.Engine.create();
+    let mouseConstraint = null;
 
-    export let parentElement;
-
+    //~ Threlte lifecycle
     const { renderer } = useThrelte();
+
+    //~ DOM
+    export let parentElement;
     const canvas = renderer?.domElement;
 
-    // const { world } = useRapier();
-    // const noGravity = () => (world.gravity = { x: 0, y: 0, z: 0 });
-
-    let debugPos_ObjectSpace = new Vector3(0, 0, 0);
-
-    export let spheres = [
-        { x: 0, y: 0, z: 0 },
-        { x: 1, y: 0, z: 0 },
-        { x: 1, y: 1, z: 0 },
-        { x: 0, y: 1, z: 0 },
-    ];
-
+    //~ Actual scene content
     let models: HyperWindow[] = [];
-
+    let camera: PerspectiveCamera;
+    //~ model
+    export let spheres = [];
     const scale = 0.02;
 
-    let mouseConstraint = null;
-    let camera: PerspectiveCamera;
+    //~ debug
+    let debugPos_ObjectSpace = new Vector3(0, 0, 0);
 
     const onMouseMove = (e) => {
         let rect = e.target.getBoundingClientRect();
@@ -63,6 +57,7 @@
             camera
         );
     };
+
     const onClickTest = (event) => {
         console.log("CLICK");
         console.log(mouseConstraint ? mouseConstraint.body : "no");
@@ -78,6 +73,7 @@
         //     }
         // }
     };
+
     const generateStartingPositions = (
         n: number
     ): { x: number; y: number; r: number }[] => {
@@ -87,14 +83,16 @@
         for (let i = 0; i < n; i++) {
             const xPos = getRandomInt(width);
             const yPos = getRandomInt(height);
-            // const radius = getRandomInt(100);
             const radius = 80;
             positions.push({ x: xPos, y: yPos, r: radius });
         }
 
         let bodies = [];
         for (let c of positions) {
-            bodies.push(Matter.Bodies.circle(c.x, c.y, c.r));
+            bodies.push(Matter.Bodies.circle(c.x, c.y, c.r, {
+                restitution: 0,
+                friction: 1,
+            }));
         }
 
         Matter.Composite.add(engine.world, bodies);
@@ -182,22 +180,23 @@
     });
 
     useFrame(() => {
-        console.log("test");
-        console.log(engine.world.bodies);
         const newModels: HyperWindow[] = [];
         let i = 0;
         for (let b of engine.world.bodies) {
             if (b.label == "Circle Body") {
-                console.log("circle");
                 const oldModel = models[i];
                 // newModels.push({
                 //     screenPosition: b.position.x,
                 //     ...oldModel,
                 // })
-                const width = 800; const height = 600;
+                const width = 800;
+                const height = 600;
                 newModels.push({
-                    screenPosition: new Vector2(b.position.x / width, b.position.y / height),
-                    model: oldModel.model, 
+                    screenPosition: new Vector2(
+                        b.position.x / width,
+                        b.position.y / height
+                    ),
+                    model: oldModel.model,
                 });
                 i += 1;
             }
