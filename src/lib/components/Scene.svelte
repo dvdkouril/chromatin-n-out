@@ -42,7 +42,7 @@
     //~ model
     export let spheres = [];
     const scale = 0.02;
-    
+
     const onMouseDown = (e) => {
         dragging = true;
 
@@ -74,7 +74,7 @@
         //~ use the x,y to query the physics engine; get the body under cursor
         let hitBodies = Matter.Query.point(engine.world.bodies, { x: x, y: y });
         if (hitBodies.length > 0) {
-            console.log("HIT SOME BODY!");
+            // console.log("HIT SOME BODY!");
             let b = hitBodies[0]; //~ assume for now that we don't have overlapping bodies
             const bodyId = b.id;
 
@@ -92,8 +92,37 @@
             hprWindow.model.rotationX += orbitingSpeed * deltaX;
             hprWindow.model.rotationY += orbitingSpeed * deltaY;
 
-            console.log(hprWindow);
-            lastMousePos = {x: x, y: y};
+            // console.log(hprWindow);
+            lastMousePos = { x: x, y: y };
+        }
+    };
+
+    const onWheel = (e) => {
+        //~ disable scrolling the page with mouse wheel
+        e.preventDefault();
+        e.stopPropagation();
+        
+        let rect = e.target.getBoundingClientRect();
+        let x = e.clientX - rect.left; //x position within the element.
+        let y = e.clientY - rect.top; //y position within the element.
+
+        //~ use the x,y to query the physics engine; get the body under cursor
+        let hitBodies = Matter.Query.point(engine.world.bodies, { x: x, y: y });
+        if (hitBodies.length > 0) {
+            let b = hitBodies[0]; //~ assume for now that we don't have overlapping bodies
+            const bodyId = b.id;
+
+            //~ fetch hyperwindow associated with this body 
+            let hprWindow = models[0]; 
+            for (let m of models) {
+                if (m.associatedBodyId == bodyId) {
+                    hprWindow = m;
+                }
+            }
+
+            console.log("changing zoom");
+            const zoomingSpeed = 0.001;
+            hprWindow.model.zoom += zoomingSpeed * e.deltaY;
         }
     };
 
@@ -116,7 +145,6 @@
     const generateStartingPositions = (
         n: number
     ): [{ x: number; y: number; r: number }[], number[]] => {
-
         let positions: { x: number; y: number; r: number }[] = [];
         let ids: number[] = [];
 
@@ -125,16 +153,16 @@
         for (let i = 0; i < n; i++) {
             const xPos = getRandomInt(width);
             const yPos = getRandomInt(height);
-            const radius = 80;
+            const radius = 100;
             positions.push({ x: xPos, y: yPos, r: radius });
         }
 
         let bodies = [];
         for (let c of positions) {
             const newBody = Matter.Bodies.circle(c.x, c.y, c.r, {
-                    restitution: 0,
-                    friction: 1,
-                });
+                restitution: 0,
+                friction: 1,
+            });
             bodies.push(newBody);
             ids.push(newBody.id);
         }
@@ -220,6 +248,7 @@
                     tubes: tubesLocal,
                     rotationX: 0,
                     rotationY: 0,
+                    zoom: 1,
                 },
             });
             i += 1;
@@ -229,6 +258,7 @@
         canvas.addEventListener("mousemove", onMouseMove);
         canvas.addEventListener("mousedown", onMouseDown);
         canvas.addEventListener("mouseup", onMouseUp);
+        canvas.addEventListener("wheel", onWheel);
     });
 
     useFrame(() => {

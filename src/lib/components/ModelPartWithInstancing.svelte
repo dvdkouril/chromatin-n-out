@@ -2,7 +2,7 @@
     import { T, useFrame } from "@threlte/core";
     import { Instance, InstancedMesh, interactivity } from "@threlte/extras";
     import { unprojectToWorldSpace } from "../util";
-    import { Vector3 } from "three";
+    import { BoxGeometry, Mesh, MeshStandardMaterial, Vector3 } from "three";
     import type { HyperWindow } from "../hyperwindows-types";
 
     export let model: HyperWindow;
@@ -21,14 +21,17 @@
 
     let instMesh;
     $: console.log("instMesh changed: " + instMesh);
+    $: console.log("mesh changed: " + mesh);
     let bSphere = instMesh ? instMesh.computeBoundingSphere() : null;
+
+    let mesh;
 
     // interactivity();
 </script>
 
     <T.Group
         position={[modelWorldPosition.x, modelWorldPosition.y, modelWorldPosition.z]}
-        scale={[modelScale, modelScale, modelScale]}
+        scale={[model.model.zoom, model.model.zoom, model.model.zoom]}
         rotation={[model.model.rotationY * Math.PI / 180, model.model.rotationX * Math.PI / 180, 0]}
         on:click={() => {
             console.log("clicked");
@@ -58,4 +61,9 @@
                 <Instance position.x={s.x} position.y={s.y} position.z={s.z} />
             {/each}
         </InstancedMesh>
+
+        <T.Mesh bind:ref={mesh}>
+            <T.BoxGeometry />
+            <T.MeshStandardMaterial />
+        </T.Mesh>
     </T.Group>

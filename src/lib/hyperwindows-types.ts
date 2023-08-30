@@ -5,6 +5,7 @@ export type HWGeometry = {
     tubes: { position: Vector3; rotation: Euler; scale: number }[];
     rotationX: number;
     rotationY: number;
+    zoom: number;
 };
 
 export type HyperWindow = {
