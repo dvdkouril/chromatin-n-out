@@ -4,6 +4,7 @@ export type HWGeometry = {
     spheres: { x: number; y: number; z: number }[];
     tubes: { position: Vector3; rotation: Euler; scale: number }[];
     rotationX: number;
+    rotationY: number;
 };
 
 export type HyperWindow = {

@@ -42,10 +42,7 @@
     //~ model
     export let spheres = [];
     const scale = 0.02;
-
-    //~ debug
-    let debugPos_ObjectSpace = new Vector3(0, 0, 0);
-
+    
     const onMouseDown = (e) => {
         dragging = true;
 
@@ -89,21 +86,15 @@
                 }
             }
 
-            const delta = x - lastMousePos.x;
+            const deltaX = x - lastMousePos.x;
+            const deltaY = y - lastMousePos.y;
             const orbitingSpeed = 0.8;
-            hprWindow.model.rotationX += orbitingSpeed * delta;
+            hprWindow.model.rotationX += orbitingSpeed * deltaX;
+            hprWindow.model.rotationY += orbitingSpeed * deltaY;
 
             console.log(hprWindow);
             lastMousePos = {x: x, y: y};
         }
-
-        //~ debug: draw cube under cursor
-        let canvasWidth = rect.width;
-        let canvasHeight = rect.height;
-        debugPos_ObjectSpace = unprojectToWorldSpace(
-            new Vector2(x / canvasWidth, y / canvasHeight),
-            camera
-        );
     };
 
     const onClickTest = (event) => {
@@ -228,6 +219,7 @@
                     spheres: spheres,
                     tubes: tubesLocal,
                     rotationX: 0,
+                    rotationY: 0,
                 },
             });
             i += 1;
@@ -278,21 +270,6 @@
 <T.DirectionalLight castShadow position={[3, 10, 10]} />
 <T.DirectionalLight position={[-3, 10, -10]} intensity={0.2} />
 <T.AmbientLight intensity={0.2} />
-
-<!-- DEBUG cube under cursor -->
-<T.Group
-    position={[
-        debugPos_ObjectSpace.x,
-        debugPos_ObjectSpace.y,
-        debugPos_ObjectSpace.z,
-    ]}
->
-    <T.Mesh
-        receiveShadow
-        geometry={new BoxGeometry(1, 1, 1)}
-        material={new MeshStandardMaterial()}
-    />
-</T.Group>
 
 {#each models as model}
     <!-- <ModelPart {model}/> -->
