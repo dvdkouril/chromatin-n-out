@@ -21,7 +21,7 @@
     import * as Matter from "matter-js";
     import { parsePdb } from "../pdb";
     import { brafl } from "../test_BRAFL";
-    import type { vec3 } from "gl-matrix";
+    import type { vec2, vec3 } from "gl-matrix";
 
     //~ Matter.js physics
     let engine = Matter.Engine.create();
@@ -101,7 +101,7 @@
         //~ disable scrolling the page with mouse wheel
         e.preventDefault();
         e.stopPropagation();
-        
+
         let rect = e.target.getBoundingClientRect();
         let x = e.clientX - rect.left; //x position within the element.
         let y = e.clientY - rect.top; //y position within the element.
@@ -111,9 +111,10 @@
         if (hitBodies.length > 0) {
             let b = hitBodies[0]; //~ assume for now that we don't have overlapping bodies
             const bodyId = b.id;
+            Matter.Body.scale(b, 1.01, 1.01);
 
-            //~ fetch hyperwindow associated with this body 
-            let hprWindow = models[0]; 
+            //~ fetch hyperwindow associated with this body
+            let hprWindow = models[0];
             for (let m of models) {
                 if (m.associatedBodyId == bodyId) {
                     hprWindow = m;
@@ -128,8 +129,8 @@
 
     const onClickTest = (event) => {
         console.log("CLICK");
-        console.log(mouseConstraint ? mouseConstraint.body : "no");
-        console.log(event);
+        // console.log(mouseConstraint ? mouseConstraint.body : "no");
+        // console.log(event);
         // if (mouseConstraint && mouseConstraint.body) {
         //     const body = mouseConstraint.body;
 
@@ -140,6 +141,38 @@
         //         Matter.Body.scale(body, 0.8, 0.8); // yeah, not inverse operation...but whatever for now
         //     }
         // }
+
+        console.log("BOUNDING SPHERE TESTS");
+        console.log(spheres);
+        const positions = spheres.map((pos) => {
+            return new Vector3(pos.x, pos.y, pos.z);
+        });
+
+        // just checking...bounding box
+        let bbMin = new Vector2(Infinity, Infinity);
+        let bbMax = new Vector2(-Infinity, -Infinity);
+        for (let p of positions) {
+            if (p.x < bbMin.x) {
+                bbMin.setX(p.x);
+            }
+            if (p.y < bbMin.y) {
+                bbMin.setY(p.y);
+            }
+
+            if (p.x > bbMax.x) {
+                bbMax.setX(p.x);
+            }
+            if (p.y > bbMax.y) {
+                bbMax.setY(p.y);
+            }
+        }
+        const diag = bbMax.sub(bbMin).length();
+        console.log("BB");
+        console.log("bbMin: " + bbMin.x + ", " + bbMin.y);
+        console.log("bbMax: " + bbMax.x + ", " + bbMax.y);
+        console.log("diagonal: " + diag);
+
+        computeBoundingSphere(positions);
     };
 
     const generateStartingPositions = (
@@ -261,6 +294,98 @@
         canvas.addEventListener("wheel", onWheel);
     });
 
+    const projectPositions = (points: Vector3[]): Vector2[] => {
+        const newPoints: Vector2[] = [];
+        const pm = camera.projectionMatrix;
+        const mvm = camera.modelViewMatrix;
+
+        for (let p of points) {
+            let cp = new Vector3(p.x, p.y, p.z);
+            let projectedP = cp.applyMatrix4(mvm).applyMatrix4(pm);
+            newPoints.push(new Vector2(projectedP.x, projectedP.y));
+        }
+
+        return newPoints;
+    };
+
+    const computeBoundingCircle = (points: Vector2[]): [Vector2, number] => {
+        //~ 1. find two points that are far away
+        let a = points[0];
+        let b = points[1];
+
+        console.log("BOUNDING CIRCLE computation:");
+
+        const getDist = (p: Vector2, v: Vector2): number => {
+            return p.distanceTo(v);
+        };
+
+        for (let p of points) {
+            const d = getDist(a, p);
+            if (d > getDist(a, b)) {
+                b = p;
+            }
+        }
+
+        //~ 2. initial estimation
+        let bsCenter = b.clone().sub(a).divideScalar(2.0);
+        let bsRadius = bsCenter.length();
+
+        //~ 3. adjust the estimation
+        for (let p of points) {
+            const v = p.clone().sub(bsCenter);
+            const d = v.length();
+
+            if (d > bsRadius) {
+                //~ outside of the bounding sphere
+
+                let difference = d - bsRadius;
+                let newDiameter = 2 * bsRadius + difference;
+                let newRadius = newDiameter / 2.0;
+                v.normalize();
+                let newCenter = bsCenter
+                    .clone()
+                    .add(v.multiplyScalar(difference / 2.0));
+
+                bsCenter = newCenter;
+                bsRadius = newRadius;
+                /*
+float distance = sqrt(sq_distance);
+         
+        float difference = distance - radius;
+ 
+        float new_diameter = 2 * radius + difference;
+        sq_radius = radius * radius;
+ 
+        difference /= 2;
+ 
+        centre += difference * direction;
+                 */
+            }
+        }
+
+        return [bsCenter, bsRadius];
+    };
+
+    /**
+     *
+     * @param pointsIn3D an array of points in 3D which will be projected into 2D and then the computation of a bounding sphere bounding "circle"
+     * returns a 2D position and a radius of the bounding circle
+     */
+    const computeBoundingSphere = (
+        pointsIn3D: Vector3[]
+    ): [Vector2, number] => {
+        //~ 1. project points into screen space
+        const pointsIn2D = projectPositions(pointsIn3D);
+
+        //~ 2. Ritter's bounding sphere algorithm (in 2D)
+        const bSphere = computeBoundingCircle(pointsIn2D);
+
+        console.log("center: " + bSphere[0].x + ", " + bSphere[0].y);
+        console.log("radius: " + bSphere[1]);
+
+        return bSphere;
+    };
+
     useFrame(() => {
         const newModels: HyperWindow[] = [];
         let i = 0;
@@ -285,6 +410,9 @@
             }
         }
         models = newModels;
+
+        //~ debug
+        // computeBoundingSphere()
     });
 </script>
 
