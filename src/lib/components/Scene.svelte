@@ -12,6 +12,8 @@
     import { onMount } from "svelte";
     import { useThrelte } from "@threlte/core";
     import {
+        computeBoundingBox2D,
+        computeBoundingBox3D,
         computeTubes,
         getRandomInt,
         recenter,
@@ -131,73 +133,10 @@
         }
     };
 
-    const computeBoundingBox2D = (points: Vector2[]): [Vector2, Vector2] => {
-        let bbMin = new Vector2(Infinity, Infinity);
-        let bbMax = new Vector2(-Infinity, -Infinity);
-        for (let p of points) {
-            if (p.x < bbMin.x) {
-                bbMin.setX(p.x);
-            }
-            if (p.y < bbMin.y) {
-                bbMin.setY(p.y);
-            }
-
-            if (p.x > bbMax.x) {
-                bbMax.setX(p.x);
-            }
-            if (p.y > bbMax.y) {
-                bbMax.setY(p.y);
-            }
-        }
-
-        return [bbMin, bbMax];
-    };
-
-    const computeBoundingBox3D = (points: Vector3[]): [Vector3, Vector3] => {
-        let bbMin = new Vector3(Infinity, Infinity, Infinity);
-        let bbMax = new Vector3(-Infinity, -Infinity, -Infinity);
-        for (let p of points) {
-            if (p.x < bbMin.x) {
-                bbMin.setX(p.x);
-            }
-            if (p.y < bbMin.y) {
-                bbMin.setY(p.y);
-            }
-            if (p.z < bbMin.z) {
-                bbMin.setZ(p.z);
-            }
-
-            if (p.x > bbMax.x) {
-                bbMax.setX(p.x);
-            }
-            if (p.y > bbMax.y) {
-                bbMax.setY(p.y);
-            }
-            if (p.z > bbMax.z) {
-                bbMax.setZ(p.z);
-            }
-        }
-
-        return [bbMin, bbMax];
-    };
-
     const onClickTest = (event) => {
         console.log("CLICK");
-        // console.log(mouseConstraint ? mouseConstraint.body : "no");
-        // console.log(event);
-        // if (mouseConstraint && mouseConstraint.body) {
-        //     const body = mouseConstraint.body;
-
-        //     if (event.mouse.button == 0) {
-        //         Matter.Body.scale(body, 1.2, 1.2);
-        //         // } else if (event.mouse.button == 2 ) {
-        //     } else {
-        //         Matter.Body.scale(body, 0.8, 0.8); // yeah, not inverse operation...but whatever for now
-        //     }
-        // }
 
         console.log("BOUNDING SPHERE TESTS");
-        console.log(spheres);
         const positions = spheres.map((pos) => {
             return new Vector3(pos.x, pos.y, pos.z);
         });
@@ -306,7 +245,8 @@
         var runner = Matter.Runner.create();
         Matter.Runner.run(runner, engine);
 
-        let [screenPositions, ids] = generateStartingPositions(5);
+        // let [screenPositions, ids] = generateStartingPositions(5);
+        let [screenPositions, ids] = generateStartingPositions(1);
 
         let i = 0;
         for (const p of screenPositions) {
@@ -334,15 +274,13 @@
 
     const projectPositions = (points: Vector3[]): Vector2[] => {
         const newPoints: Vector2[] = [];
-        const pm = camera.projectionMatrix;
-        const mvm = camera.modelViewMatrix;
 
         for (let p of points) {
             let cp = new Vector3(p.x, p.y, p.z);
             let projectedP = cp.project(camera);
             projectedP.divideScalar(2);
             projectedP.addScalar(0.5);
-            newPoints.push(new Vector2(projectedP.x, projectedP.y));
+            newPoints.push(new Vector2(projectedP.x * 800, projectedP.y * 600));
         }
 
         return newPoints;
@@ -405,19 +343,9 @@
         //~ 1. project points into screen space
         const pointsIn2D = projectPositions(pointsIn3D);
 
-        console.log("BB in 2D");
-        let [bbMin, bbMax] = computeBoundingBox2D(pointsIn2D);
-        const diag = bbMax.sub(bbMin).length();
-        console.log("bbMin: " + bbMin.x + ", " + bbMin.y);
-        console.log("bbMax: " + bbMax.x + ", " + bbMax.y);
-        console.log("diagonal: " + diag);
-
-
         //~ 2. Ritter's bounding sphere algorithm (in 2D)
         const bSphere = computeBoundingCircle(pointsIn2D);
 
-        console.log("center: " + bSphere[0].x + ", " + bSphere[0].y);
-        console.log("radius: " + bSphere[1]);
         boundingSphere_Center = bSphere[0];
         boundingSphere_Radius = bSphere[1];
 
@@ -450,7 +378,11 @@
         models = newModels;
 
         //~ debug
+        const positions = spheres.map((pos) => {
+            return new Vector3(pos.x, pos.y, pos.z);
+        });
         // computeBoundingSphere()
+        computeBoundingSphere(positions);
     });
 </script>
 
