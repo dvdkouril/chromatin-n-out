@@ -10,6 +10,8 @@ export type HWGeometry = {
 
 export type HyperWindow = {
     screenPosition: Vector2;
+    currentRadius: number;
     associatedBodyId: number;
+    associatedBodyIndex: number;
     model: HWGeometry;
 };

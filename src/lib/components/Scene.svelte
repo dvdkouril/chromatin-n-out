@@ -30,6 +30,8 @@
     //~ Matter.js physics
     let engine = Matter.Engine.create();
     let mouseConstraint = null;
+    let matter_bodies = [];
+    let matter_body_ids = [];
 
     //~ Threlte lifecycle
     const { renderer } = useThrelte();
@@ -157,33 +159,18 @@
 
     const generateStartingPositions = (
         n: number
-    ): [{ x: number; y: number; r: number }[], number[]] => {
-        let positions: { x: number; y: number; r: number }[] = [];
-        let ids: number[] = [];
+    ): { x: number; y: number }[] => {
+        let positions: { x: number; y: number }[] = [];
 
         const width = 800;
         const height = 600;
         for (let i = 0; i < n; i++) {
             const xPos = getRandomInt(width);
             const yPos = getRandomInt(height);
-            const radius = 100;
-            positions.push({ x: xPos, y: yPos, r: radius });
+            positions.push({ x: xPos, y: yPos });
         }
-
-        let bodies = [];
-        for (let c of positions) {
-            const newBody = Matter.Bodies.circle(c.x, c.y, c.r, {
-                restitution: 0,
-                friction: 1,
-            });
-            bodies.push(newBody);
-            ids.push(newBody.id);
-        }
-
-        Matter.Composite.add(engine.world, bodies);
-
-        // return positions;
-        return [positions, ids];
+        
+        return positions;
     };
 
     onMount(() => {
@@ -249,15 +236,36 @@
         var runner = Matter.Runner.create();
         Matter.Runner.run(runner, engine);
 
-        let [screenPositions, ids] = generateStartingPositions(5);
+        let screenPositions = generateStartingPositions(5);
         // let [screenPositions, ids] = generateStartingPositions(1);
+
+        const initialRadius = 100;
+
+        //~ creating the bodies here
+        let bodies = [];
+        let ids = [];
+        for (let c of screenPositions) {
+            const newBody = Matter.Bodies.circle(c.x, c.y, initialRadius, {
+                restitution: 0,
+                friction: 1,
+            });
+            bodies.push(newBody);
+            ids.push(newBody.id);
+        }
+        matter_bodies = bodies;
+        matter_body_ids = ids;
+
+        Matter.Composite.add(engine.world, bodies);
+
 
         let i = 0;
         for (const p of screenPositions) {
             const uv = new Vector2(p.x / 800, p.y / 600);
             models.push({
                 screenPosition: new Vector2(uv.x, uv.y),
-                associatedBodyId: ids[i],
+                currentRadius: initialRadius,
+                associatedBodyId: ids[i], 
+                associatedBodyIndex: i, //~ one of these is redundant but i can't say which rn
                 model: {
                     spheres: spheres,
                     tubes: tubesLocal,
@@ -323,28 +331,39 @@
                         b.position.x / width,
                         b.position.y / height
                     ),
+                    currentRadius: oldModel.currentRadius,
                     model: oldModel.model,
                     associatedBodyId: oldModel.associatedBodyId,
+                    associatedBodyIndex: oldModel.associatedBodyIndex,
                 });
                 i += 1;
             }
         }
         models = newModels;
 
-        //~ debug
-        // const positions = spheres.map((pos) => {
-        //     return new Vector3(pos.x, pos.y, pos.z);
-        // });
-        // computeBoundingSphere(positions);
         debugPositions = [];
         boundingSpheres = [];
         for (let model of models) {
             let [center, radius] = computeBoundingSphere(model);
             boundingSpheres.push({center: center, radius: radius});
         }
-        // if (models.length > 0) {
-        //     computeBoundingSphere(models[0]);
-        // }
+
+        //~ update bodies
+        for (let model of models) {
+            // let body = Matter.Composite.get(engine.world, model.associatedBodyId);
+            // if (body == null) console.log("NOT FOUND");
+            let body = matter_bodies[model.associatedBodyIndex];
+
+            // let body = model.associatedBodyId; // use this to fetch body?
+            // const currentRadius = 100; // ??? fetch this from somewhere saved
+            const currentRadius = model.currentRadius;
+            const wantedRadius = boundingSpheres[model.associatedBodyIndex].radius;
+            const scaleFactor = wantedRadius / currentRadius; //~ or is it the other way around?
+            model.currentRadius = wantedRadius;
+
+            Matter.Body.scale(body, scaleFactor, scaleFactor);
+        }
+        
     });
 </script>
 
