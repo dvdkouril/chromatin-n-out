@@ -1,10 +1,11 @@
 <script lang="ts">
     import { Canvas, T } from "@threlte/core";
     import Scene from "../components/Scene.svelte";
+    import type { Vector2 } from "three";
 
     let parentElement = null;
-    let boundingSphere_Center = null;
-    let boundingSphere_Radius = null;
+    let boundingSpheres: { center: Vector2; radius: number }[] = [];
+    let debugPositions: Vector2[] = [];
 
     let width = 800;
     let height = 600;
@@ -12,32 +13,30 @@
 
 <div id="canvas-container">
     <div>Big canvas!</div>
-    {#if boundingSphere_Center}
-        <div>{boundingSphere_Center.x}, {boundingSphere_Center.y}</div>
-    {/if}
-    {#if boundingSphere_Radius}
-        <div>{boundingSphere_Radius}</div>
-    {/if}
     <Canvas size={{ width: width, height: height }}>
-        <Scene
-            {parentElement}
-            bind:boundingSphere_Center
-            bind:boundingSphere_Radius
-        />
+        <Scene {parentElement} bind:boundingSpheres bind:debugPositions />
     </Canvas>
 
-    <div id="overlay-container">
+    <div>
         <svg width="800" height="600" id="debug-overlay">
-            {#if boundingSphere_Center != null}
+            {#each boundingSpheres as bs}
                 <circle
-                    cx={boundingSphere_Center.x}
-                    cy={boundingSphere_Center.y}
-                    r={boundingSphere_Radius}
+                    cx={bs.center.x}
+                    cy={bs.center.y}
+                    r={bs.radius}
                     fill="red"
+                    opacity={0.1}
+                />
+            {/each}
+            {#each debugPositions as p}
+                <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r={3}
+                    fill="green"
                     opacity={0.3}
                 />
-            {/if}
-            <circle cx={100} cy={100} r={10} fill="red" opacity={0.5} />
+            {/each}
         </svg>
     </div>
 </div>
@@ -54,7 +53,7 @@
     }
 
     #canvas-container {
-        overflow: hidden; 
+        overflow: hidden;
         position: relative;
     }
 </style>

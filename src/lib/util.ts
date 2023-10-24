@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { vec3 } from "gl-matrix";
 import { Euler, PerspectiveCamera, Quaternion, Vector2, Vector3 } from "three";
+import type { HyperWindow } from "./hyperwindows-types";
 
 export const generateColors = (numOfColors) => {
     let colors = undefined;
@@ -173,6 +174,90 @@ export const unprojectToWorldSpace = (screenPosition: Vector2, camera: Perspecti
 
     return pos;
 };
+
+// export const projectPositions = (points: Vector3[], camera: PerspectiveCamera): Vector2[] => {
+export const projectModel = (model: HyperWindow, camera: PerspectiveCamera): Vector2[] => {
+        const newPoints: Vector2[] = [];
+        
+        const points: Vector3[] = model.model.spheres.map(
+            (p: { x: number; y: number; z: number }) =>
+                new Vector3(p.x, p.y, p.z)
+        );
+        for (let p of points) {
+            let cp = new Vector3(p.x, p.y, p.z);
+
+            //~ TODO: needs 1) transformation of camera, 2) transformation of the model
+
+            const position = unprojectToWorldSpace(model.screenPosition, camera); // todo: unproject
+            const scale = model.model.zoom;
+            const rotationX = model.model.rotationX;
+            const rotationY = model.model.rotationY;
+
+            cp.multiplyScalar(scale);
+            // cp.applyAxisAngle();
+            // cp.sub(camera.position);
+            cp.add(position);
+
+
+
+            // cp.sub(camera.position);
+            let projectedP = cp.project(camera);
+            projectedP.divideScalar(2);
+            projectedP.addScalar(0.5);
+
+            //~ flip the y
+            projectedP.y = 1.0 - projectedP.y;
+
+            newPoints.push(new Vector2(projectedP.x * 800, projectedP.y * 600));
+        }
+
+        return newPoints;
+    };
+
+
+export const computeBoundingCircle = (points: Vector2[]): [Vector2, number] => {
+        //~ 1. find two points that are far away
+        let a = points[0];
+        let b = points[1];
+
+        const getDist = (p: Vector2, v: Vector2): number => {
+            return p.distanceTo(v);
+        };
+
+        for (let p of points) {
+            const d = getDist(a, p);
+            if (d > getDist(a, b)) {
+                b = p;
+            }
+        }
+
+        //~ 2. initial estimation
+        let bsCenter = b.clone().sub(a).divideScalar(2.0);
+        let bsRadius = bsCenter.length();
+
+        //~ 3. adjust the estimation
+        for (let p of points) {
+            const v = p.clone().sub(bsCenter);
+            const d = v.length();
+
+            if (d > bsRadius) {
+                //~ outside of the bounding sphere
+
+                let difference = d - bsRadius;
+                let newDiameter = 2 * bsRadius + difference;
+                let newRadius = newDiameter / 2.0;
+                v.normalize();
+                let newCenter = bsCenter
+                    .clone()
+                    .add(v.multiplyScalar(difference / 2.0));
+
+                bsCenter = newCenter;
+                bsRadius = newRadius;
+            }
+        }
+
+        return [bsCenter, bsRadius];
+    };
 
 export const computeBoundingBox2D = (points: Vector2[]): [Vector2, Vector2] => {
     let bbMin = new Vector2(Infinity, Infinity);

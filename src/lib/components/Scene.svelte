@@ -14,8 +14,10 @@
     import {
         computeBoundingBox2D,
         computeBoundingBox3D,
+        computeBoundingCircle,
         computeTubes,
         getRandomInt,
+        projectModel,
         recenter,
         unprojectToWorldSpace,
     } from "../util";
@@ -46,8 +48,8 @@
     const scale = 0.02;
 
     //~ exports
-    export let boundingSphere_Center;
-    export let boundingSphere_Radius;
+    export let boundingSpheres: { center: Vector2; radius: number }[];
+    export let debugPositions: Vector2[];
 
     const onMouseDown = (e) => {
         dragging = true;
@@ -117,7 +119,7 @@
         if (hitBodies.length > 0) {
             let b = hitBodies[0]; //~ assume for now that we don't have overlapping bodies
             const bodyId = b.id;
-            Matter.Body.scale(b, 1.01, 1.01);
+            // Matter.Body.scale(b, 1.01, 1.01);
 
             //~ fetch hyperwindow associated with this body
             let hprWindow = models[0];
@@ -149,7 +151,8 @@
         console.log("bbMax: " + bbMax.x + ", " + bbMax.y + ", " + bbMax.z);
         console.log("diagonal: " + diag);
 
-        computeBoundingSphere(positions);
+        computeBoundingSphere(models[0]);
+        // computeBoundingSphere(positions);
     };
 
     const generateStartingPositions = (
@@ -198,6 +201,7 @@
         const tubesLocal = computeTubes(spheres);
 
         // create a renderer
+        parentElement.innerHTML = '';
         let render = Matter.Render.create({
             element: parentElement,
             engine: engine,
@@ -245,8 +249,8 @@
         var runner = Matter.Runner.create();
         Matter.Runner.run(runner, engine);
 
-        // let [screenPositions, ids] = generateStartingPositions(5);
-        let [screenPositions, ids] = generateStartingPositions(1);
+        let [screenPositions, ids] = generateStartingPositions(5);
+        // let [screenPositions, ids] = generateStartingPositions(1);
 
         let i = 0;
         for (const p of screenPositions) {
@@ -272,64 +276,14 @@
         canvas.addEventListener("wheel", onWheel);
     });
 
-    const projectPositions = (points: Vector3[]): Vector2[] => {
-        const newPoints: Vector2[] = [];
-
-        for (let p of points) {
-            let cp = new Vector3(p.x, p.y, p.z);
-            let projectedP = cp.project(camera);
-            projectedP.divideScalar(2);
-            projectedP.addScalar(0.5);
-            newPoints.push(new Vector2(projectedP.x * 800, projectedP.y * 600));
-        }
-
-        return newPoints;
-    };
-
-    const computeBoundingCircle = (points: Vector2[]): [Vector2, number] => {
-        //~ 1. find two points that are far away
-        let a = points[0];
-        let b = points[1];
-
-        console.log("BOUNDING CIRCLE computation:");
-
-        const getDist = (p: Vector2, v: Vector2): number => {
-            return p.distanceTo(v);
-        };
-
-        for (let p of points) {
-            const d = getDist(a, p);
-            if (d > getDist(a, b)) {
-                b = p;
-            }
-        }
-
-        //~ 2. initial estimation
-        let bsCenter = b.clone().sub(a).divideScalar(2.0);
-        let bsRadius = bsCenter.length();
-
-        //~ 3. adjust the estimation
-        for (let p of points) {
-            const v = p.clone().sub(bsCenter);
-            const d = v.length();
-
-            if (d > bsRadius) {
-                //~ outside of the bounding sphere
-
-                let difference = d - bsRadius;
-                let newDiameter = 2 * bsRadius + difference;
-                let newRadius = newDiameter / 2.0;
-                v.normalize();
-                let newCenter = bsCenter
-                    .clone()
-                    .add(v.multiplyScalar(difference / 2.0));
-
-                bsCenter = newCenter;
-                bsRadius = newRadius;
-            }
-        }
-
-        return [bsCenter, bsRadius];
+    //~ TODO: this function doesn't need to exist, just call directly projectModel
+    const projectModelToScreenSpace = (
+        model: HyperWindow,
+        camera: PerspectiveCamera
+    ): Vector2[] => {
+        const pointsIn2D = projectModel(model, camera);
+        
+        return pointsIn2D;
     };
 
     /**
@@ -337,17 +291,17 @@
      * @param pointsIn3D an array of points in 3D which will be projected into 2D and then the computation of a bounding sphere bounding "circle"
      * returns a 2D position and a radius of the bounding circle
      */
-    const computeBoundingSphere = (
-        pointsIn3D: Vector3[]
-    ): [Vector2, number] => {
+    const computeBoundingSphere = (model: HyperWindow): [Vector2, number] => {
         //~ 1. project points into screen space
-        const pointsIn2D = projectPositions(pointsIn3D);
+        const pointsIn2D = projectModelToScreenSpace(model, camera);
+        //DEBUG
+        debugPositions = debugPositions.concat(pointsIn2D);
 
         //~ 2. Ritter's bounding sphere algorithm (in 2D)
         const bSphere = computeBoundingCircle(pointsIn2D);
 
-        boundingSphere_Center = bSphere[0];
-        boundingSphere_Radius = bSphere[1];
+        // boundingSphere_Center = bSphere[0];
+        // boundingSphere_Radius = bSphere[1];
 
         return bSphere;
     };
@@ -378,11 +332,19 @@
         models = newModels;
 
         //~ debug
-        const positions = spheres.map((pos) => {
-            return new Vector3(pos.x, pos.y, pos.z);
-        });
-        // computeBoundingSphere()
-        computeBoundingSphere(positions);
+        // const positions = spheres.map((pos) => {
+        //     return new Vector3(pos.x, pos.y, pos.z);
+        // });
+        // computeBoundingSphere(positions);
+        debugPositions = [];
+        boundingSpheres = [];
+        for (let model of models) {
+            let [center, radius] = computeBoundingSphere(model);
+            boundingSpheres.push({center: center, radius: radius});
+        }
+        // if (models.length > 0) {
+        //     computeBoundingSphere(models[0]);
+        // }
     });
 </script>
 
