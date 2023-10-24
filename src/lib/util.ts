@@ -232,8 +232,17 @@ export const computeBoundingCircle = (points: Vector2[]): [Vector2, number] => {
         }
 
         //~ 2. initial estimation
-        let bsCenter = b.clone().sub(a).divideScalar(2.0);
-        let bsRadius = bsCenter.length();
+        const radiusVec = b.clone();
+        radiusVec.sub(a);
+        radiusVec.divideScalar(2);
+
+        let bsCenter = a.clone();
+        bsCenter.add(radiusVec);
+
+        let bsRadius = radiusVec.length();
+
+        //~ DEBUG
+        // return [bsCenter, bsRadius];
 
         //~ 3. adjust the estimation
         for (let p of points) {
