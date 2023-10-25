@@ -61,7 +61,7 @@
     const sizeChanged = (size) => {
         canvasWidth = size.width;
         canvasHeight = size.height;
-    }
+    };
 
     const onMouseDown = (e) => {
         dragging = true;
@@ -161,34 +161,38 @@
         //     engine: engine,
         // });
 
-        var ground = Matter.Bodies.rectangle(canvasWidth / 2, canvasHeight, canvasWidth, 60, {
-            isStatic: true,
-        });
-        var leftWall = Matter.Bodies.rectangle(0, 0, 10, canvasHeight, {
-            isStatic: true,
-        });
-        var rightWall = Matter.Bodies.rectangle(canvasWidth, 0, 10, canvasHeight, {
-            isStatic: true,
-        });
-        var topWall = Matter.Bodies.rectangle(canvasWidth / 2, 10, canvasWidth, 60, {
-            isStatic: true,
-        });
+        // var ground = Matter.Bodies.rectangle(canvasWidth / 2, canvasHeight, canvasWidth, 60, {
+        //     isStatic: true,
+        // });
+        // var leftWall = Matter.Bodies.rectangle(0, 0, 10, canvasHeight, {
+        //     isStatic: true,
+        // });
+        // var rightWall = Matter.Bodies.rectangle(canvasWidth, 0, 10, canvasHeight, {
+        //     isStatic: true,
+        // });
+        // var topWall = Matter.Bodies.rectangle(canvasWidth / 2, 10, canvasWidth, 60, {
+        //     isStatic: true,
+        // });
 
         // engine.gravity.y *= 0.1;
         engine.gravity.y = 0;
 
-        // add all of the bodies to the world
-        Matter.Composite.add(engine.world, [
-            ground,
-            leftWall,
-            rightWall,
-            topWall,
-        ]);
+        // // add all of the bodies to the world
+        // Matter.Composite.add(engine.world, [
+        //     ground,
+        //     leftWall,
+        //     rightWall,
+        //     topWall,
+        // ]);
 
         var runner = Matter.Runner.create();
         Matter.Runner.run(runner, engine);
 
-        let screenPositions = generateStartingPositions(5, canvasWidth, canvasHeight);
+        let screenPositions = generateStartingPositions(
+            5,
+            canvasWidth,
+            canvasHeight
+        );
 
         const initialRadius = 100;
 
@@ -208,6 +212,30 @@
 
         Matter.Composite.add(engine.world, bodies);
 
+        //~ constraints
+        let constraints = [];
+        let j = 0;
+        let lastBody = bodies[0];
+        for (let b of bodies) {
+            if (j == 0) {
+                j += 1;
+                continue;
+            }
+
+            var constraint = Matter.Constraint.create({
+                bodyA: b,
+                // pointA: { x: -10, y: -10 },
+                bodyB: lastBody,
+                // pointB: { x: -10, y: -10 },
+                // stiffness: 0.001,
+                // damping: 0.1,
+            });
+            constraints.push(constraint);
+            j += 1;
+            lastBody = b;
+        }
+
+        // Matter.Composite.add(engine.world, constraints);
 
         let i = 0;
         for (const p of screenPositions) {
@@ -215,7 +243,7 @@
             models.push({
                 screenPosition: new Vector2(uv.x, uv.y),
                 currentRadius: initialRadius,
-                associatedBodyId: ids[i], 
+                associatedBodyId: ids[i],
                 associatedBodyIndex: i, //~ one of these is redundant but i can't say which rn
                 model: {
                     spheres: spheres,
@@ -243,8 +271,10 @@
         const pointsIn2D = projectModel(model, camera);
 
         //~ transform from <0,1> to <0,width/height>
-        const newPoints = pointsIn2D.map((p: Vector2): Vector2 => { return new Vector2(p.x * canvasWidth, p.y * canvasHeight)})
-        
+        const newPoints = pointsIn2D.map((p: Vector2): Vector2 => {
+            return new Vector2(p.x * canvasWidth, p.y * canvasHeight);
+        });
+
         // return pointsIn2D;
         return newPoints;
     };
@@ -297,7 +327,7 @@
         boundingSpheres = [];
         for (let model of models) {
             let [center, radius] = computeBoundingSphere(model);
-            boundingSpheres.push({center: center, radius: radius});
+            boundingSpheres.push({ center: center, radius: radius });
         }
 
         //~ update bodies
@@ -305,13 +335,13 @@
             let body = matter_bodies[model.associatedBodyIndex];
 
             const currentRadius = model.currentRadius;
-            const wantedRadius = boundingSpheres[model.associatedBodyIndex].radius;
+            const wantedRadius =
+                boundingSpheres[model.associatedBodyIndex].radius;
             const scaleFactor = wantedRadius / currentRadius; //~ or is it the other way around?
             model.currentRadius = wantedRadius;
 
             Matter.Body.scale(body, scaleFactor, scaleFactor);
         }
-        
     });
 </script>
 
@@ -320,8 +350,7 @@
     makeDefault
     position={[0, 0, 50]}
     fov={24}
->
-</T.PerspectiveCamera>
+/>
 
 <T.DirectionalLight castShadow position={[3, 10, 10]} />
 <T.DirectionalLight position={[-3, 10, -10]} intensity={0.2} />

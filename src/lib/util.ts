@@ -175,7 +175,6 @@ export const unprojectToWorldSpace = (screenPosition: Vector2, camera: Perspecti
     return pos;
 };
 
-// export const projectPositions = (points: Vector3[], camera: PerspectiveCamera): Vector2[] => {
 export const projectModel = (model: HyperWindow, camera: PerspectiveCamera): Vector2[] => {
         const newPoints: Vector2[] = [];
         
@@ -186,8 +185,6 @@ export const projectModel = (model: HyperWindow, camera: PerspectiveCamera): Vec
         for (let p of points) {
             let cp = new Vector3(p.x, p.y, p.z);
 
-            //~ TODO: needs 1) transformation of camera, 2) transformation of the model
-
             const position = unprojectToWorldSpace(model.screenPosition, camera); // todo: unproject
             const scale = model.model.zoom;
             const rotationX = model.model.rotationX;
@@ -196,13 +193,8 @@ export const projectModel = (model: HyperWindow, camera: PerspectiveCamera): Vec
             cp.applyAxisAngle(new Vector3(0, 1, 0), rotationX * Math.PI / 180);
             cp.applyAxisAngle(new Vector3(1, 0, 0), rotationY * Math.PI / 180);
             cp.multiplyScalar(scale);
-            // cp.applyAxisAngle();
-            // cp.sub(camera.position);
             cp.add(position);
 
-
-
-            // cp.sub(camera.position);
             let projectedP = cp.project(camera);
             projectedP.divideScalar(2);
             projectedP.addScalar(0.5);
@@ -210,7 +202,7 @@ export const projectModel = (model: HyperWindow, camera: PerspectiveCamera): Vec
             //~ flip the y
             projectedP.y = 1.0 - projectedP.y;
 
-            // newPoints.push(new Vector2(projectedP.x * canvasWidth, projectedP.y * canvasHeight));
+            //~ output is <0,1>
             newPoints.push(new Vector2(projectedP.x, projectedP.y));
         }
 

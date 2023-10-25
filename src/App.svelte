@@ -7,22 +7,28 @@
   let currentPrototype = "big-canvas";
 </script>
 
-<div id="prototypes-menu">
-  <button
-    on:click={() => {
-      currentPrototype = prototypes[0];
-    }}>hierarchical selections</button
-  >
-  <button
-    on:click={() => {
-      currentPrototype = prototypes[1];
-    }}>bubbles</button
-  >
-  <button
-    on:click={() => {
-      currentPrototype = prototypes[2];
-    }}>big canvas</button
-  >
+<div id="top-bar">
+  <div id="prototypes-menu">
+    <button
+      on:click={() => {
+        currentPrototype = prototypes[0];
+      }}>hierarchical selections</button
+    >
+    <button
+      on:click={() => {
+        currentPrototype = prototypes[1];
+      }}>bubbles</button
+    >
+    <button
+      on:click={() => {
+        currentPrototype = prototypes[2];
+      }}>big canvas</button
+    >
+  </div>
+  <div id="title">HyperWindows</div>
+  <div id="project-info">
+    made by david kouril | code: <a href="https://github.com/dvdkouril/chromatin-n-out" target="_blank" rel="noreferrer">dvdkouril/chromatin-n-out</a>
+  </div>
 </div>
 
 {#if currentPrototype == "hierarchical-selections"}
@@ -34,4 +40,11 @@
 {/if}
 
 <style>
+  #top-bar {
+    display: flex;
+    justify-content: space-between;
+    /* text-align: left; */
+    padding: 10pt;
+  }
+  
 </style>

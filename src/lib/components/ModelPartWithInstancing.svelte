@@ -7,12 +7,8 @@
 
     export let model: HyperWindow;
     export let camera;
-    //~ TODO: calculate world position from screen space position
 
     $: modelWorldPosition = camera ? unprojectToWorldSpace(model.screenPosition, camera) : new Vector3(0, 0, 0);
-    // $: modelWorldPosition = new Vector3(0, 0, 0);
-    // $: modelWorldPosition = unprojectToWorldSpace(model.screenPosition, camera);
-    $: console.log("camera is " + camera);
 
     const sphereRadius = 0.1;
     const tubeBaseSize = 0.05;
@@ -20,8 +16,6 @@
     let modelScale = 1.0;
 
     let instMesh;
-    $: console.log("instMesh changed: " + instMesh);
-    $: console.log("mesh changed: " + mesh);
     let bSphere = instMesh ? instMesh.computeBoundingSphere() : null;
 
     let mesh;
