@@ -161,16 +161,16 @@
         //     engine: engine,
         // });
 
-        var ground = Matter.Bodies.rectangle(400, 610, 810, 60, {
+        var ground = Matter.Bodies.rectangle(canvasWidth / 2, canvasHeight, canvasWidth, 60, {
             isStatic: true,
         });
-        var leftWall = Matter.Bodies.rectangle(0, 0, 10, 1200, {
+        var leftWall = Matter.Bodies.rectangle(0, 0, 10, canvasHeight, {
             isStatic: true,
         });
-        var rightWall = Matter.Bodies.rectangle(800, 0, 10, 1200, {
+        var rightWall = Matter.Bodies.rectangle(canvasWidth, 0, 10, canvasHeight, {
             isStatic: true,
         });
-        var topWall = Matter.Bodies.rectangle(400, 10, 1200, 60, {
+        var topWall = Matter.Bodies.rectangle(canvasWidth / 2, 10, canvasWidth, 60, {
             isStatic: true,
         });
 
