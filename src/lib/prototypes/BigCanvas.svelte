@@ -12,7 +12,6 @@
 </script>
 
 <div id="canvas-container">
-    <div>Big canvas!</div>
     <!-- <Canvas size={{ width: width, height: height }}> -->
     <Canvas>
         <Scene {parentElement} bind:canvasWidth bind:canvasHeight bind:boundingSpheres bind:debugPositions />
