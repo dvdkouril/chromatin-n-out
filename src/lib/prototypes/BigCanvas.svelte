@@ -7,18 +7,18 @@
     let boundingSpheres: { center: Vector2; radius: number }[] = [];
     let debugPositions: Vector2[] = [];
 
-    let width = 800;
-    let height = 600;
+    let canvasWidth; //~ binding these upwards with useThrelte
+    let canvasHeight;
 </script>
 
 <div id="canvas-container">
     <div>Big canvas!</div>
-    <Canvas size={{ width: width, height: height }}>
-        <Scene {parentElement} bind:boundingSpheres bind:debugPositions />
+    <!-- <Canvas size={{ width: width, height: height }}> -->
+    <Canvas>
+        <Scene {parentElement} bind:canvasWidth bind:canvasHeight bind:boundingSpheres bind:debugPositions />
     </Canvas>
 
-    <div>
-        <svg width="800" height="600" id="debug-overlay">
+        <svg width={canvasWidth} height={canvasHeight} id="debug-overlay">
             {#each boundingSpheres as bs}
                 <circle
                     cx={bs.center.x}
@@ -38,7 +38,6 @@
                 />
             {/each}
         </svg>
-    </div>
 </div>
 
 <div bind:this={parentElement} />
@@ -55,5 +54,7 @@
     #canvas-container {
         overflow: hidden;
         position: relative;
+        width: 100%;
+        height: 100%;
     }
 </style>

@@ -16,6 +16,7 @@
         computeBoundingBox3D,
         computeBoundingCircle,
         computeTubes,
+        generateStartingPositions,
         getRandomInt,
         projectModel,
         recenter,
@@ -29,12 +30,12 @@
 
     //~ Matter.js physics
     let engine = Matter.Engine.create();
-    let mouseConstraint = null;
+    // let mouseConstraint = null;
     let matter_bodies = [];
     let matter_body_ids = [];
 
     //~ Threlte lifecycle
-    const { renderer } = useThrelte();
+    const { renderer, size } = useThrelte();
 
     //~ DOM
     export let parentElement;
@@ -53,6 +54,15 @@
     export let boundingSpheres: { center: Vector2; radius: number }[];
     export let debugPositions: Vector2[];
 
+    $: sizeChanged($size);
+    export let canvasWidth = 123;
+    export let canvasHeight = 123;
+
+    const sizeChanged = (size) => {
+        canvasWidth = size.width;
+        canvasHeight = size.height;
+    }
+
     const onMouseDown = (e) => {
         dragging = true;
 
@@ -61,15 +71,10 @@
         let y = e.clientY - rect.top; //y position within the element.
 
         lastMousePos = { x: x, y: y };
-        console.log("mouse down!");
-
-        //~ debuggggg
-        console.log(engine.world.bodies);
     };
 
     const onMouseUp = (e) => {
         dragging = false;
-        console.log("mouse up!");
     };
 
     const onMouseMove = (e) => {
@@ -102,7 +107,6 @@
             hprWindow.model.rotationX += orbitingSpeed * deltaX;
             hprWindow.model.rotationY += orbitingSpeed * deltaY;
 
-            // console.log(hprWindow);
             lastMousePos = { x: x, y: y };
         }
     };
@@ -121,7 +125,6 @@
         if (hitBodies.length > 0) {
             let b = hitBodies[0]; //~ assume for now that we don't have overlapping bodies
             const bodyId = b.id;
-            // Matter.Body.scale(b, 1.01, 1.01);
 
             //~ fetch hyperwindow associated with this body
             let hprWindow = models[0];
@@ -131,46 +134,10 @@
                 }
             }
 
-            console.log("changing zoom");
+            // console.log("changing zoom");
             const zoomingSpeed = 0.001;
             hprWindow.model.zoom += zoomingSpeed * e.deltaY;
         }
-    };
-
-    const onClickTest = (event) => {
-        console.log("CLICK");
-
-        console.log("BOUNDING SPHERE TESTS");
-        const positions = spheres.map((pos) => {
-            return new Vector3(pos.x, pos.y, pos.z);
-        });
-
-        // just checking...bounding box
-        let [bbMin, bbMax] = computeBoundingBox3D(positions);
-        const diag = bbMax.sub(bbMin).length();
-        console.log("BB in 3D");
-        console.log("bbMin: " + bbMin.x + ", " + bbMin.y + ", " + bbMin.z);
-        console.log("bbMax: " + bbMax.x + ", " + bbMax.y + ", " + bbMax.z);
-        console.log("diagonal: " + diag);
-
-        computeBoundingSphere(models[0]);
-        // computeBoundingSphere(positions);
-    };
-
-    const generateStartingPositions = (
-        n: number
-    ): { x: number; y: number }[] => {
-        let positions: { x: number; y: number }[] = [];
-
-        const width = 800;
-        const height = 600;
-        for (let i = 0; i < n; i++) {
-            const xPos = getRandomInt(width);
-            const yPos = getRandomInt(height);
-            positions.push({ x: xPos, y: yPos });
-        }
-        
-        return positions;
     };
 
     onMount(() => {
@@ -187,12 +154,12 @@
 
         const tubesLocal = computeTubes(spheres);
 
-        // create a renderer
-        parentElement.innerHTML = '';
-        let render = Matter.Render.create({
-            element: parentElement,
-            engine: engine,
-        });
+        // // create a renderer
+        // parentElement.innerHTML = '';
+        // let render = Matter.Render.create({
+        //     element: parentElement,
+        //     engine: engine,
+        // });
 
         var ground = Matter.Bodies.rectangle(400, 610, 810, 60, {
             isStatic: true,
@@ -218,26 +185,10 @@
             topWall,
         ]);
 
-        let mouse = Matter.Mouse.create(render.canvas);
-        mouseConstraint = Matter.MouseConstraint.create(engine, {
-            mouse: mouse,
-            constraint: {
-                stiffness: 0.2,
-                render: { visible: false },
-            },
-        });
-
-        Matter.Composite.add(engine.world, mouseConstraint);
-        render.mouse = mouse;
-
-        Matter.Events.on(mouseConstraint, "mousedown", onClickTest);
-
-        Matter.Render.run(render);
         var runner = Matter.Runner.create();
         Matter.Runner.run(runner, engine);
 
-        let screenPositions = generateStartingPositions(5);
-        // let [screenPositions, ids] = generateStartingPositions(1);
+        let screenPositions = generateStartingPositions(5, canvasWidth, canvasHeight);
 
         const initialRadius = 100;
 
@@ -260,7 +211,7 @@
 
         let i = 0;
         for (const p of screenPositions) {
-            const uv = new Vector2(p.x / 800, p.y / 600);
+            const uv = new Vector2(p.x / canvasWidth, p.y / canvasHeight);
             models.push({
                 screenPosition: new Vector2(uv.x, uv.y),
                 currentRadius: initialRadius,
@@ -290,8 +241,12 @@
         camera: PerspectiveCamera
     ): Vector2[] => {
         const pointsIn2D = projectModel(model, camera);
+
+        //~ transform from <0,1> to <0,width/height>
+        const newPoints = pointsIn2D.map((p: Vector2): Vector2 => { return new Vector2(p.x * canvasWidth, p.y * canvasHeight)})
         
-        return pointsIn2D;
+        // return pointsIn2D;
+        return newPoints;
     };
 
     /**
@@ -308,9 +263,6 @@
         //~ 2. Ritter's bounding sphere algorithm (in 2D)
         const bSphere = computeBoundingCircle(pointsIn2D);
 
-        // boundingSphere_Center = bSphere[0];
-        // boundingSphere_Radius = bSphere[1];
-
         return bSphere;
     };
 
@@ -324,8 +276,8 @@
                 //     screenPosition: b.position.x,
                 //     ...oldModel,
                 // })
-                const width = 800;
-                const height = 600;
+                const width = canvasWidth;
+                const height = canvasHeight;
                 newModels.push({
                     screenPosition: new Vector2(
                         b.position.x / width,
@@ -350,12 +302,8 @@
 
         //~ update bodies
         for (let model of models) {
-            // let body = Matter.Composite.get(engine.world, model.associatedBodyId);
-            // if (body == null) console.log("NOT FOUND");
             let body = matter_bodies[model.associatedBodyIndex];
 
-            // let body = model.associatedBodyId; // use this to fetch body?
-            // const currentRadius = 100; // ??? fetch this from somewhere saved
             const currentRadius = model.currentRadius;
             const wantedRadius = boundingSpheres[model.associatedBodyIndex].radius;
             const scaleFactor = wantedRadius / currentRadius; //~ or is it the other way around?
@@ -373,7 +321,6 @@
     position={[0, 0, 50]}
     fov={24}
 >
-    <!-- <OrbitControls enableDamping /> -->
 </T.PerspectiveCamera>
 
 <T.DirectionalLight castShadow position={[3, 10, 10]} />

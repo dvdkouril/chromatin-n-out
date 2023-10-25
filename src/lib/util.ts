@@ -208,7 +208,8 @@ export const projectModel = (model: HyperWindow, camera: PerspectiveCamera): Vec
             //~ flip the y
             projectedP.y = 1.0 - projectedP.y;
 
-            newPoints.push(new Vector2(projectedP.x * 800, projectedP.y * 600));
+            // newPoints.push(new Vector2(projectedP.x * canvasWidth, projectedP.y * canvasHeight));
+            newPoints.push(new Vector2(projectedP.x, projectedP.y));
         }
 
         return newPoints;
@@ -316,4 +317,20 @@ export const computeBoundingBox3D = (points: Vector3[]): [Vector3, Vector3] => {
         }
 
         return [bbMin, bbMax];
+    };
+
+    export const generateStartingPositions = (
+        n: number, width: number, height: number
+    ): { x: number; y: number }[] => {
+        let positions: { x: number; y: number }[] = [];
+
+        // const width = canvasWidth;
+        // const height = canvasHeight;
+        for (let i = 0; i < n; i++) {
+            const xPos = getRandomInt(width);
+            const yPos = getRandomInt(height);
+            positions.push({ x: xPos, y: yPos });
+        }
+        
+        return positions;
     };
