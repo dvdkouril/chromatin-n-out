@@ -193,6 +193,8 @@ export const projectModel = (model: HyperWindow, camera: PerspectiveCamera): Vec
             const rotationX = model.model.rotationX;
             const rotationY = model.model.rotationY;
 
+            cp.applyAxisAngle(new Vector3(0, 1, 0), rotationX * Math.PI / 180);
+            cp.applyAxisAngle(new Vector3(1, 0, 0), rotationY * Math.PI / 180);
             cp.multiplyScalar(scale);
             // cp.applyAxisAngle();
             // cp.sub(camera.position);
