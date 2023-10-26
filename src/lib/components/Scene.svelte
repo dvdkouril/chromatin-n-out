@@ -38,7 +38,6 @@
     const { renderer, size } = useThrelte();
 
     //~ DOM
-    export let parentElement;
     const canvas = renderer?.domElement;
     let lastMousePos = { x: 0, y: 0 };
     let dragging = false;

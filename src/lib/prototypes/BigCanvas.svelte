@@ -3,7 +3,6 @@
     import Scene from "../components/Scene.svelte";
     import type { Vector2 } from "three";
 
-    let parentElement = null;
     let boundingSpheres: { center: Vector2; radius: number }[] = [];
     let debugPositions: Vector2[] = [];
 
@@ -14,7 +13,7 @@
 <div id="canvas-container">
     <!-- <Canvas size={{ width: width, height: height }}> -->
     <Canvas>
-        <Scene {parentElement} bind:canvasWidth bind:canvasHeight bind:boundingSpheres bind:debugPositions />
+        <Scene bind:canvasWidth bind:canvasHeight bind:boundingSpheres bind:debugPositions />
     </Canvas>
 
         <svg width={canvasWidth} height={canvasHeight} id="debug-overlay">
@@ -38,8 +37,6 @@
             {/each}
         </svg>
 </div>
-
-<div bind:this={parentElement} />
 
 <style>
     #debug-overlay {
