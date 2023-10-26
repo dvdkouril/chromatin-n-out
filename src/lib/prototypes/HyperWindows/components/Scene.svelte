@@ -21,11 +21,11 @@
         projectModel,
         recenter,
         unprojectToWorldSpace,
-    } from "../util";
-    import type { HyperWindow } from "../hyperwindows-types";
+    } from "../../../util";
+    import type { HyperWindow } from "../../../hyperwindows-types";
     import * as Matter from "matter-js";
-    import { parsePdb } from "../pdb";
-    import { brafl } from "../test_BRAFL";
+    import { parsePdb } from "../../../pdb";
+    import { brafl } from "../../../test_BRAFL";
     import type { vec2, vec3 } from "gl-matrix";
 
     //~ Matter.js physics

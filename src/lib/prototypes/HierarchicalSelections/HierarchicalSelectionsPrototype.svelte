@@ -3,13 +3,13 @@
       generateColors,
       generateGrayScale,
       generateNicerColors,
-    } from "../util";
+    } from "../../util";
     import { onMount } from "svelte";
-    import { parsePdb } from "../pdb";
-    import { brafl } from "../test_BRAFL";
-    import { cell7 } from "../test_cell7";
-    import ColumnsHierarchicalLayout from "../components/ColumnsHierarchicalLayout.svelte";
-    import type { Widget } from "../widget";
+    import { parsePdb } from "../../pdb";
+    import { brafl } from "../../test_BRAFL";
+    import { cell7 } from "../../test_cell7";
+    import ColumnsHierarchicalLayout from "./components/ColumnsHierarchicalLayout.svelte";
+    import type { Widget } from "../../widget";
   
     const hyperWindowSize = 250;
     const selectionWidgetThickness = 25;

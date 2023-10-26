@@ -1,7 +1,7 @@
 <script lang="ts">
-  import BubblesPrototype from "./lib/prototypes/BubblesPrototype.svelte";
-  import HierarchicalSelectionsPrototype from "./lib/prototypes/HierarchicalSelectionsPrototype.svelte";
-  import BigCanvas from "./lib/prototypes/BigCanvas.svelte";
+  import BubblesPrototype from "./lib/prototypes/Bubbles/BubblesPrototype.svelte";
+  import HierarchicalSelectionsPrototype from "./lib/prototypes/HierarchicalSelections/HierarchicalSelectionsPrototype.svelte";
+  import BigCanvas from "./lib/prototypes/HyperWindows/HyperWindowsPrototype.svelte";
 
   let prototypes = ["hierarchical-selections", "bubbles", "big-canvas"];
   let currentPrototype = "big-canvas";

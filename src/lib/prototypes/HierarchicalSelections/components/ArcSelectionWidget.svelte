@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { arc, pie } from "d3-shape";
-    import { randomColorFromRange, randomNiceColor } from "../util";
+    import { randomColorFromRange, randomNiceColor } from "../../../util";
     import { chroma } from "chroma-js";
 
     const dispatch = createEventDispatcher();

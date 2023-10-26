@@ -2,7 +2,7 @@
     import ArcSelectionWidget from "./ArcSelectionWidget.svelte";
     import SampleScene from "./SampleScene.svelte";
     import { fade } from 'svelte/transition';
-    import { generateGrayScale } from "../util";
+    import { generateGrayScale } from "../../../util";
 
     export let widget;
     export let hyperWindowSize;

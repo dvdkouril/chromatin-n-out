@@ -1,9 +1,9 @@
 <script lang="ts">
     import { T, useFrame } from "@threlte/core";
     import { Instance, InstancedMesh, interactivity } from "@threlte/extras";
-    import { unprojectToWorldSpace } from "../util";
+    import { unprojectToWorldSpace } from "../../../util";
     import { BoxGeometry, Mesh, MeshStandardMaterial, Vector3 } from "three";
-    import type { HyperWindow } from "../hyperwindows-types";
+    import type { HyperWindow } from "../../../hyperwindows-types";
 
     export let model: HyperWindow;
     export let camera;

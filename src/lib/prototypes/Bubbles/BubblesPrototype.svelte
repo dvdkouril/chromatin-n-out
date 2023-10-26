@@ -1,7 +1,7 @@
 <script lang="ts">
     import * as Matter from "matter-js";
     import { onMount } from "svelte";
-    import { getRandomInt } from "../util";
+    import { getRandomInt } from "../../util";
 
     // module aliases
     let Engine = Matter.Engine,

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Widget } from "../widget";
+    import type { Widget } from "../../../widget";
     import DebugBar from "./DebugBar.svelte";
     import HyperWindow from "./HyperWindow.svelte";
 
