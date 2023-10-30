@@ -146,6 +146,7 @@
             friction: 1,
         });
         newHW.associatedBodyId = newBody.id;
+        newHW.associatedBodyIndex = matter_bodies.length;
         // (hw.associatedBodyIndex = i), //~ one of these is redundant but i can't say which rn
         matter_bodies.push(newBody);
         matter_body_ids.push(newBody.id);
