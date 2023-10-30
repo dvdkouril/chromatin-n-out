@@ -11,7 +11,8 @@
 
     let hoveredBin: number = null;
 
-    $: grayColorMap = generateGrayScale(100); //~ TODO
+    $: maxBinsNum = widgetsAndPositions.length > 0 ? widgetsAndPositions[0][0].binsNum : 0;
+    $: grayColorMap = generateGrayScale(maxBinsNum);
    
     export let widgetsAndPositions: [HWSelectionWidget, Vector2][];
 
