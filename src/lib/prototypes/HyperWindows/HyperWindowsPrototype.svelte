@@ -1,115 +1,231 @@
 <script lang="ts">
     import { Canvas, T } from "@threlte/core";
     import Scene from "./components/Scene.svelte";
-    import type { Vector2 } from "three";
+    import { Vector2, Vector3 } from "three";
     import DebugOverlay from "./components/DebugOverlay.svelte";
     import SelectionsLayer from "./components/SelectionsLayer.svelte";
-    import type { Widget } from "../../widget";
     import { onMount } from "svelte";
-    import { parsePdb } from "../../pdb";
     import { brafl } from "../../test_BRAFL";
+    import { load3DModel } from "../../util";
+    import type {
+        HWGeometry,
+        HWSelectionWidget,
+        HyperWindow,
+        HW3DView,
+        BoundingSphere,
+    } from "../../hyperwindows-types";
 
-    let boundingSpheres: { center: Vector2; radius: number }[] = [];
-    let debugPositions: Vector2[] = [];
-
-    const hyperWindowSize = 250;
     const selectionWidgetThickness = 25;
 
-    let canvasWidth; //~ binding these upwards with useThrelte
-    let canvasHeight;
+    let canvasWidth = 800; //~ binding these upwards with useThrelte
+    let canvasHeight = 600;
 
-    // let widgets: Widget[] = [];
-    $: widgets = processTreeIntoArray(widgetTreeRoot);
-    let nextAvailableId = 1; //~ 0 is hardcoded onMount
-    let widgetTreeRoot: Widget = null;
-    let maxLevel: number = 0;
+    // $: widgets = processWidgetsHierarchy(widgetTreeRoot, hyperWindows);
+    // let nextAvailableId = 1; //~ 0 is hardcoded onMount
+    // let maxLevel: number = 0;
 
-    //~ 3D data
-    const scale = 0.02;
-    let spheres = [];
-    let topLevelBinsNum = 0;
+    //~ Main data structures
+    // let rootHyperWindows: HyperWindow[] = []; //~ contains roots of HyperWindow hierarchies
+    let hyperWindows: HyperWindow[] = [];
+    let hwModels: HWGeometry[] = []; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
+    let hw3DViews: HW3DView[] = []; //~ linearized array with information only relevant for the 3D rendering
+    let hwWidgets: HWSelectionWidget[] = []; //~ linearized array with information only relevant for the selection widget
 
-    const processTreeIntoArray = (root: Widget): Widget[] => {
-        if (root == null) {
+    //~ Structures related to computation of the bounding sphere and final screen positions
+    let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
+    $: widgetsAndPositions = updateScreenPositions(hwWidgets, boundingSpheres); //~ for SelectionsLayer
+
+    //~ DEBUG
+    let debugPositions: Vector2[] = []; //~ for now used for screen space positions of model spheres
+
+    /**
+     *
+     * @param root
+     * @param hyperwindows
+     * return tuple with widget and its screenspace position (which is dependent on the 3D model position computed from physics engine)
+     */
+    // const processWidgetsHierarchy = (
+    //     root: Widget,
+    //     hyperwindows: HyperWindow[]
+    // ): [Widget, Vector2][] => {
+    //     if (root == null) {
+    //         return [];
+    //     }
+
+    //     let arr: [Widget, Vector2][] = [];
+    //     let stack: [Widget, number][] = [[root, 0]];
+    //     while (stack.length > 0) {
+    //         let [currentNode, layer] = stack.pop();
+    //         const lvl = currentNode.level;
+
+    //         const currentIndex = arr.length;
+    //         const linkedHyperWindow = hyperwindows[currentIndex]; //~ TODO: I need to make sure that the order is really linked
+    //         arr.push([currentNode, linkedHyperWindow.screenPosition]);
+
+    //         const widgetsReversed = currentNode.widgets.slice().reverse(); //~ doing reversing because stack does opposite order by nature
+    //         let childNumber = widgetsReversed.length - 1;
+    //         for (let w of widgetsReversed) {
+    //             stack.push([w, layer + childNumber]);
+    //             childNumber -= 1;
+    //         }
+    //     }
+
+    //     return arr;
+    // };
+
+    const updateScreenPositions = (
+        widgets: HWSelectionWidget[],
+        bSpheres: BoundingSphere[]
+    ): [HWSelectionWidget, Vector2][] => {
+        if (widgets.length != bSpheres.length) {
+            console.log(
+                "error: widgets and bSpheres should have the same number of elements."
+            );
+            console.log("widgets: " + widgets.length);
+            console.log("bSpheres: " + bSpheres.length);
             return [];
         }
 
-        let arr = [];
-        let stack: [Widget, number][] = [[root, 0]];
-        while (stack.length > 0) {
-            let [currentNode, layer] = stack.pop();
-            const lvl = currentNode.level;
-
-            arr.push(currentNode);
-
-            const widgetsReversed = currentNode.widgets.slice().reverse(); //~ doing reversing because stack does opposite order by nature
-            let childNumber = widgetsReversed.length - 1;
-            for (let w of widgetsReversed) {
-                stack.push([w, layer + childNumber]);
-                childNumber -= 1;
-            }
+        // console.log("we good...recomputing position of widget!");
+        let res: [HWSelectionWidget, Vector2][] = [];
+        for (let [i, w] of widgets.entries()) {
+            res.push([w, bSpheres[i].center]);
         }
+        return res;
+    };
 
-        return arr;
+    const processHyperWindowsHierarchy = () => {
+        //~ TODO: based on the above processWidgetsHierarchy, I might want to generate the arrays from the tree
+        //~ for now I can just update the arrays directly though
     };
 
     const newSelection = (ev) => {
-        console.log("App: seeing change");
-        console.log(ev);
-        const sel = ev.detail.selection;
-        const sourceWidget = ev.detail.sourceWidget;
-        const offset = sourceWidget.domain.start;
-
-        const newWidgetId = nextAvailableId;
-        nextAvailableId += 1;
-
-        const changedLevel = sourceWidget.level + 1;
-        if (changedLevel > maxLevel) maxLevel = changedLevel;
-        const newWidget = {
-            id: newWidgetId,
-            level: changedLevel,
-            binsNum: sel.end - sel.start,
-            domain: { start: offset + sel.start, end: offset + sel.end },
-            selections: [],
-            colorForSelections: sel.color,
-            widgets: [],
-        };
-
-        sourceWidget.widgets.push(newWidget);
-        widgetTreeRoot = widgetTreeRoot; //~ because...reactivity
-        console.log("current hierarchy:");
-        console.log(widgetTreeRoot);
+        //~ TODO: rewrite to work on hierarchy of HyperWindows+arrays
+        // console.log("App: seeing change");
+        // console.log(ev);
+        // const sel = ev.detail.selection;
+        // const sourceWidget = ev.detail.sourceWidget;
+        // const offset = sourceWidget.domain.start;
+        // const newWidgetId = nextAvailableId;
+        // nextAvailableId += 1;
+        // const changedLevel = sourceWidget.level + 1;
+        // if (changedLevel > maxLevel) maxLevel = changedLevel;
+        // const newWidget = {
+        //     id: newWidgetId,
+        //     level: changedLevel,
+        //     binsNum: sel.end - sel.start,
+        //     domain: { start: offset + sel.start, end: offset + sel.end },
+        //     selections: [],
+        //     colorForSelections: sel.color,
+        //     widgets: [],
+        // };
+        // sourceWidget.widgets.push(newWidget);
+        // widgetTreeRoot = widgetTreeRoot; //~ because...reactivity
+        // console.log("current hierarchy:");
+        // console.log(widgetTreeRoot);
     };
 
-    onMount(() => {
-        console.log("onMount");
+    const initWithSingle = () => {
+        //~ 1. load the 3D model (future TODO: multiple models)
+        const rootModel = load3DModel(brafl, 0.02);
 
-        //~ load the PDB
-        spheres = parsePdb(brafl).bins.map(({ x, y, z }) => ({
-            // spheres = parsePdb(cell7).bins.map(({ x, y, z }) => ({
-            x: x * scale,
-            y: y * scale,
-            z: z * scale,
-        }));
-        topLevelBinsNum = spheres.length;
-        console.log("num of spheres = " + topLevelBinsNum);
-
-        const rootWidget = {
+        //~ 2. create selection widget
+        const rootWidget: HWSelectionWidget = {
             id: 0,
             level: 0,
-            binsNum: topLevelBinsNum,
+            binsNum: rootModel.spheres.length,
             domain: {
                 start: 0,
-                end: topLevelBinsNum - 1,
+                end: rootModel.spheres.length - 1,
             },
             selections: [],
             colorForSelections: null,
-            widgets: [],
         };
 
-        widgetTreeRoot = rootWidget;
-        maxLevel = 0;
-        console.log("onMount finished");
+        //~ 3. create 3D view part of HyperWindow
+        const root3DView: HW3DView = {
+            worldPosition: new Vector3(0, 0, 0),
+            rotationX: 0,
+            rotationY: 0,
+            zoom: 1,
+        };
+
+        //~ 4. create HyperWindow
+        const startScreenPosition = new Vector2(0.5, 0.5); //~ middle of the screen
+        const initialRadius = 100;
+        const rootHW: HyperWindow = {
+            screenPosition: startScreenPosition,
+            currentRadius: initialRadius,
+            // associatedBodyId: ids[i],
+            associatedBodyId: 0,
+            // associatedBodyIndex: i, //~ one of these is redundant but i can't say which rn
+            associatedBodyIndex: 0, //~ one of these is redundant but i can't say which rn
+            model: rootModel,
+            widget: rootWidget,
+            threeDView: root3DView,
+            childHyperWindows: [],
+        };
+
+        hyperWindows = [rootHW];
+        hwModels = [rootModel]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
+        hw3DViews = [root3DView]; //~ linearized array with information only relevant for the 3D rendering
+        hwWidgets = [rootWidget];
+    };
+
+    /**
+     * This is just to debug the physics sync with more than one body.
+     * In the future there should be a way to start with some example drilldown of a model
+     */
+    const initWithMultiple = () => {
+        //~ 1. load the 3D model (future TODO: multiple models)
+        const rootModel = load3DModel(brafl, 0.02);
+
+        //~ 2. create selection widget
+        const rootWidget: HWSelectionWidget = {
+            id: 0,
+            level: 0,
+            binsNum: rootModel.spheres.length,
+            domain: {
+                start: 0,
+                end: rootModel.spheres.length - 1,
+            },
+            selections: [],
+            colorForSelections: null,
+        };
+
+        //~ 3. create 3D view part of HyperWindow
+        const root3DView: HW3DView = {
+            worldPosition: new Vector3(0, 0, 0),
+            rotationX: 0,
+            rotationY: 0,
+            zoom: 1,
+        };
+
+        //~ 4. create HyperWindow
+        const startScreenPosition = new Vector2(0.25, 0.5); //~ middle of the screen
+        const initialRadius = 100;
+        const rootHW: HyperWindow = {
+            screenPosition: startScreenPosition,
+            currentRadius: initialRadius,
+            // associatedBodyId: ids[i],
+            associatedBodyId: 0,
+            // associatedBodyIndex: i, //~ one of these is redundant but i can't say which rn
+            associatedBodyIndex: 0, //~ one of these is redundant but i can't say which rn
+            model: rootModel,
+            widget: rootWidget,
+            threeDView: root3DView,
+            childHyperWindows: [],
+        };
+
+        hyperWindows = [rootHW, { ...rootHW, screenPosition: new Vector2(0.75, 0.5), }];
+        hwModels = [rootModel, {...rootModel}]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
+        hw3DViews = [root3DView, {...root3DView}]; //~ linearized array with information only relevant for the 3D rendering
+        hwWidgets = [rootWidget, {...rootWidget}];
+    };
+
+    onMount(() => {
+        // initWithSingle();
+        initWithMultiple();
     });
 </script>
 
@@ -117,6 +233,7 @@
     <!-- Canvas containing 3D models -->
     <Canvas>
         <Scene
+            bind:hyperWindows
             bind:canvasWidth
             bind:canvasHeight
             bind:boundingSpheres
@@ -134,21 +251,12 @@
 
     <!-- SVG-based layer with selection widgets for each 3D (sub)model -->
     <SelectionsLayer
-        width={100}
-        height={100}
-        selectionWidgets={widgets}
-        {hyperWindowSize}
+        width={canvasWidth}
+        height={canvasHeight}
+        {widgetsAndPositions}
         {selectionWidgetThickness}
         newSelectionCallback={newSelection}
     />
-    <!-- <SelectionsLayer
-        selectionWidgets={widgets}
-        {hyperWindowSize}
-        {selectionWidgetThickness}
-        newSelectionCallback={newSelection}
-        colorForSelection={widget.colorForSelections}
-        bins={spheres.slice(widget.domain.start, widget.domain.end + 1)}
-    /> -->
 </div>
 
 <style>

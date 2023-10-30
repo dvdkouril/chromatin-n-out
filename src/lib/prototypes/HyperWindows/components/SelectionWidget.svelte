@@ -3,9 +3,9 @@
     import { createEventDispatcher } from "svelte";
     import { randomNiceColor } from "../../../util";
 
-
     const dispatch = createEventDispatcher();
 
+    export let position;
     export let N;
     export let width;
     export let height;
@@ -103,6 +103,7 @@
         id={"bin-" + i}
         fill={i == hoveredBin ? "red" : colors[i]}
         pointer-events="all"
+        transform={"translate(" + position.x + "," + position.y + ")"}
         on:mousedown={mouseDown}
         on:mouseup={mouseUp}
         on:mouseover={mouseOvered}
@@ -119,6 +120,7 @@
             id={"selection-arc-" + i}
             style="stroke-width: 5px; stroke: {selections[i]
                 .color}; fill: none; pointer-events:none"
+            transform={"translate(" + position.x + "," + position.y + ")"}
         />
     {/each}
 {/if}

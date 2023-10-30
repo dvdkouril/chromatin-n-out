@@ -9,7 +9,7 @@
     import { brafl } from "../../test_BRAFL";
     import { cell7 } from "../../test_cell7";
     import ColumnsHierarchicalLayout from "./components/ColumnsHierarchicalLayout.svelte";
-    import type { Widget } from "../../widget";
+    import type { Widget } from "../../hyperwindows-types";
   
     const hyperWindowSize = 250;
     const selectionWidgetThickness = 25;

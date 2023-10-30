@@ -1,39 +1,31 @@
 <script lang="ts">
+    import type { Vector2 } from "three";
+    import type { HWSelectionWidget } from "../../../hyperwindows-types";
     import { generateGrayScale } from "../../../util";
-    import type { Widget } from "../../../widget";
     import SelectionWidget from "./SelectionWidget.svelte";
 
     export let width;
     export let height;
-    // export let widget;
-    export let hyperWindowSize;
     export let selectionWidgetThickness;
     export let newSelectionCallback;
-    // export let selectionsColormap;
-    // export let colorForSelection;
-    // export let bins;
 
     let hoveredBin: number = null;
 
-    // $: grayColorMap = generateGrayScale(bins.length);
-    $: grayColorMap = generateGrayScale(100);
+    $: grayColorMap = generateGrayScale(100); //~ TODO
+   
+    export let widgetsAndPositions: [HWSelectionWidget, Vector2][];
 
-    /**
-     * What do I want to do here:
-     * - keep a list of the selection widgets (computed from a list of bounding sphere positions)
-     */
-    export let selectionWidgets: Widget[] = [];
 </script>
 
 <div id="arc-selection-widget">
     <svg
         {width}
         {height}
-        viewBox={`${-width / 2} ${-height / 2} ${width} ${height}`}
         pointer-events="none"
     >
-        {#each selectionWidgets as widget}
+        {#each widgetsAndPositions as [widget, screenPosition]}
             <SelectionWidget
+                position={screenPosition}
                 width={100}
                 height={100}
                 widgetThickness={selectionWidgetThickness}

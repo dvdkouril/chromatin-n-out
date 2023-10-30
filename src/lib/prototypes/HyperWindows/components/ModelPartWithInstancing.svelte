@@ -1,63 +1,48 @@
 <script lang="ts">
-    import { T, useFrame } from "@threlte/core";
-    import { Instance, InstancedMesh, interactivity } from "@threlte/extras";
-    import { unprojectToWorldSpace } from "../../../util";
-    import { BoxGeometry, Mesh, MeshStandardMaterial, Vector3 } from "three";
-    import type { HyperWindow } from "../../../hyperwindows-types";
+    import { T } from "@threlte/core";
+    import { Instance, InstancedMesh } from "@threlte/extras";
+    import type { HW3DView, HWGeometry } from "../../../hyperwindows-types";
 
-    export let model: HyperWindow;
-    export let camera;
-
-    $: modelWorldPosition = camera ? unprojectToWorldSpace(model.screenPosition, camera) : new Vector3(0, 0, 0);
-
-    const sphereRadius = 0.1;
-    const tubeBaseSize = 0.05;
-
-    let modelScale = 1.0;
-
-    let instMesh;
-    let bSphere = instMesh ? instMesh.computeBoundingSphere() : null;
-
-    let mesh;
-
-    // interactivity();
+    export let model: HWGeometry;
+    export let viewParams: HW3DView;
 </script>
 
-    <T.Group
-        position={[modelWorldPosition.x, modelWorldPosition.y, modelWorldPosition.z]}
-        scale={[model.model.zoom, model.model.zoom, model.model.zoom]}
-        rotation={[model.model.rotationY * Math.PI / 180, model.model.rotationX * Math.PI / 180, 0]}
-        on:click={() => {
-            console.log("clicked");
-            modelScale = modelScale * 1.01;
-        }}
-    >
-        <!-- Tubes connecting bin positions -->
-        <InstancedMesh bind:ref={instMesh}>
-            <T.CylinderGeometry args={[tubeBaseSize, tubeBaseSize, 1.0]} />
-            <T.MeshStandardMaterial color="#aaaaaa" />
+<T.Group
+    position={[
+        viewParams.worldPosition.x,
+        viewParams.worldPosition.y,
+        viewParams.worldPosition.z,
+    ]}
+    scale={[viewParams.zoom, viewParams.zoom, viewParams.zoom]}
+    rotation={[
+        (viewParams.rotationY * Math.PI) / 180,
+        (viewParams.rotationX * Math.PI) / 180,
+        0,
+    ]}
+>
+    <!-- Tubes connecting the bin positions -->
+    <InstancedMesh>
+        <T.CylinderGeometry
+            args={[model.tubeBaseSize, model.tubeBaseSize, 1.0]}
+        />
+        <T.MeshStandardMaterial color="#aaaaaa" />
 
-            {#each model.model.tubes as tube, i}
-                <Instance
-                    position={tube.position.toArray()}
-                    rotation={tube.rotation.toArray()}
-                    scale.y={tube.scale}
-                />
-            {/each}
-        </InstancedMesh>
+        {#each model.tubes as tube, i}
+            <Instance
+                position={tube.position.toArray()}
+                rotation={tube.rotation.toArray()}
+                scale.y={tube.scale}
+            />
+        {/each}
+    </InstancedMesh>
 
-        <!-- Spheres at bin positions -->
-        <InstancedMesh>
-            <T.SphereGeometry args={[sphereRadius]} />
-            <T.MeshStandardMaterial color="#aaaaaa" />
+    <!-- Spheres at bin positions -->
+    <InstancedMesh>
+        <T.SphereGeometry args={[model.sphereRadius]} />
+        <T.MeshStandardMaterial color="#aaaaaa" />
 
-            {#each model.model.spheres as s, i}
-                <Instance position.x={s.x} position.y={s.y} position.z={s.z} />
-            {/each}
-        </InstancedMesh>
-
-        <T.Mesh bind:ref={mesh}>
-            <T.BoxGeometry />
-            <T.MeshStandardMaterial />
-        </T.Mesh>
-    </T.Group>
+        {#each model.spheres as s, i}
+            <Instance position.x={s.x} position.y={s.y} position.z={s.z} />
+        {/each}
+    </InstancedMesh>
+</T.Group>

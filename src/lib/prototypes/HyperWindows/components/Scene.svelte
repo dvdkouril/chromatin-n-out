@@ -1,6 +1,5 @@
 <script lang="ts">
     import { T, useFrame } from "@threlte/core";
-    import { OrbitControls } from "@threlte/extras";
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
     import {
         BoxGeometry,
@@ -12,21 +11,12 @@
     import { onMount } from "svelte";
     import { useThrelte } from "@threlte/core";
     import {
-        computeBoundingBox2D,
-        computeBoundingBox3D,
         computeBoundingCircle,
-        computeTubes,
-        generateStartingPositions,
-        getRandomInt,
         projectModel,
-        recenter,
         unprojectToWorldSpace,
     } from "../../../util";
-    import type { HyperWindow } from "../../../hyperwindows-types";
+    import type { BoundingSphere, HyperWindow } from "../../../hyperwindows-types";
     import * as Matter from "matter-js";
-    import { parsePdb } from "../../../pdb";
-    import { brafl } from "../../../test_BRAFL";
-    import type { vec2, vec3 } from "gl-matrix";
 
     //~ Matter.js physics
     let engine = Matter.Engine.create();
@@ -43,15 +33,12 @@
     let dragging = false;
 
     //~ Actual scene content
-    let models: HyperWindow[] = [];
+    export let hyperWindows: HyperWindow[];
     let camera: PerspectiveCamera;
-    //~ model
-    export let spheres = [];
-    const scale = 0.02;
 
     //~ exports
-    export let boundingSpheres: { center: Vector2; radius: number }[];
-    export let debugPositions: Vector2[];
+    export let boundingSpheres: BoundingSphere[]; //~ sending up the computed bounding spheres (center+radius)
+    export let debugPositions: Vector2[]; //~ sending up just the projected bin positions
 
     $: sizeChanged($size);
     export let canvasWidth = 123;
@@ -93,18 +80,18 @@
             const bodyId = b.id;
 
             //TODO: fetch hyperwindow associated with this body (probably need some map structure)
-            let hprWindow = models[0]; // just for testing
-            for (let m of models) {
-                if (m.associatedBodyId == bodyId) {
-                    hprWindow = m;
+            let hprWindow = hyperWindows[0]; // just for testing
+            for (let hw of hyperWindows) {
+                if (hw.associatedBodyId == bodyId) {
+                    hprWindow = hw;
                 }
             }
 
             const deltaX = x - lastMousePos.x;
             const deltaY = y - lastMousePos.y;
             const orbitingSpeed = 0.8;
-            hprWindow.model.rotationX += orbitingSpeed * deltaX;
-            hprWindow.model.rotationY += orbitingSpeed * deltaY;
+            hprWindow.threeDView.rotationX += orbitingSpeed * deltaX;
+            hprWindow.threeDView.rotationY += orbitingSpeed * deltaY;
 
             lastMousePos = { x: x, y: y };
         }
@@ -126,136 +113,50 @@
             const bodyId = b.id;
 
             //~ fetch hyperwindow associated with this body
-            let hprWindow = models[0];
-            for (let m of models) {
-                if (m.associatedBodyId == bodyId) {
-                    hprWindow = m;
+            let hprWindow = hyperWindows[0];
+            for (let hw of hyperWindows) {
+                if (hw.associatedBodyId == bodyId) {
+                    hprWindow = hw;
                 }
             }
 
             // console.log("changing zoom");
             const zoomingSpeed = 0.001;
-            hprWindow.model.zoom += zoomingSpeed * e.deltaY;
+            hprWindow.threeDView.zoom += zoomingSpeed * e.deltaY;
         }
     };
 
     onMount(() => {
-        spheres = parsePdb(brafl).bins.map(({ x, y, z }) => ({
-            // spheres = parsePdb(cell7).bins.map(({ x, y, z }) => ({
-            x: x * scale,
-            y: y * scale,
-            z: z * scale,
-        }));
-
-        spheres = recenter(spheres).map((pos: vec3) => {
-            return { x: pos[0], y: pos[1], z: pos[2] };
-        });
-
-        const tubesLocal = computeTubes(spheres);
-
-        // // create a renderer
-        // parentElement.innerHTML = '';
-        // let render = Matter.Render.create({
-        //     element: parentElement,
-        //     engine: engine,
-        // });
-
-        // var ground = Matter.Bodies.rectangle(canvasWidth / 2, canvasHeight, canvasWidth, 60, {
-        //     isStatic: true,
-        // });
-        // var leftWall = Matter.Bodies.rectangle(0, 0, 10, canvasHeight, {
-        //     isStatic: true,
-        // });
-        // var rightWall = Matter.Bodies.rectangle(canvasWidth, 0, 10, canvasHeight, {
-        //     isStatic: true,
-        // });
-        // var topWall = Matter.Bodies.rectangle(canvasWidth / 2, 10, canvasWidth, 60, {
-        //     isStatic: true,
-        // });
-
-        // engine.gravity.y *= 0.1;
         engine.gravity.y = 0;
-
-        // // add all of the bodies to the world
-        // Matter.Composite.add(engine.world, [
-        //     ground,
-        //     leftWall,
-        //     rightWall,
-        //     topWall,
-        // ]);
-
         var runner = Matter.Runner.create();
         Matter.Runner.run(runner, engine);
-
-        let screenPositions = generateStartingPositions(
-            5,
-            canvasWidth,
-            canvasHeight
-        );
-
-        const initialRadius = 100;
 
         //~ creating the bodies here
         let bodies = [];
         let ids = [];
-        for (let c of screenPositions) {
+        const initialRadius = 100;
+        // for (let c of hyperWindowsScreenPositions) {
+        let i = 0;
+        for (let hw of hyperWindows) {
+            // const c = hw.screenPosition;
+            const c = new Vector2(hw.screenPosition.x * canvasWidth, hw.screenPosition.y * canvasHeight);
             const newBody = Matter.Bodies.circle(c.x, c.y, initialRadius, {
                 restitution: 0,
                 friction: 1,
             });
+            hw.associatedBodyId = newBody.id;
+            // associatedBodyId: ids[i],
+            hw.associatedBodyIndex = i, //~ one of these is redundant but i can't say which rn
+
             bodies.push(newBody);
             ids.push(newBody.id);
+            i += 1;
         }
         matter_bodies = bodies;
         matter_body_ids = ids;
 
         Matter.Composite.add(engine.world, bodies);
 
-        //~ constraints
-        let constraints = [];
-        let j = 0;
-        let lastBody = bodies[0];
-        for (let b of bodies) {
-            if (j == 0) {
-                j += 1;
-                continue;
-            }
-
-            var constraint = Matter.Constraint.create({
-                bodyA: b,
-                // pointA: { x: -10, y: -10 },
-                bodyB: lastBody,
-                // pointB: { x: -10, y: -10 },
-                // stiffness: 0.001,
-                // damping: 0.1,
-            });
-            constraints.push(constraint);
-            j += 1;
-            lastBody = b;
-        }
-
-        // Matter.Composite.add(engine.world, constraints);
-
-        let i = 0;
-        for (const p of screenPositions) {
-            const uv = new Vector2(p.x / canvasWidth, p.y / canvasHeight);
-            models.push({
-                screenPosition: new Vector2(uv.x, uv.y),
-                currentRadius: initialRadius,
-                associatedBodyId: ids[i],
-                associatedBodyIndex: i, //~ one of these is redundant but i can't say which rn
-                model: {
-                    spheres: spheres,
-                    tubes: tubesLocal,
-                    rotationX: 0,
-                    rotationY: 0,
-                    zoom: 1,
-                },
-            });
-            i += 1;
-        }
-
-        // noGravity();
         canvas.addEventListener("mousemove", onMouseMove);
         canvas.addEventListener("mousedown", onMouseDown);
         canvas.addEventListener("mouseup", onMouseUp);
@@ -264,10 +165,10 @@
 
     //~ TODO: this function doesn't need to exist, just call directly projectModel
     const projectModelToScreenSpace = (
-        model: HyperWindow,
+        hyperwindow: HyperWindow,
         camera: PerspectiveCamera
     ): Vector2[] => {
-        const pointsIn2D = projectModel(model, camera);
+        const pointsIn2D = projectModel(hyperwindow, camera);
 
         //~ transform from <0,1> to <0,width/height>
         const newPoints = pointsIn2D.map((p: Vector2): Vector2 => {
@@ -283,9 +184,9 @@
      * @param pointsIn3D an array of points in 3D which will be projected into 2D and then the computation of a bounding sphere bounding "circle"
      * returns a 2D position and a radius of the bounding circle
      */
-    const computeBoundingSphere = (model: HyperWindow): [Vector2, number] => {
+    const computeBoundingSphere = (hyperwindow: HyperWindow): [Vector2, number] => {
         //~ 1. project points into screen space
-        const pointsIn2D = projectModelToScreenSpace(model, camera);
+        const pointsIn2D = projectModelToScreenSpace(hyperwindow, camera);
         //DEBUG
         debugPositions = debugPositions.concat(pointsIn2D);
 
@@ -296,48 +197,52 @@
     };
 
     useFrame(() => {
-        const newModels: HyperWindow[] = [];
+        const newHyperWindows: HyperWindow[] = [];
         let i = 0;
         for (let b of engine.world.bodies) {
             if (b.label == "Circle Body") {
-                const oldModel = models[i];
-                // newModels.push({
-                //     screenPosition: b.position.x,
-                //     ...oldModel,
-                // })
-                const width = canvasWidth;
-                const height = canvasHeight;
-                newModels.push({
-                    screenPosition: new Vector2(
-                        b.position.x / width,
-                        b.position.y / height
-                    ),
-                    currentRadius: oldModel.currentRadius,
-                    model: oldModel.model,
-                    associatedBodyId: oldModel.associatedBodyId,
-                    associatedBodyIndex: oldModel.associatedBodyIndex,
+                const oldHW = hyperWindows[i];
+
+                const newScreenPosition = new Vector2(
+                    b.position.x / canvasWidth,
+                    b.position.y / canvasHeight
+                );
+
+                // spread operator
+                newHyperWindows.push({
+                    ...oldHW,
+                    screenPosition: newScreenPosition,
+                    threeDView: {
+                        ...oldHW.threeDView,
+                        worldPosition: camera
+                            ? unprojectToWorldSpace(
+                                  newScreenPosition,
+                                  camera
+                              )
+                            : new Vector3(0, 0, 0),
+                    },
                 });
                 i += 1;
             }
         }
-        models = newModels;
+        hyperWindows = newHyperWindows;
 
         debugPositions = [];
         boundingSpheres = [];
-        for (let model of models) {
-            let [center, radius] = computeBoundingSphere(model);
+        for (let hw of hyperWindows) {
+            let [center, radius] = computeBoundingSphere(hw);
             boundingSpheres.push({ center: center, radius: radius });
         }
+        boundingSpheres = boundingSpheres;
 
         //~ update bodies
-        for (let model of models) {
-            let body = matter_bodies[model.associatedBodyIndex];
+        for (let hw of hyperWindows) {
+            let body = matter_bodies[hw.associatedBodyIndex];
 
-            const currentRadius = model.currentRadius;
-            const wantedRadius =
-                boundingSpheres[model.associatedBodyIndex].radius;
+            const currentRadius = hw.currentRadius;
+            const wantedRadius = boundingSpheres[hw.associatedBodyIndex].radius;
             const scaleFactor = wantedRadius / currentRadius; //~ or is it the other way around?
-            model.currentRadius = wantedRadius;
+            hw.currentRadius = wantedRadius;
 
             Matter.Body.scale(body, scaleFactor, scaleFactor);
         }
@@ -355,9 +260,8 @@
 <T.DirectionalLight position={[-3, 10, -10]} intensity={0.2} />
 <T.AmbientLight intensity={0.2} />
 
-{#each models as model}
-    <!-- <ModelPart {model}/> -->
-    <ModelPartWithInstancing {model} {camera} />
+{#each hyperWindows as hw}
+    <ModelPartWithInstancing model={hw.model} viewParams={hw.threeDView} />
 {/each}
 
 <T.Group position={[0, -20, 0]}>

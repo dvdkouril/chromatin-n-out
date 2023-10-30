@@ -1,7 +1,8 @@
 import * as d3 from "d3";
 import { vec3 } from "gl-matrix";
 import { Euler, PerspectiveCamera, Quaternion, Vector2, Vector3 } from "three";
-import type { HyperWindow } from "./hyperwindows-types";
+import type { HWGeometry, HyperWindow } from "./hyperwindows-types";
+import { parsePdb } from "./pdb";
 
 export const generateColors = (numOfColors) => {
     let colors = undefined;
@@ -175,93 +176,93 @@ export const unprojectToWorldSpace = (screenPosition: Vector2, camera: Perspecti
     return pos;
 };
 
-export const projectModel = (model: HyperWindow, camera: PerspectiveCamera): Vector2[] => {
-        const newPoints: Vector2[] = [];
-        
-        const points: Vector3[] = model.model.spheres.map(
-            (p: { x: number; y: number; z: number }) =>
-                new Vector3(p.x, p.y, p.z)
-        );
-        for (let p of points) {
-            let cp = new Vector3(p.x, p.y, p.z);
+export const projectModel = (hyperwindow: HyperWindow, camera: PerspectiveCamera): Vector2[] => {
+    const newPoints: Vector2[] = [];
 
-            const position = unprojectToWorldSpace(model.screenPosition, camera); // todo: unproject
-            const scale = model.model.zoom;
-            const rotationX = model.model.rotationX;
-            const rotationY = model.model.rotationY;
+    const points: Vector3[] = hyperwindow.model.spheres.map(
+        (p: { x: number; y: number; z: number }) =>
+            new Vector3(p.x, p.y, p.z)
+    );
+    for (let p of points) {
+        let cp = new Vector3(p.x, p.y, p.z);
 
-            cp.applyAxisAngle(new Vector3(0, 1, 0), rotationX * Math.PI / 180);
-            cp.applyAxisAngle(new Vector3(1, 0, 0), rotationY * Math.PI / 180);
-            cp.multiplyScalar(scale);
-            cp.add(position);
+        const position = unprojectToWorldSpace(hyperwindow.screenPosition, camera); 
+        const scale = hyperwindow.threeDView.zoom;
+        const rotationX = hyperwindow.threeDView.rotationX;
+        const rotationY = hyperwindow.threeDView.rotationY;
 
-            let projectedP = cp.project(camera);
-            projectedP.divideScalar(2);
-            projectedP.addScalar(0.5);
+        cp.applyAxisAngle(new Vector3(0, 1, 0), rotationX * Math.PI / 180);
+        cp.applyAxisAngle(new Vector3(1, 0, 0), rotationY * Math.PI / 180);
+        cp.multiplyScalar(scale);
+        cp.add(position);
 
-            //~ flip the y
-            projectedP.y = 1.0 - projectedP.y;
+        let projectedP = cp.project(camera);
+        projectedP.divideScalar(2);
+        projectedP.addScalar(0.5);
 
-            //~ output is <0,1>
-            newPoints.push(new Vector2(projectedP.x, projectedP.y));
-        }
+        //~ flip the y
+        projectedP.y = 1.0 - projectedP.y;
 
-        return newPoints;
-    };
+        //~ output is <0,1>
+        newPoints.push(new Vector2(projectedP.x, projectedP.y));
+    }
+
+    return newPoints;
+};
 
 
 export const computeBoundingCircle = (points: Vector2[]): [Vector2, number] => {
-        //~ 1. find two points that are far away
-        let a = points[0];
-        let b = points[1];
+    //~ 1. find two points that are far away
+    let a = points[0];
+    let b = points[1];
 
-        const getDist = (p: Vector2, v: Vector2): number => {
-            return p.distanceTo(v);
-        };
-
-        for (let p of points) {
-            const d = getDist(a, p);
-            if (d > getDist(a, b)) {
-                b = p;
-            }
-        }
-
-        //~ 2. initial estimation
-        const radiusVec = b.clone();
-        radiusVec.sub(a);
-        radiusVec.divideScalar(2);
-
-        let bsCenter = a.clone();
-        bsCenter.add(radiusVec);
-
-        let bsRadius = radiusVec.length();
-
-        //~ DEBUG
-        // return [bsCenter, bsRadius];
-
-        //~ 3. adjust the estimation
-        for (let p of points) {
-            const v = p.clone().sub(bsCenter);
-            const d = v.length();
-
-            if (d > bsRadius) {
-                //~ outside of the bounding sphere
-
-                let difference = d - bsRadius;
-                let newDiameter = 2 * bsRadius + difference;
-                let newRadius = newDiameter / 2.0;
-                v.normalize();
-                let newCenter = bsCenter
-                    .clone()
-                    .add(v.multiplyScalar(difference / 2.0));
-
-                bsCenter = newCenter;
-                bsRadius = newRadius;
-            }
-        }
-
-        return [bsCenter, bsRadius];
+    const getDist = (p: Vector2, v: Vector2): number => {
+        return p.distanceTo(v);
     };
+
+    for (let p of points) {
+        const d = getDist(a, p);
+        if (d > getDist(a, b)) {
+            b = p;
+        }
+    }
+
+    //~ 2. initial estimation
+    const radiusVec = b.clone();
+    radiusVec.sub(a);
+    radiusVec.divideScalar(2);
+
+    let bsCenter = a.clone();
+    bsCenter.add(radiusVec);
+
+    let bsRadius = radiusVec.length();
+
+    //~ DEBUG
+    // return [bsCenter, bsRadius];
+
+    //~ 3. adjust the estimation
+    for (let p of points) {
+        const v = p.clone().sub(bsCenter);
+        const d = v.length();
+
+        if (d > bsRadius) {
+            //~ outside of the bounding sphere
+
+            let difference = d - bsRadius;
+            let newDiameter = 2 * bsRadius + difference;
+            let newRadius = newDiameter / 2.0;
+            v.normalize();
+            let newCenter = bsCenter
+                .clone()
+                .add(v.multiplyScalar(difference / 2.0));
+
+            bsCenter = newCenter;
+            bsRadius = newRadius;
+        }
+    }
+
+    return [bsCenter, bsRadius];
+};
 
 export const computeBoundingBox2D = (points: Vector2[]): [Vector2, Vector2] => {
     let bbMin = new Vector2(Infinity, Infinity);
@@ -286,45 +287,73 @@ export const computeBoundingBox2D = (points: Vector2[]): [Vector2, Vector2] => {
 };
 
 export const computeBoundingBox3D = (points: Vector3[]): [Vector3, Vector3] => {
-        let bbMin = new Vector3(Infinity, Infinity, Infinity);
-        let bbMax = new Vector3(-Infinity, -Infinity, -Infinity);
-        for (let p of points) {
-            if (p.x < bbMin.x) {
-                bbMin.setX(p.x);
-            }
-            if (p.y < bbMin.y) {
-                bbMin.setY(p.y);
-            }
-            if (p.z < bbMin.z) {
-                bbMin.setZ(p.z);
-            }
-
-            if (p.x > bbMax.x) {
-                bbMax.setX(p.x);
-            }
-            if (p.y > bbMax.y) {
-                bbMax.setY(p.y);
-            }
-            if (p.z > bbMax.z) {
-                bbMax.setZ(p.z);
-            }
+    let bbMin = new Vector3(Infinity, Infinity, Infinity);
+    let bbMax = new Vector3(-Infinity, -Infinity, -Infinity);
+    for (let p of points) {
+        if (p.x < bbMin.x) {
+            bbMin.setX(p.x);
+        }
+        if (p.y < bbMin.y) {
+            bbMin.setY(p.y);
+        }
+        if (p.z < bbMin.z) {
+            bbMin.setZ(p.z);
         }
 
-        return [bbMin, bbMax];
-    };
-
-    export const generateStartingPositions = (
-        n: number, width: number, height: number
-    ): { x: number; y: number }[] => {
-        let positions: { x: number; y: number }[] = [];
-
-        // const width = canvasWidth;
-        // const height = canvasHeight;
-        for (let i = 0; i < n; i++) {
-            const xPos = getRandomInt(width);
-            const yPos = getRandomInt(height);
-            positions.push({ x: xPos, y: yPos });
+        if (p.x > bbMax.x) {
+            bbMax.setX(p.x);
         }
-        
-        return positions;
+        if (p.y > bbMax.y) {
+            bbMax.setY(p.y);
+        }
+        if (p.z > bbMax.z) {
+            bbMax.setZ(p.z);
+        }
+    }
+
+    return [bbMin, bbMax];
+};
+
+export const generateStartingPositions = (
+    n: number, width: number, height: number
+): { x: number; y: number }[] => {
+    let positions: { x: number; y: number }[] = [];
+
+    // const width = canvasWidth;
+    // const height = canvasHeight;
+    for (let i = 0; i < n; i++) {
+        const xPos = getRandomInt(width);
+        const yPos = getRandomInt(height);
+        positions.push({ x: xPos, y: yPos });
+    }
+
+    return positions;
+};
+
+export const load3DModel = (
+    file: string,
+    scale: number,
+    sphereRadius: number = 0.1,
+    tubeSize: number = 0.05
+): HWGeometry => {
+    let spheres = parsePdb(file).bins.map(({ x, y, z }) => ({
+        x: x * scale,
+        y: y * scale,
+        z: z * scale,
+    }));
+
+    spheres = recenter(spheres).map((pos: vec3) => {
+        return { x: pos[0], y: pos[1], z: pos[2] };
+    });
+
+    const tubesLocal = computeTubes(spheres);
+
+    const geom: HWGeometry = {
+        spheres: spheres,
+        tubes: tubesLocal,
+        sphereRadius: sphereRadius,
+        tubeBaseSize: tubeSize,
     };
+
+    return geom;
+};
