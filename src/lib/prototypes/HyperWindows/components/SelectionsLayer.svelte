@@ -4,9 +4,9 @@
     import { generateGrayScale } from "../../../util";
     import SelectionWidget from "./SelectionWidget.svelte";
 
-    export let width;
-    export let height;
-    export let selectionWidgetThickness;
+    export let width: number;
+    export let height: number;
+    export let selectionWidgetThickness: number;
     export let newSelectionCallback;
 
     let hoveredBin: number = null;

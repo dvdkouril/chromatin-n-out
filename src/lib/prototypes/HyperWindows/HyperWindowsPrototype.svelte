@@ -20,8 +20,10 @@
     let canvasWidth = 800; //~ binding these upwards with useThrelte
     let canvasHeight = 600;
 
+    let scene;
+
     // $: widgets = processWidgetsHierarchy(widgetTreeRoot, hyperWindows);
-    // let nextAvailableId = 1; //~ 0 is hardcoded onMount
+    let nextAvailableId = 1; //~ 0 is hardcoded onMount
     // let maxLevel: number = 0;
 
     //~ Main data structures
@@ -100,29 +102,59 @@
     };
 
     const newSelection = (ev) => {
-        //~ TODO: rewrite to work on hierarchy of HyperWindows+arrays
-        // console.log("App: seeing change");
-        // console.log(ev);
-        // const sel = ev.detail.selection;
-        // const sourceWidget = ev.detail.sourceWidget;
-        // const offset = sourceWidget.domain.start;
-        // const newWidgetId = nextAvailableId;
-        // nextAvailableId += 1;
-        // const changedLevel = sourceWidget.level + 1;
+        console.log("App: seeing change");
+        console.log(ev);
+        const sel = ev.detail.selection;
+        const sourceWidget = ev.detail.sourceWidget;
+        const offset = sourceWidget.domain.start;
+
+        const newWidgetId = nextAvailableId;
+        nextAvailableId += 1;
+        const changedLevel = sourceWidget.level + 1;
         // if (changedLevel > maxLevel) maxLevel = changedLevel;
-        // const newWidget = {
-        //     id: newWidgetId,
-        //     level: changedLevel,
-        //     binsNum: sel.end - sel.start,
-        //     domain: { start: offset + sel.start, end: offset + sel.end },
-        //     selections: [],
-        //     colorForSelections: sel.color,
-        //     widgets: [],
-        // };
+        const newWidget: HWSelectionWidget = {
+            id: newWidgetId,
+            level: changedLevel,
+            binsNum: sel.end - sel.start,
+            domain: { start: offset + sel.start, end: offset + sel.end },
+            selections: [],
+            colorForSelections: sel.color,
+            // widgets: [],
+        };
+
+        const default3DView = (): HW3DView => {
+            return {
+                worldPosition: new Vector3(0, 0, 0),
+                rotationX: 0,
+                rotationY: 0,
+                zoom: 1,
+            };
+        };
+
+        const startScreenPosition = new Vector2(0.5, 0.5); //~ TODO: compute random direction around the source HW?
+        const initialRadius = 100;
+        const new3DView = default3DView();
+        const newHW: HyperWindow = {
+            screenPosition: startScreenPosition,
+            currentRadius: initialRadius,
+            associatedBodyId: 0,
+            associatedBodyIndex: 0, //~ one of these is redundant but i can't say which rn
+            model: hwModels[0], //~ TODO: this needs to be figured out...this is hacky as hell
+            widget: newWidget,
+            threeDView: new3DView,
+            childHyperWindows: [],
+        };
+
         // sourceWidget.widgets.push(newWidget);
+        hyperWindows = [...hyperWindows, newHW];
+        hwModels = [...hwModels, hwModels[0]]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
+        hw3DViews = [...hw3DViews, new3DView]; //~ linearized array with information only relevant for the 3D rendering
+        hwWidgets = [...hwWidgets, newWidget];
         // widgetTreeRoot = widgetTreeRoot; //~ because...reactivity
         // console.log("current hierarchy:");
         // console.log(widgetTreeRoot);
+
+        scene.newHyperWindowAdded(newHW);
     };
 
     const initWithSingle = () => {
@@ -217,10 +249,13 @@
             childHyperWindows: [],
         };
 
-        hyperWindows = [rootHW, { ...rootHW, screenPosition: new Vector2(0.75, 0.5), }];
-        hwModels = [rootModel, {...rootModel}]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
-        hw3DViews = [root3DView, {...root3DView}]; //~ linearized array with information only relevant for the 3D rendering
-        hwWidgets = [rootWidget, {...rootWidget}];
+        hyperWindows = [
+            rootHW,
+            { ...rootHW, screenPosition: new Vector2(0.75, 0.5) },
+        ];
+        hwModels = [rootModel, { ...rootModel }]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
+        hw3DViews = [root3DView, { ...root3DView }]; //~ linearized array with information only relevant for the 3D rendering
+        hwWidgets = [rootWidget, { ...rootWidget }];
     };
 
     onMount(() => {
@@ -232,7 +267,7 @@
 <div id="canvas-container">
     <!-- Canvas containing 3D models -->
     <Canvas>
-        <Scene
+        <Scene bind:this={scene}
             bind:hyperWindows
             bind:canvasWidth
             bind:canvasHeight

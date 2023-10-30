@@ -15,12 +15,14 @@
         projectModel,
         unprojectToWorldSpace,
     } from "../../../util";
-    import type { BoundingSphere, HyperWindow } from "../../../hyperwindows-types";
+    import type {
+        BoundingSphere,
+        HyperWindow,
+    } from "../../../hyperwindows-types";
     import * as Matter from "matter-js";
 
     //~ Matter.js physics
     let engine = Matter.Engine.create();
-    // let mouseConstraint = null;
     let matter_bodies = [];
     let matter_body_ids = [];
 
@@ -31,6 +33,9 @@
     const canvas = renderer?.domElement;
     let lastMousePos = { x: 0, y: 0 };
     let dragging = false;
+    $: sizeChanged($size);
+    export let canvasWidth = 123;
+    export let canvasHeight = 123;
 
     //~ Actual scene content
     export let hyperWindows: HyperWindow[];
@@ -39,10 +44,6 @@
     //~ exports
     export let boundingSpheres: BoundingSphere[]; //~ sending up the computed bounding spheres (center+radius)
     export let debugPositions: Vector2[]; //~ sending up just the projected bin positions
-
-    $: sizeChanged($size);
-    export let canvasWidth = 123;
-    export let canvasHeight = 123;
 
     const sizeChanged = (size) => {
         canvasWidth = size.width;
@@ -63,6 +64,10 @@
         dragging = false;
     };
 
+    /**
+     * Local orbiting (ray casting the associated Matterjs body)
+     * @param e
+     */
     const onMouseMove = (e) => {
         let rect = e.target.getBoundingClientRect();
         let x = e.clientX - rect.left; //x position within the element.
@@ -75,11 +80,10 @@
         //~ use the x,y to query the physics engine; get the body under cursor
         let hitBodies = Matter.Query.point(engine.world.bodies, { x: x, y: y });
         if (hitBodies.length > 0) {
-            // console.log("HIT SOME BODY!");
             let b = hitBodies[0]; //~ assume for now that we don't have overlapping bodies
             const bodyId = b.id;
 
-            //TODO: fetch hyperwindow associated with this body (probably need some map structure)
+            //TODO: better way to fetch hyperwindow associated with this body? (probably need some map structure)
             let hprWindow = hyperWindows[0]; // just for testing
             for (let hw of hyperWindows) {
                 if (hw.associatedBodyId == bodyId) {
@@ -97,6 +101,10 @@
         }
     };
 
+    /**
+     * Local zooming
+     * @param e
+     */
     const onWheel = (e) => {
         //~ disable scrolling the page with mouse wheel
         e.preventDefault();
@@ -126,6 +134,31 @@
         }
     };
 
+    export const newHyperWindowAdded = (newHW: HyperWindow) => {
+        // broken code follows:
+        const c = new Vector2(
+            newHW.screenPosition.x * canvasWidth,
+            newHW.screenPosition.y * canvasHeight
+        );
+        // const newBody = Matter.Bodies.circle(c.x, c.y, initialRadius, {
+        const newBody = Matter.Bodies.circle(c.x, c.y, 100, {
+            restitution: 0,
+            friction: 1,
+        });
+        newHW.associatedBodyId = newBody.id;
+        // (hw.associatedBodyIndex = i), //~ one of these is redundant but i can't say which rn
+        matter_bodies.push(newBody);
+        matter_body_ids.push(newBody.id);
+        // i += 1;
+
+        // matter_bodies = bodies;
+        // matter_body_ids = ids;
+
+        //~ add bodies to the Matterjs engine's world
+        Matter.Composite.add(engine.world, [newBody]);
+        console.log("new selection -> new hyperwindow added -> should add new body!");
+    };
+
     onMount(() => {
         engine.gravity.y = 0;
         var runner = Matter.Runner.create();
@@ -135,35 +168,35 @@
         let bodies = [];
         let ids = [];
         const initialRadius = 100;
-        // for (let c of hyperWindowsScreenPositions) {
         let i = 0;
         for (let hw of hyperWindows) {
-            // const c = hw.screenPosition;
-            const c = new Vector2(hw.screenPosition.x * canvasWidth, hw.screenPosition.y * canvasHeight);
+            const c = new Vector2(
+                hw.screenPosition.x * canvasWidth,
+                hw.screenPosition.y * canvasHeight
+            );
             const newBody = Matter.Bodies.circle(c.x, c.y, initialRadius, {
                 restitution: 0,
                 friction: 1,
             });
             hw.associatedBodyId = newBody.id;
-            // associatedBodyId: ids[i],
-            hw.associatedBodyIndex = i, //~ one of these is redundant but i can't say which rn
-
-            bodies.push(newBody);
+            (hw.associatedBodyIndex = i), //~ one of these is redundant but i can't say which rn
+                bodies.push(newBody);
             ids.push(newBody.id);
             i += 1;
         }
         matter_bodies = bodies;
         matter_body_ids = ids;
 
+        //~ add bodies to the Matterjs engine's world
         Matter.Composite.add(engine.world, bodies);
 
+        //~ register events
         canvas.addEventListener("mousemove", onMouseMove);
         canvas.addEventListener("mousedown", onMouseDown);
         canvas.addEventListener("mouseup", onMouseUp);
         canvas.addEventListener("wheel", onWheel);
     });
 
-    //~ TODO: this function doesn't need to exist, just call directly projectModel
     const projectModelToScreenSpace = (
         hyperwindow: HyperWindow,
         camera: PerspectiveCamera
@@ -175,7 +208,6 @@
             return new Vector2(p.x * canvasWidth, p.y * canvasHeight);
         });
 
-        // return pointsIn2D;
         return newPoints;
     };
 
@@ -184,7 +216,9 @@
      * @param pointsIn3D an array of points in 3D which will be projected into 2D and then the computation of a bounding sphere bounding "circle"
      * returns a 2D position and a radius of the bounding circle
      */
-    const computeBoundingSphere = (hyperwindow: HyperWindow): [Vector2, number] => {
+    const computeBoundingSphere = (
+        hyperwindow: HyperWindow
+    ): [Vector2, number] => {
         //~ 1. project points into screen space
         const pointsIn2D = projectModelToScreenSpace(hyperwindow, camera);
         //DEBUG
@@ -198,33 +232,27 @@
 
     useFrame(() => {
         const newHyperWindows: HyperWindow[] = [];
-        let i = 0;
-        for (let b of engine.world.bodies) {
-            if (b.label == "Circle Body") {
-                const oldHW = hyperWindows[i];
+        for (const [i, b] of matter_bodies.entries()) {
+            const oldHW = hyperWindows[i];
 
-                const newScreenPosition = new Vector2(
-                    b.position.x / canvasWidth,
-                    b.position.y / canvasHeight
-                );
+            const newScreenPosition = new Vector2(
+                b.position.x / canvasWidth,
+                b.position.y / canvasHeight
+            );
 
-                // spread operator
-                newHyperWindows.push({
-                    ...oldHW,
-                    screenPosition: newScreenPosition,
-                    threeDView: {
-                        ...oldHW.threeDView,
-                        worldPosition: camera
-                            ? unprojectToWorldSpace(
-                                  newScreenPosition,
-                                  camera
-                              )
-                            : new Vector3(0, 0, 0),
-                    },
-                });
-                i += 1;
-            }
+            // spread operator
+            newHyperWindows.push({
+                ...oldHW,
+                screenPosition: newScreenPosition,
+                threeDView: {
+                    ...oldHW.threeDView,
+                    worldPosition: camera
+                        ? unprojectToWorldSpace(newScreenPosition, camera)
+                        : new Vector3(0, 0, 0),
+                },
+            });
         }
+
         hyperWindows = newHyperWindows;
 
         debugPositions = [];
