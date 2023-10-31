@@ -36,11 +36,15 @@
 
     //~ Structures related to computation of the bounding sphere and final screen positions
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
-    $: widgetsAndPositionsAndRadii = updateScreenPositions(hwWidgets, boundingSpheres); //~ for SelectionsLayer
+    $: widgetsAndPositionsAndRadii = updateScreenPositions(
+        hwWidgets,
+        boundingSpheres
+    ); //~ for SelectionsLayer
 
     //~ DEBUG
     let debugPositions: Vector2[] = []; //~ for now used for screen space positions of model spheres
     let showMatterDebug: boolean = false;
+    let showBoundingSphereDebug: boolean = true;
 
     /**
      *
@@ -133,10 +137,16 @@
             };
         };
 
-        const randomPositionAroundHyperWindow = (sourceWidgetPosition: Vector2, sourceWidgetRadius: number): Vector2 => {
+        const randomPositionAroundHyperWindow = (
+            sourceWidgetPosition: Vector2,
+            sourceWidgetRadius: number
+        ): Vector2 => {
             const rndAngle = getRandomInt(360);
             const unitVec = new Vector2(1, 0);
-            unitVec.rotateAround(new Vector2(0, 0), (rndAngle * Math.PI) / 180.0);
+            unitVec.rotateAround(
+                new Vector2(0, 0),
+                (rndAngle * Math.PI) / 180.0
+            );
             unitVec.normalize();
             unitVec.multiplyScalar(sourceWidgetRadius * 2.0); //~ x2.0 is overestimation probably
 
@@ -144,14 +154,23 @@
             return newPosition;
         };
 
-        const startScreenPosition = randomPositionAroundHyperWindow(new Vector2(0.5, 0.5), 100 / canvasWidth);
+        const startScreenPosition = randomPositionAroundHyperWindow(
+            new Vector2(0.5, 0.5),
+            100 / canvasWidth
+        );
         const initialRadius = 100;
         const new3DView = default3DView();
         const modelSubset = {
             ...hwModels[0], //~ TODO: still hacky..I should get the model from the source HW
-            spheres: hwModels[0].spheres.slice(newWidget.domain.start, newWidget.domain.end + 1),
-            tubes: hwModels[0].tubes.slice(newWidget.domain.start, newWidget.domain.end + 1), //~ TODO: there's probably a off-by-one error
-        }
+            spheres: hwModels[0].spheres.slice(
+                newWidget.domain.start,
+                newWidget.domain.end + 1
+            ),
+            tubes: hwModels[0].tubes.slice(
+                newWidget.domain.start,
+                newWidget.domain.end + 1
+            ), //~ TODO: there's probably a off-by-one error
+        };
         const newHW: HyperWindow = {
             screenPosition: startScreenPosition,
             currentRadius: initialRadius,
@@ -223,7 +242,8 @@
     };
 
     const initWithSingle = () => {
-        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] = makeNewHyperWindow();
+        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] =
+            makeNewHyperWindow();
 
         hyperWindows = [hwRoot];
         hwModels = [hwRootModel];
@@ -252,7 +272,8 @@
 </script>
 
 <div id="debug-bar">
-    <button on:click={() => showMatterDebug = !showMatterDebug}>#</button>
+    <button on:click={() => (showMatterDebug = !showMatterDebug)}>{showMatterDebug ? "~on~" : "-off-"}</button>
+    <button on:click={() => (showBoundingSphereDebug = !showBoundingSphereDebug)}>{showBoundingSphereDebug ? "~on~" : "-off-"}</button>
 </div>
 <div id="canvas-container">
     <!-- Canvas containing 3D models -->
@@ -264,18 +285,20 @@
             bind:canvasHeight
             bind:boundingSpheres
             bind:debugPositions
-            {showMatterDebug} 
+            {showMatterDebug}
             {matterjsDebugCanvas}
         />
     </Canvas>
 
     <!-- SVG debug overlay -->
-    <DebugOverlay
-        {canvasWidth}
-        {canvasHeight}
-        {boundingSpheres}
-        {debugPositions}
-    />
+    {#if showBoundingSphereDebug}
+        <DebugOverlay
+            {canvasWidth}
+            {canvasHeight}
+            {boundingSpheres}
+            {debugPositions}
+        />
+    {/if}
 
     <!-- SVG-based layer with selection widgets for each 3D (sub)model -->
     <SelectionsLayer
@@ -287,9 +310,12 @@
     />
 
     <!-- placeholder for Matter.js debug view -->
-    <canvas id="matterjs-debug" width={canvasWidth} height={canvasHeight} bind:this={matterjsDebugCanvas}>
-
-    </canvas>
+    <canvas
+        id="matterjs-debug"
+        width={canvasWidth}
+        height={canvasHeight}
+        bind:this={matterjsDebugCanvas}
+    />
 </div>
 
 <style>
