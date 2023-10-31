@@ -157,7 +157,12 @@
         scene.newHyperWindowAdded(newHW);
     };
 
-    const initWithSingle = () => {
+    const makeNewHyperWindow = (): [
+        HyperWindow,
+        HWGeometry,
+        HW3DView,
+        HWSelectionWidget
+    ] => {
         //~ 1. load the 3D model (future TODO: multiple models)
         const rootModel = load3DModel(brafl, 0.02);
 
@@ -188,9 +193,7 @@
         const rootHW: HyperWindow = {
             screenPosition: startScreenPosition,
             currentRadius: initialRadius,
-            // associatedBodyId: ids[i],
-            associatedBodyId: 0,
-            // associatedBodyIndex: i, //~ one of these is redundant but i can't say which rn
+            associatedBodyId: 0, //~ these get filled out in Scene
             associatedBodyIndex: 0, //~ one of these is redundant but i can't say which rn
             model: rootModel,
             widget: rootWidget,
@@ -198,10 +201,16 @@
             childHyperWindows: [],
         };
 
-        hyperWindows = [rootHW];
-        hwModels = [rootModel]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
-        hw3DViews = [root3DView]; //~ linearized array with information only relevant for the 3D rendering
-        hwWidgets = [rootWidget];
+        return [rootHW, rootModel, root3DView, rootWidget];
+    };
+
+    const initWithSingle = () => {
+        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] = makeNewHyperWindow();
+
+        hyperWindows = [hwRoot];
+        hwModels = [hwRootModel];
+        hw3DViews = [hwRoot3DView];
+        hwWidgets = [hwRootWidget];
     };
 
     /**
@@ -209,53 +218,13 @@
      * In the future there should be a way to start with some example drilldown of a model
      */
     const initWithMultiple = () => {
-        //~ 1. load the 3D model (future TODO: multiple models)
-        const rootModel = load3DModel(brafl, 0.02);
+        const [hwA, hwAModel, hwA3DView, hwAWidget] = makeNewHyperWindow();
+        const [hwB, hwBModel, hwB3DView, hwBWidget] = makeNewHyperWindow();
 
-        //~ 2. create selection widget
-        const rootWidget: HWSelectionWidget = {
-            id: 0,
-            level: 0,
-            binsNum: rootModel.spheres.length,
-            domain: {
-                start: 0,
-                end: rootModel.spheres.length - 1,
-            },
-            selections: [],
-            colorForSelections: null,
-        };
-
-        //~ 3. create 3D view part of HyperWindow
-        const root3DView: HW3DView = {
-            worldPosition: new Vector3(0, 0, 0),
-            rotationX: 0,
-            rotationY: 0,
-            zoom: 1,
-        };
-
-        //~ 4. create HyperWindow
-        const startScreenPosition = new Vector2(0.25, 0.5); //~ middle of the screen
-        const initialRadius = 100;
-        const rootHW: HyperWindow = {
-            screenPosition: startScreenPosition,
-            currentRadius: initialRadius,
-            // associatedBodyId: ids[i],
-            associatedBodyId: 0,
-            // associatedBodyIndex: i, //~ one of these is redundant but i can't say which rn
-            associatedBodyIndex: 0, //~ one of these is redundant but i can't say which rn
-            model: rootModel,
-            widget: rootWidget,
-            threeDView: root3DView,
-            childHyperWindows: [],
-        };
-
-        hyperWindows = [
-            rootHW,
-            { ...rootHW, screenPosition: new Vector2(0.75, 0.5) },
-        ];
-        hwModels = [rootModel, { ...rootModel }]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
-        hw3DViews = [root3DView, { ...root3DView }]; //~ linearized array with information only relevant for the 3D rendering
-        hwWidgets = [rootWidget, { ...rootWidget }];
+        hyperWindows = [hwA, hwB];
+        hwModels = [hwAModel, hwBModel];
+        hw3DViews = [hwA3DView, hwB3DView];
+        hwWidgets = [hwAWidget, hwBWidget];
     };
 
     onMount(() => {
@@ -267,7 +236,8 @@
 <div id="canvas-container">
     <!-- Canvas containing 3D models -->
     <Canvas>
-        <Scene bind:this={scene}
+        <Scene
+            bind:this={scene}
             bind:hyperWindows
             bind:canvasWidth
             bind:canvasHeight
