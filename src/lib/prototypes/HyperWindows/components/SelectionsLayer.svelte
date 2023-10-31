@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Vector2 } from "three";
+    import { Vector2 } from "three";
     import type { HWSelectionWidget } from "../../../hyperwindows-types";
     import { generateGrayScale } from "../../../util";
     import SelectionWidget from "./SelectionWidget.svelte";
@@ -11,10 +11,10 @@
 
     // let hoveredBin: number = null;
 
-    $: maxBinsNum = widgetsAndPositions.length > 0 ? widgetsAndPositions[0][0].binsNum : 0;
+    $: maxBinsNum = widgetsAndPositionsAndRadii.length > 0 ? widgetsAndPositionsAndRadii[0][0].binsNum : 0;
     $: grayColorMap = generateGrayScale(maxBinsNum);
    
-    export let widgetsAndPositions: [HWSelectionWidget, Vector2][];
+    export let widgetsAndPositionsAndRadii: [HWSelectionWidget, Vector2, number][];
 
 </script>
 
@@ -24,9 +24,9 @@
         {height}
         pointer-events="none"
     >
-        {#each widgetsAndPositions as [widget, screenPosition]}
+        {#each widgetsAndPositionsAndRadii as [widget, screenPosition, radius]}
             <SelectionWidget
-                position={screenPosition}
+                position={new Vector2(screenPosition.x - radius, screenPosition.y - radius)}
                 width={100}
                 height={100}
                 widgetThickness={selectionWidgetThickness}

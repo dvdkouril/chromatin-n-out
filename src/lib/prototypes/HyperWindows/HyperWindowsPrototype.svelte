@@ -35,7 +35,7 @@
 
     //~ Structures related to computation of the bounding sphere and final screen positions
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
-    $: widgetsAndPositions = updateScreenPositions(hwWidgets, boundingSpheres); //~ for SelectionsLayer
+    $: widgetsAndPositionsAndRadii = updateScreenPositions(hwWidgets, boundingSpheres); //~ for SelectionsLayer
 
     //~ DEBUG
     let debugPositions: Vector2[] = []; //~ for now used for screen space positions of model spheres
@@ -78,7 +78,7 @@
     const updateScreenPositions = (
         widgets: HWSelectionWidget[],
         bSpheres: BoundingSphere[]
-    ): [HWSelectionWidget, Vector2][] => {
+    ): [HWSelectionWidget, Vector2, number][] => {
         if (widgets.length != bSpheres.length) {
             console.log(
                 "error: widgets and bSpheres should have the same number of elements."
@@ -89,9 +89,9 @@
         }
 
         // console.log("we good...recomputing position of widget!");
-        let res: [HWSelectionWidget, Vector2][] = [];
+        let res: [HWSelectionWidget, Vector2, number][] = [];
         for (let [i, w] of widgets.entries()) {
-            res.push([w, bSpheres[i].center]);
+            res.push([w, bSpheres[i].center, bSpheres[i].radius]);
         }
         return res;
     };
@@ -263,7 +263,7 @@
     <SelectionsLayer
         width={canvasWidth}
         height={canvasHeight}
-        {widgetsAndPositions}
+        {widgetsAndPositionsAndRadii}
         {selectionWidgetThickness}
         newSelectionCallback={newSelection}
     />
