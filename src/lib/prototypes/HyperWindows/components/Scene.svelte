@@ -365,7 +365,19 @@
             const scaleFactor = wantedRadius / currentRadius; //~ or is it the other way around?
             hw.currentRadius = wantedRadius;
 
+            // const offsetVec = { x: 0, y: 0};
+            // const offsetVec = hw.screenPosition - boundingSpheres[hw.associatedBodyIndex].center;
+            // console.log("hw.screenPosition: " + hw.screenPosition);
+            // console.log("boundingSpheres[hw.associatedBodyIndex].center: " + boundingSpheres[hw.associatedBodyIndex].center);
+            const wantedPos = boundingSpheres[hw.associatedBodyIndex].center.clone();
+            const currentPos = new Vector2(hw.screenPosition.x * canvasWidth, hw.screenPosition.y * canvasHeight);
+            const offset = wantedPos.sub(currentPos);
+            const offsetVec = {x: offset.x, y: offset.y};
+
+            hw.screenPosition = wantedPos;
+
             Matter.Body.scale(body, scaleFactor, scaleFactor);
+            Matter.Body.translate(body, offsetVec);
         }
     });
 </script>

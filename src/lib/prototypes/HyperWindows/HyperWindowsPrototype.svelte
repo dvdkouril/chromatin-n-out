@@ -43,7 +43,7 @@
 
     //~ DEBUG
     let debugPositions: Vector2[] = []; //~ for now used for screen space positions of model spheres
-    let showMatterDebug: boolean = false;
+    let showMatterDebug: boolean = true;
     let showBoundingSphereDebug: boolean = true;
 
     /**
