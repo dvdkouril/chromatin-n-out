@@ -134,12 +134,17 @@
         const startScreenPosition = new Vector2(0.5, 0.5); //~ TODO: compute random direction around the source HW?
         const initialRadius = 100;
         const new3DView = default3DView();
+        const modelSubset = {
+            ...hwModels[0], //~ TODO: still hacky..I should get the model from the source HW
+            spheres: hwModels[0].spheres.slice(newWidget.domain.start, newWidget.domain.end + 1),
+            tubes: hwModels[0].tubes.slice(newWidget.domain.start, newWidget.domain.end + 1), //~ TODO: there's probably a off-by-one error
+        }
         const newHW: HyperWindow = {
             screenPosition: startScreenPosition,
             currentRadius: initialRadius,
             associatedBodyId: 0,
             associatedBodyIndex: 0, //~ one of these is redundant but i can't say which rn
-            model: hwModels[0], //~ TODO: this needs to be figured out...this is hacky as hell
+            model: modelSubset, //~ TODO: this needs to be figured out...this is hacky as hell
             widget: newWidget,
             threeDView: new3DView,
             childHyperWindows: [],
@@ -228,8 +233,8 @@
     };
 
     onMount(() => {
-        // initWithSingle();
-        initWithMultiple();
+        initWithSingle();
+        // initWithMultiple();
     });
 </script>
 
