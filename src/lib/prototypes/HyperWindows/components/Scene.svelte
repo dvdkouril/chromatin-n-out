@@ -25,6 +25,10 @@
     let engine = Matter.Engine.create();
     let matter_bodies = [];
     let matter_body_ids = [];
+    let wall_top = undefined;
+    let wall_bottom = undefined;
+    let wall_left = undefined;
+    let wall_right = undefined;
 
     //~ Threlte lifecycle
     const { renderer, size } = useThrelte();
@@ -48,6 +52,59 @@
     const sizeChanged = (size) => {
         canvasWidth = size.width;
         canvasHeight = size.height;
+
+        reconfigureWalls(canvasWidth, canvasHeight);
+    };
+
+    const reconfigureWalls = (
+        newCanvasWidth: number,
+        newCanvasHeight: number
+    ) => {
+        console.log("Reconfiguring walls to " + newCanvasWidth + " x " + newCanvasHeight);
+
+        const w = newCanvasWidth;
+        const h = newCanvasHeight;
+        const thickness = 50;
+        var ground = Matter.Bodies.rectangle(w / 2, h, w, thickness, {
+            isStatic: true,
+        });
+        var leftWall = Matter.Bodies.rectangle(0, h / 2, thickness, h, {
+            isStatic: true,
+        });
+        var rightWall = Matter.Bodies.rectangle(w, h / 2, thickness, h, {
+            isStatic: true,
+        });
+        var topWall = Matter.Bodies.rectangle(w / 2, 0, w, thickness, {
+            isStatic: true,
+        });
+
+        //~ remove old
+        if (
+            wall_top != undefined &&
+            wall_bottom != undefined &&
+            wall_left != undefined &&
+            wall_right != undefined
+        ) {
+            Matter.Composite.remove(engine.world, [
+                wall_top,
+                wall_bottom,
+                wall_left,
+                wall_right,
+            ]);
+        }
+
+        wall_bottom = ground;
+        wall_top = topWall;
+        wall_left = leftWall;
+        wall_right = rightWall;
+
+        // add all of the bodies to the world
+        Matter.Composite.add(engine.world, [
+            ground,
+            leftWall,
+            rightWall,
+            topWall,
+        ]);
     };
 
     const onMouseDown = (e) => {
@@ -157,7 +214,9 @@
 
         //~ add bodies to the Matterjs engine's world
         Matter.Composite.add(engine.world, [newBody]);
-        console.log("new selection -> new hyperwindow added -> should add new body!");
+        console.log(
+            "new selection -> new hyperwindow added -> should add new body!"
+        );
     };
 
     onMount(() => {
