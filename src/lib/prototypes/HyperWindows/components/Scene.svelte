@@ -23,6 +23,7 @@
 
     //~ Matter.js physics
     let engine = Matter.Engine.create();
+    let matterRender = undefined;
     let matter_bodies = [];
     let matter_body_ids = [];
     let wall_top = undefined;
@@ -40,6 +41,7 @@
     $: sizeChanged($size);
     export let canvasWidth = 123;
     export let canvasHeight = 123;
+    export let matterjsDebugCanvas;
 
     //~ Actual scene content
     export let hyperWindows: HyperWindow[];
@@ -48,6 +50,35 @@
     //~ exports
     export let boundingSpheres: BoundingSphere[]; //~ sending up the computed bounding spheres (center+radius)
     export let debugPositions: Vector2[]; //~ sending up just the projected bin positions
+    export let showMatterDebug;
+
+    $: toggleMatterDebugView(showMatterDebug);
+
+    const toggleMatterDebugView = (show: boolean) => {
+        console.log("Toggled Matter debug view.");
+        if (show == true) {
+            // create a renderer
+            // let render = Matter.Render.create({
+            matterRender = Matter.Render.create({
+                // element: parentElement,
+                // element: matterjsDebugCanvas,
+                canvas: matterjsDebugCanvas,
+                engine: engine,
+                options: { width: canvasWidth, height: canvasHeight },
+            });
+
+            Matter.Render.run(matterRender);
+        } else {
+            if (matterRender == undefined) {
+                return;
+            }
+            console.log("stopping matter render");
+            Matter.Render.stop(matterRender);
+            const context = matterjsDebugCanvas.getContext("2d");
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            matterjsDebugCanvas.style.background = 'none';
+        }
+    };
 
     const sizeChanged = (size) => {
         canvasWidth = size.width;
@@ -60,7 +91,9 @@
         newCanvasWidth: number,
         newCanvasHeight: number
     ) => {
-        console.log("Reconfiguring walls to " + newCanvasWidth + " x " + newCanvasHeight);
+        console.log(
+            "Reconfiguring walls to " + newCanvasWidth + " x " + newCanvasHeight
+        );
 
         const w = newCanvasWidth;
         const h = newCanvasHeight;

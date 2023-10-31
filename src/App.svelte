@@ -27,7 +27,7 @@
   </div>
   <div id="title">HyperWindows</div>
   <div id="project-info">
-    made by david kouril | code: <a href="https://github.com/dvdkouril/chromatin-n-out" target="_blank" rel="noreferrer">dvdkouril/chromatin-n-out</a>
+    made by david kouril | <a href="https://github.com/dvdkouril/chromatin-n-out" target="_blank" rel="noreferrer">&lt;code&gt;</a>
   </div>
 </div>
 

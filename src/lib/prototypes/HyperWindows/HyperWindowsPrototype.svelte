@@ -6,7 +6,7 @@
     import SelectionsLayer from "./components/SelectionsLayer.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../../test_BRAFL";
-    import { load3DModel } from "../../util";
+    import { getRandomInt, load3DModel } from "../../util";
     import type {
         HWGeometry,
         HWSelectionWidget,
@@ -19,6 +19,7 @@
 
     let canvasWidth = 800; //~ binding these upwards with useThrelte
     let canvasHeight = 600;
+    let matterjsDebugCanvas = undefined;
 
     let scene;
 
@@ -39,6 +40,7 @@
 
     //~ DEBUG
     let debugPositions: Vector2[] = []; //~ for now used for screen space positions of model spheres
+    let showMatterDebug: boolean = false;
 
     /**
      *
@@ -131,7 +133,18 @@
             };
         };
 
-        const startScreenPosition = new Vector2(0.5, 0.5); //~ TODO: compute random direction around the source HW?
+        const randomPositionAroundHyperWindow = (sourceWidgetPosition: Vector2, sourceWidgetRadius: number): Vector2 => {
+            const rndAngle = getRandomInt(360);
+            const unitVec = new Vector2(1, 0);
+            unitVec.rotateAround(new Vector2(0, 0), (rndAngle * Math.PI) / 180.0);
+            unitVec.normalize();
+            unitVec.multiplyScalar(sourceWidgetRadius * 2.0); //~ x2.0 is overestimation probably
+
+            const newPosition = sourceWidgetPosition.add(unitVec);
+            return newPosition;
+        };
+
+        const startScreenPosition = randomPositionAroundHyperWindow(new Vector2(0.5, 0.5), 100 / canvasWidth);
         const initialRadius = 100;
         const new3DView = default3DView();
         const modelSubset = {
@@ -238,6 +251,9 @@
     });
 </script>
 
+<div id="debug-bar">
+    <button on:click={() => showMatterDebug = !showMatterDebug}>#</button>
+</div>
 <div id="canvas-container">
     <!-- Canvas containing 3D models -->
     <Canvas>
@@ -248,6 +264,8 @@
             bind:canvasHeight
             bind:boundingSpheres
             bind:debugPositions
+            {showMatterDebug} 
+            {matterjsDebugCanvas}
         />
     </Canvas>
 
@@ -267,6 +285,11 @@
         {selectionWidgetThickness}
         newSelectionCallback={newSelection}
     />
+
+    <!-- placeholder for Matter.js debug view -->
+    <canvas id="matterjs-debug" width={canvasWidth} height={canvasHeight} bind:this={matterjsDebugCanvas}>
+
+    </canvas>
 </div>
 
 <style>
@@ -275,5 +298,13 @@
         position: relative;
         width: 100%;
         height: 100%;
+    }
+
+    #matterjs-debug {
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 50%;
+        pointer-events: none;
     }
 </style>
