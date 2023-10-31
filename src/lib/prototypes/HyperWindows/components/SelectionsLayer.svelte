@@ -9,7 +9,7 @@
     export let selectionWidgetThickness: number;
     export let newSelectionCallback;
 
-    let hoveredBin: number = null;
+    // let hoveredBin: number = null;
 
     $: maxBinsNum = widgetsAndPositions.length > 0 ? widgetsAndPositions[0][0].binsNum : 0;
     $: grayColorMap = generateGrayScale(maxBinsNum);
@@ -36,7 +36,6 @@
                 on:selectionFinished={newSelectionCallback}
                 bind:selections={widget.selections}
                 {widget}
-                bind:hoveredBin
             />
         {/each}
     </svg>

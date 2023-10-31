@@ -22,7 +22,7 @@
     $: arcs = pie()(bins);
 
     let selectionInProgress = false;
-    export let hoveredBin = null;
+    let hoveredBin = null;
 
     $: segments = arcs.map((arc) => {
         let input = {
