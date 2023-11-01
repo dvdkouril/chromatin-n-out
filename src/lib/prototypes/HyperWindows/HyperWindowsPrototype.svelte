@@ -23,9 +23,7 @@
 
     let scene;
 
-    // $: widgets = processWidgetsHierarchy(widgetTreeRoot, hyperWindows);
     let nextAvailableId = 1; //~ 0 is hardcoded onMount
-    // let maxLevel: number = 0;
 
     //~ Main data structures
     // let rootHyperWindows: HyperWindow[] = []; //~ contains roots of HyperWindow hierarchies
@@ -45,6 +43,7 @@
     let debugPositions: Vector2[] = []; //~ for now used for screen space positions of model spheres
     let showMatterDebug: boolean = true;
     let showBoundingSphereDebug: boolean = true;
+    let debugTexts: { text: string, x: number, y: number }[] = [];
 
     /**
      *
@@ -285,6 +284,7 @@
             bind:canvasHeight
             bind:boundingSpheres
             bind:debugPositions
+            bind:debugTexts
             {showMatterDebug}
             {matterjsDebugCanvas}
         />
@@ -297,6 +297,7 @@
             {canvasHeight}
             {boundingSpheres}
             {debugPositions}
+            {debugTexts}
         />
     {/if}
 
