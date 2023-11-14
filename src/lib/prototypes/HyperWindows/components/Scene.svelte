@@ -255,7 +255,7 @@
             const currentPos = new Vector2(b.position.x, b.position.y);
             const offset = wantedPos.clone().sub(currentPos);
 
-            Matter.Body.translate(b, { x: offset.x, y: offset.y });
+            // Matter.Body.translate(b, { x: offset.x, y: offset.y });
 
             recomputeBoundingSpheres(); //~ TODO: I guess it's unnecessary to compute BS twice
         }
@@ -421,7 +421,7 @@
             );
             const offset = hwNewWorldPosition.clone().sub(hwOldWorldPosition);
 
-            const newModelWorldPosition = oldHW.model.modelWorlPosition
+            const newModelWorldPosition = oldHW.model.modelWorldPosition
                 .clone()
                 .add(offset);
 
@@ -431,7 +431,7 @@
                 screenPosition: newScreenPosition,
                 model: {
                     ...oldHW.model,
-                    modelWorlPosition: newModelWorldPosition,
+                    modelWorldPosition: newModelWorldPosition,
                 },
                 threeDView: {
                     ...oldHW.threeDView,
