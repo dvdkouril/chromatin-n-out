@@ -265,7 +265,7 @@
         const startWorlPosition = camera
             ? unprojectToWorldSpace(newHW.screenPosition, camera)
             : new Vector3(0, 0, 0);
-        newHW.model.modelWorlPosition = startWorlPosition;
+        newHW.model.modelWorldPosition = startWorlPosition;
 
         const [center, radius] = computeBoundingSphere(newHW);
         newHW.currentRadius = radius;
@@ -307,7 +307,7 @@
         //~ fix the model world position
         for (let hw of hyperWindows) {
             const startWorlPosition = unprojectToWorldSpace(hw.screenPosition, camera);
-            hw.model.modelWorlPosition = startWorlPosition;
+            hw.model.modelWorldPosition = startWorlPosition;
         }
 
         for (let hw of hyperWindows) {
@@ -390,7 +390,7 @@
         //~ debug
         debugPositions = [];
         for (let hw of hyperWindows) {
-            const ss = projectPoint(hw.model.modelWorlPosition, camera);
+            const ss = projectPoint(hw.model.modelWorldPosition, camera);
             debugPositions.push([new Vector2(ss.x * canvasWidth, ss.y * canvasHeight), "#990000"]);
         }
         /**

@@ -5,7 +5,7 @@ export type HWGeometry = {
     tubes: { position: Vector3; rotation: Euler; scale: number }[];
     sphereRadius: number;
     tubeBaseSize: number;
-    modelWorlPosition: Vector3;
+    modelWorldPosition: Vector3;
 };
 
 export type HW3DView = {

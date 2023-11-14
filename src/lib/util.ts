@@ -199,7 +199,7 @@ export const projectModel = (hyperwindow: HyperWindow, camera: PerspectiveCamera
 
         // const position = unprojectToWorldSpace(hyperwindow.screenPosition, camera); 
         // const position = hyperwindow.threeDView.worldPosition; 
-        const position = hyperwindow.model.modelWorlPosition;
+        const position = hyperwindow.model.modelWorldPosition;
         const scale = hyperwindow.threeDView.zoom;
         const rotationX = hyperwindow.threeDView.rotationX;
         const rotationY = hyperwindow.threeDView.rotationY;
@@ -377,7 +377,7 @@ export const load3DModel = (
     const tubesLocal = computeTubes(spheres);
 
     const geom: HWGeometry = {
-        modelWorlPosition: new Vector3(0, 0, 0),
+        modelWorldPosition: new Vector3(0, 0, 0),
         spheres: spheres,
         tubes: tubesLocal,
         sphereRadius: sphereRadius,

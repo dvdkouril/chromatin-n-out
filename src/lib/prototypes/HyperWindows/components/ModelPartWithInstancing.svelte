@@ -9,9 +9,9 @@
 
 <T.Group
     position={[
-        model.modelWorlPosition.x,
-        model.modelWorlPosition.y,
-        model.modelWorlPosition.z,
+        model.modelWorldPosition.x,
+        model.modelWorldPosition.y,
+        model.modelWorldPosition.z,
     ]}
     scale={[viewParams.zoom, viewParams.zoom, viewParams.zoom]}
     rotation={[
