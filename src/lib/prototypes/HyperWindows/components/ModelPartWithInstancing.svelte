@@ -2,7 +2,6 @@
     import { T } from "@threlte/core";
     import { Instance, InstancedMesh } from "@threlte/extras";
     import type { HW3DView, HWGeometry } from "../../../hyperwindows-types";
-    import { BoxGeometry, MeshStandardMaterial } from "three";
 
     export let model: HWGeometry;
     export let viewParams: HW3DView;
@@ -47,6 +46,7 @@
         {/each}
     </InstancedMesh>
 
+    <!-- Debug: Pivot point indication -->
     <T.Mesh>
         <T.BoxGeometry args={[0.5, 0.5, 0.5]} />
         <T.MeshStandardMaterial color="#ff0000" />
