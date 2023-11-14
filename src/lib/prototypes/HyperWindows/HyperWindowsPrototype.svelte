@@ -6,7 +6,7 @@
     import SelectionsLayer from "./components/SelectionsLayer.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../../test_BRAFL";
-    import { load3DModel, randomPositionAroundHyperWindow } from "../../util";
+    import { computeTubes, load3DModel, randomPositionAroundHyperWindow, recenter } from "../../util";
     import type {
         HWGeometry,
         HWSelectionWidget,
@@ -15,6 +15,7 @@
         BoundingSphere,
         Selection,
     } from "../../hyperwindows-types";
+    import type { vec3 } from "gl-matrix";
 
     const selectionWidgetThickness = 25;
 
@@ -149,14 +150,19 @@
             end: offset + selection.end,
         };
 
+        //~ Recenter the submodel
+        let subModelPositions = hwModels[0].spheres.slice(newDomain.start, newDomain.end + 1);
+        subModelPositions = recenter(subModelPositions).map((pos: vec3) => {
+            return { x: pos[0], y: pos[1], z: pos[2] };
+        });
+
+        let subModelTubes = computeTubes(subModelPositions); //~ TODO: probably unnecessary computation
+
         //~ 1. load the 3D model (future TODO: multiple models)
         const newModel = {
             ...hwModels[0], //~ TODO: still hacky..I should get the model from the source HW
-            spheres: hwModels[0].spheres.slice(
-                newDomain.start,
-                newDomain.end + 1
-            ),
-            tubes: hwModels[0].tubes.slice(newDomain.start, newDomain.end + 1), //~ TODO: there's probably a off-by-one error
+            spheres: subModelPositions,
+            tubes: subModelTubes, 
         };
 
         //~ 2. create selection widget
