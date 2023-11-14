@@ -6,10 +6,7 @@
     import SelectionsLayer from "./components/SelectionsLayer.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../../test_BRAFL";
-    import {
-        load3DModel,
-        randomPositionAroundHyperWindow,
-    } from "../../util";
+    import { load3DModel, randomPositionAroundHyperWindow } from "../../util";
     import type {
         HWGeometry,
         HWSelectionWidget,
@@ -39,10 +36,7 @@
 
     //~ Structures related to computation of the bounding sphere and final screen positions
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
-    $: widgetsAndPositionsAndRadii = updateWidgetsScreenPositions(
-        hwWidgets,
-        boundingSpheres
-    ); //~ for SelectionsLayer
+    $: widgetsAndPositionsAndRadii = updateWidgetsScreenPositions(hwWidgets, boundingSpheres); //~ for SelectionsLayer
 
     //~ DEBUG
     let debugPositions: [Vector2, string][] = []; //~ for now used for screen space positions of model spheres
@@ -80,10 +74,7 @@
         const newWidgetId = nextAvailableId;
         nextAvailableId += 1;
 
-        const newHWScreenPosition = randomPositionAroundHyperWindow(
-            new Vector2(0.5, 0.5),
-            100 / canvasWidth
-        );
+        const newHWScreenPosition = randomPositionAroundHyperWindow(new Vector2(0.5, 0.5), 100 / canvasWidth);
 
         //~ Create the actual new HyperWindow
         const [newHW, newGeo, new3DView, newSelWidget] = makeNewHyperWindow(
@@ -109,12 +100,7 @@
         };
     };
 
-    const makeInitialHyperWindow = (): [
-        HyperWindow,
-        HWGeometry,
-        HW3DView,
-        HWSelectionWidget
-    ] => {
+    const makeInitialHyperWindow = (): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] => {
         //~ 1. load the 3D model (future TODO: multiple models)
         const newModel = load3DModel(brafl, 0.02);
 
@@ -206,8 +192,7 @@
     };
 
     const initWithSingle = () => {
-        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] =
-            makeInitialHyperWindow();
+        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] = makeInitialHyperWindow();
 
         hyperWindows = [hwRoot];
         hwModels = [hwRootModel];
@@ -221,11 +206,8 @@
 </script>
 
 <div id="debug-bar">
-    <button on:click={() => (showMatterDebug = !showMatterDebug)}
-        >{showMatterDebug ? "~on~" : "-off-"}</button
-    >
-    <button
-        on:click={() => (showBoundingSphereDebug = !showBoundingSphereDebug)}
+    <button on:click={() => (showMatterDebug = !showMatterDebug)}>{showMatterDebug ? "~on~" : "-off-"}</button>
+    <button on:click={() => (showBoundingSphereDebug = !showBoundingSphereDebug)}
         >{showBoundingSphereDebug ? "~on~" : "-off-"}</button
     >
 </div>
@@ -248,13 +230,7 @@
 
     <!-- SVG debug overlay -->
     {#if showBoundingSphereDebug}
-        <DebugOverlay
-            {canvasWidth}
-            {canvasHeight}
-            {boundingSpheres}
-            {debugPositions}
-            {debugTexts}
-        />
+        <DebugOverlay {canvasWidth} {canvasHeight} {boundingSpheres} {debugPositions} {debugTexts} />
     {/if}
 
     <!-- SVG-based layer with selection widgets for each 3D (sub)model -->
@@ -267,12 +243,7 @@
     />
 
     <!-- placeholder for Matter.js debug view -->
-    <canvas
-        id="matterjs-debug"
-        width={canvasWidth}
-        height={canvasHeight}
-        bind:this={matterjsDebugCanvas}
-    />
+    <canvas id="matterjs-debug" width={canvasWidth} height={canvasHeight} bind:this={matterjsDebugCanvas} />
 </div>
 
 <style>

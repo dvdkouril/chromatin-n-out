@@ -1,13 +1,7 @@
 <script lang="ts">
     import { T, useFrame } from "@threlte/core";
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
-    import {
-        BoxGeometry,
-        MeshStandardMaterial,
-        PerspectiveCamera,
-        Vector2,
-        Vector3,
-    } from "three";
+    import { BoxGeometry, MeshStandardMaterial, PerspectiveCamera, Vector2, Vector3 } from "three";
     import { onMount } from "svelte";
     import { useThrelte } from "@threlte/core";
     import {
@@ -16,10 +10,7 @@
         projectPoint,
         unprojectToWorldSpace,
     } from "../../../util";
-    import type {
-        BoundingSphere,
-        HyperWindow,
-    } from "../../../hyperwindows-types";
+    import type { BoundingSphere, HyperWindow } from "../../../hyperwindows-types";
     import * as Matter from "matter-js";
 
     //~ Matter.js physics
@@ -89,13 +80,8 @@
         reconfigureWalls(canvasWidth, canvasHeight);
     };
 
-    const reconfigureWalls = (
-        newCanvasWidth: number,
-        newCanvasHeight: number
-    ) => {
-        console.log(
-            "Reconfiguring walls to " + newCanvasWidth + " x " + newCanvasHeight
-        );
+    const reconfigureWalls = (newCanvasWidth: number, newCanvasHeight: number) => {
+        console.log("Reconfiguring walls to " + newCanvasWidth + " x " + newCanvasHeight);
 
         const w = newCanvasWidth;
         const h = newCanvasHeight;
@@ -114,18 +100,8 @@
         });
 
         //~ remove old
-        if (
-            wall_top != undefined &&
-            wall_bottom != undefined &&
-            wall_left != undefined &&
-            wall_right != undefined
-        ) {
-            Matter.Composite.remove(engine.world, [
-                wall_top,
-                wall_bottom,
-                wall_left,
-                wall_right,
-            ]);
+        if (wall_top != undefined && wall_bottom != undefined && wall_left != undefined && wall_right != undefined) {
+            Matter.Composite.remove(engine.world, [wall_top, wall_bottom, wall_left, wall_right]);
         }
 
         wall_bottom = ground;
@@ -134,12 +110,7 @@
         wall_right = rightWall;
 
         // add all of the bodies to the world
-        Matter.Composite.add(engine.world, [
-            ground,
-            leftWall,
-            rightWall,
-            topWall,
-        ]);
+        Matter.Composite.add(engine.world, [ground, leftWall, rightWall, topWall]);
     };
 
     const onMouseDown = (e) => {
@@ -262,19 +233,14 @@
     };
 
     export const newHyperWindowAdded = (newHW: HyperWindow) => {
-        const startWorlPosition = camera
-            ? unprojectToWorldSpace(newHW.screenPosition, camera)
-            : new Vector3(0, 0, 0);
+        const startWorlPosition = camera ? unprojectToWorldSpace(newHW.screenPosition, camera) : new Vector3(0, 0, 0);
         newHW.model.modelWorldPosition = startWorlPosition;
 
         const [center, radius] = computeBoundingSphere(newHW);
         newHW.currentRadius = radius;
 
         // broken code follows:
-        const c = new Vector2(
-            newHW.screenPosition.x * canvasWidth,
-            newHW.screenPosition.y * canvasHeight
-        );
+        const c = new Vector2(newHW.screenPosition.x * canvasWidth, newHW.screenPosition.y * canvasHeight);
         // const newBody = Matter.Bodies.circle(c.x, c.y, initialRadius, {
         const newBody = Matter.Bodies.circle(c.x, c.y, newHW.currentRadius, {
             restitution: 0,
@@ -292,9 +258,7 @@
 
         //~ add bodies to the Matterjs engine's world
         Matter.Composite.add(engine.world, [newBody]);
-        console.log(
-            "new selection -> new hyperwindow added -> should add new body!"
-        );
+        console.log("new selection -> new hyperwindow added -> should add new body!");
 
         recomputeBoundingSpheres();
     };
@@ -322,10 +286,7 @@
         let ids = [];
         for (let [i, hw] of hyperWindows.entries()) {
             //~ <0, 1> -> <0, width/height>
-            const c = new Vector2(
-                hw.screenPosition.x * canvasWidth,
-                hw.screenPosition.y * canvasHeight
-            );
+            const c = new Vector2(hw.screenPosition.x * canvasWidth, hw.screenPosition.y * canvasHeight);
             const newBody = Matter.Bodies.circle(c.x, c.y, hw.currentRadius, {
                 restitution: 0,
                 friction: 1,
@@ -355,9 +316,7 @@
      * @param pointsIn3D an array of points in 3D which will be projected into 2D and then the computation of a bounding sphere bounding "circle"
      * returns a 2D position and a radius of the bounding circle
      */
-    const computeBoundingSphere = (
-        hyperwindow: HyperWindow
-    ): [Vector2, number] => {
+    const computeBoundingSphere = (hyperwindow: HyperWindow): [Vector2, number] => {
         //~ 1. project points into screen space
         const pointsIn2D = projectModelToScreenSpace(hyperwindow, camera, canvasWidth, canvasHeight);
         //DEBUG
@@ -396,34 +355,23 @@
         /**
          * Updating HyperWindows positions based on the physics.
          * The bounding circles are going to adjust based on the physics,
-         * and here we want to synchronize those. 
-        */
+         * and here we want to synchronize those.
+         */
         const newHyperWindows: HyperWindow[] = [];
         for (const [i, b] of matter_bodies.entries()) {
             const oldHW = hyperWindows[i];
 
-            const newScreenPosition = new Vector2(
-                b.position.x / canvasWidth,
-                b.position.y / canvasHeight
-            );
+            const newScreenPosition = new Vector2(b.position.x / canvasWidth, b.position.y / canvasHeight);
 
             /**
              * I think this is where the problem is:
              * The hwNewWorldPosition is !not! the model origin, it's the position of center of the bounding circle
              */
-            const hwNewWorldPosition = unprojectToWorldSpace(
-                newScreenPosition,
-                camera
-            );
-            const hwOldWorldPosition = unprojectToWorldSpace(
-                oldHW.screenPosition,
-                camera
-            );
+            const hwNewWorldPosition = unprojectToWorldSpace(newScreenPosition, camera);
+            const hwOldWorldPosition = unprojectToWorldSpace(oldHW.screenPosition, camera);
             const offset = hwNewWorldPosition.clone().sub(hwOldWorldPosition);
 
-            const newModelWorldPosition = oldHW.model.modelWorldPosition
-                .clone()
-                .add(offset);
+            const newModelWorldPosition = oldHW.model.modelWorldPosition.clone().add(offset);
 
             // spread operator
             newHyperWindows.push({
@@ -443,12 +391,7 @@
     });
 </script>
 
-<T.PerspectiveCamera
-    bind:ref={camera}
-    makeDefault
-    position={[0, 0, 50]}
-    fov={24}
-/>
+<T.PerspectiveCamera bind:ref={camera} makeDefault position={[0, 0, 50]} fov={24} />
 
 <T.DirectionalLight castShadow position={[3, 10, 10]} />
 <T.DirectionalLight position={[-3, 10, -10]} intensity={0.2} />
