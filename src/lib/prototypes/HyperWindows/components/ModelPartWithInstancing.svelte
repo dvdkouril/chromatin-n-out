@@ -2,6 +2,7 @@
     import { T } from "@threlte/core";
     import { Instance, InstancedMesh } from "@threlte/extras";
     import type { HW3DView, HWGeometry } from "../../../hyperwindows-types";
+    import { BoxGeometry, MeshStandardMaterial } from "three";
 
     export let model: HWGeometry;
     export let viewParams: HW3DView;
@@ -9,9 +10,9 @@
 
 <T.Group
     position={[
-        viewParams.worldPosition.x,
-        viewParams.worldPosition.y,
-        viewParams.worldPosition.z,
+        model.modelWorlPosition.x,
+        model.modelWorlPosition.y,
+        model.modelWorlPosition.z,
     ]}
     scale={[viewParams.zoom, viewParams.zoom, viewParams.zoom]}
     rotation={[
@@ -45,4 +46,9 @@
             <Instance position.x={s.x} position.y={s.y} position.z={s.z} />
         {/each}
     </InstancedMesh>
+
+    <T.Mesh>
+        <T.BoxGeometry args={[0.5, 0.5, 0.5]} />
+        <T.MeshStandardMaterial color="#ff0000" />
+    </T.Mesh>
 </T.Group>

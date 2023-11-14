@@ -1,12 +1,16 @@
 <script lang="ts">
     import { Canvas, T } from "@threlte/core";
     import Scene from "./components/Scene.svelte";
-    import { Vector2, Vector3 } from "three";
+    import { PerspectiveCamera, Vector2, Vector3 } from "three";
     import DebugOverlay from "./components/DebugOverlay.svelte";
     import SelectionsLayer from "./components/SelectionsLayer.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../../test_BRAFL";
-    import { getRandomInt, load3DModel } from "../../util";
+    import {
+        getRandomInt,
+        load3DModel,
+        unprojectToWorldSpace,
+    } from "../../util";
     import type {
         HWGeometry,
         HWSelectionWidget,
@@ -20,6 +24,7 @@
     let canvasWidth = 800; //~ binding these upwards with useThrelte
     let canvasHeight = 600;
     let matterjsDebugCanvas = undefined;
+    let camera: PerspectiveCamera;
 
     let scene;
 
@@ -34,53 +39,18 @@
 
     //~ Structures related to computation of the bounding sphere and final screen positions
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
-    $: widgetsAndPositionsAndRadii = updateScreenPositions(
+    $: widgetsAndPositionsAndRadii = updateWidgetsScreenPositions(
         hwWidgets,
         boundingSpheres
     ); //~ for SelectionsLayer
 
     //~ DEBUG
-    let debugPositions: Vector2[] = []; //~ for now used for screen space positions of model spheres
+    let debugPositions: [Vector2, string][] = []; //~ for now used for screen space positions of model spheres
     let showMatterDebug: boolean = true;
     let showBoundingSphereDebug: boolean = true;
-    let debugTexts: { text: string, x: number, y: number }[] = [];
+    let debugTexts: { text: string; x: number; y: number }[] = [];
 
-    /**
-     *
-     * @param root
-     * @param hyperwindows
-     * return tuple with widget and its screenspace position (which is dependent on the 3D model position computed from physics engine)
-     */
-    // const processWidgetsHierarchy = (
-    //     root: Widget,
-    //     hyperwindows: HyperWindow[]
-    // ): [Widget, Vector2][] => {
-    //     if (root == null) {
-    //         return [];
-    //     }
-
-    //     let arr: [Widget, Vector2][] = [];
-    //     let stack: [Widget, number][] = [[root, 0]];
-    //     while (stack.length > 0) {
-    //         let [currentNode, layer] = stack.pop();
-    //         const lvl = currentNode.level;
-
-    //         const currentIndex = arr.length;
-    //         const linkedHyperWindow = hyperwindows[currentIndex]; //~ TODO: I need to make sure that the order is really linked
-    //         arr.push([currentNode, linkedHyperWindow.screenPosition]);
-
-    //         const widgetsReversed = currentNode.widgets.slice().reverse(); //~ doing reversing because stack does opposite order by nature
-    //         let childNumber = widgetsReversed.length - 1;
-    //         for (let w of widgetsReversed) {
-    //             stack.push([w, layer + childNumber]);
-    //             childNumber -= 1;
-    //         }
-    //     }
-
-    //     return arr;
-    // };
-
-    const updateScreenPositions = (
+    const updateWidgetsScreenPositions = (
         widgets: HWSelectionWidget[],
         bSpheres: BoundingSphere[]
     ): [HWSelectionWidget, Vector2, number][] => {
@@ -127,15 +97,6 @@
             // widgets: [],
         };
 
-        const default3DView = (): HW3DView => {
-            return {
-                worldPosition: new Vector3(0, 0, 0),
-                rotationX: 0,
-                rotationY: 0,
-                zoom: 1,
-            };
-        };
-
         const randomPositionAroundHyperWindow = (
             sourceWidgetPosition: Vector2,
             sourceWidgetRadius: number
@@ -157,6 +118,7 @@
             new Vector2(0.5, 0.5),
             100 / canvasWidth
         );
+
         const initialRadius = 100;
         const new3DView = default3DView();
         const modelSubset = {
@@ -181,16 +143,19 @@
             childHyperWindows: [],
         };
 
-        // sourceWidget.widgets.push(newWidget);
         hyperWindows = [...hyperWindows, newHW];
         hwModels = [...hwModels, hwModels[0]]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
         hw3DViews = [...hw3DViews, new3DView]; //~ linearized array with information only relevant for the 3D rendering
         hwWidgets = [...hwWidgets, newWidget];
-        // widgetTreeRoot = widgetTreeRoot; //~ because...reactivity
-        // console.log("current hierarchy:");
-        // console.log(widgetTreeRoot);
 
         scene.newHyperWindowAdded(newHW);
+    };
+    const default3DView = (): HW3DView => {
+        return {
+            rotationX: 0,
+            rotationY: 0,
+            zoom: 1,
+        };
     };
 
     const makeNewHyperWindow = (): [
@@ -216,15 +181,12 @@
         };
 
         //~ 3. create 3D view part of HyperWindow
-        const root3DView: HW3DView = {
-            worldPosition: new Vector3(0, 0, 0),
-            rotationX: 0,
-            rotationY: 0,
-            zoom: 1,
-        };
+        const root3DView: HW3DView = default3DView();
 
         //~ 4. create HyperWindow
         const startScreenPosition = new Vector2(0.5, 0.5); //~ middle of the screen
+        // const startScreenPosition = new Vector2(0.25, 0.5);
+
         const initialRadius = 100;
         const rootHW: HyperWindow = {
             screenPosition: startScreenPosition,
@@ -250,29 +212,19 @@
         hwWidgets = [hwRootWidget];
     };
 
-    /**
-     * This is just to debug the physics sync with more than one body.
-     * In the future there should be a way to start with some example drilldown of a model
-     */
-    const initWithMultiple = () => {
-        const [hwA, hwAModel, hwA3DView, hwAWidget] = makeNewHyperWindow();
-        const [hwB, hwBModel, hwB3DView, hwBWidget] = makeNewHyperWindow();
-
-        hyperWindows = [hwA, hwB];
-        hwModels = [hwAModel, hwBModel];
-        hw3DViews = [hwA3DView, hwB3DView];
-        hwWidgets = [hwAWidget, hwBWidget];
-    };
-
     onMount(() => {
         initWithSingle();
-        // initWithMultiple();
     });
 </script>
 
 <div id="debug-bar">
-    <button on:click={() => (showMatterDebug = !showMatterDebug)}>{showMatterDebug ? "~on~" : "-off-"}</button>
-    <button on:click={() => (showBoundingSphereDebug = !showBoundingSphereDebug)}>{showBoundingSphereDebug ? "~on~" : "-off-"}</button>
+    <button on:click={() => (showMatterDebug = !showMatterDebug)}
+        >{showMatterDebug ? "~on~" : "-off-"}</button
+    >
+    <button
+        on:click={() => (showBoundingSphereDebug = !showBoundingSphereDebug)}
+        >{showBoundingSphereDebug ? "~on~" : "-off-"}</button
+    >
 </div>
 <div id="canvas-container">
     <!-- Canvas containing 3D models -->
@@ -285,6 +237,7 @@
             bind:boundingSpheres
             bind:debugPositions
             bind:debugTexts
+            bind:camera
             {showMatterDebug}
             {matterjsDebugCanvas}
         />

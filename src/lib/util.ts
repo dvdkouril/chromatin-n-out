@@ -176,6 +176,17 @@ export const unprojectToWorldSpace = (screenPosition: Vector2, camera: Perspecti
     return pos;
 };
 
+export const projectPoint = (positionWorldSpace: Vector3, camera: PerspectiveCamera): Vector2 => {
+    let projectedP = positionWorldSpace.project(camera);
+    projectedP.divideScalar(2);
+    projectedP.addScalar(0.5);
+
+    //~ flip the y
+    projectedP.y = 1.0 - projectedP.y;
+
+    return new Vector2(projectedP.x, projectedP.y);
+};
+
 export const projectModel = (hyperwindow: HyperWindow, camera: PerspectiveCamera): Vector2[] => {
     const newPoints: Vector2[] = [];
 
@@ -186,7 +197,9 @@ export const projectModel = (hyperwindow: HyperWindow, camera: PerspectiveCamera
     for (let p of points) {
         let cp = new Vector3(p.x, p.y, p.z);
 
-        const position = unprojectToWorldSpace(hyperwindow.screenPosition, camera); 
+        // const position = unprojectToWorldSpace(hyperwindow.screenPosition, camera); 
+        // const position = hyperwindow.threeDView.worldPosition; 
+        const position = hyperwindow.model.modelWorlPosition;
         const scale = hyperwindow.threeDView.zoom;
         const rotationX = hyperwindow.threeDView.rotationX;
         const rotationY = hyperwindow.threeDView.rotationY;
@@ -210,6 +223,21 @@ export const projectModel = (hyperwindow: HyperWindow, camera: PerspectiveCamera
     return newPoints;
 };
 
+export const projectModelToScreenSpace = (
+    hyperwindow: HyperWindow,
+    camera: PerspectiveCamera,
+    canvasWidth: number,
+    canvasHeight: number
+): Vector2[] => {
+    const pointsIn2D = projectModel(hyperwindow, camera);
+
+    //~ transform from <0,1> to <0,width/height>
+    const newPoints = pointsIn2D.map((p: Vector2): Vector2 => {
+        return new Vector2(p.x * canvasWidth, p.y * canvasHeight);
+    });
+
+    return newPoints;
+};
 
 export const computeBoundingCircle = (points: Vector2[]): [Vector2, number] => {
     //~ 1. find two points that are far away
@@ -349,6 +377,7 @@ export const load3DModel = (
     const tubesLocal = computeTubes(spheres);
 
     const geom: HWGeometry = {
+        modelWorlPosition: new Vector3(0, 0, 0),
         spheres: spheres,
         tubes: tubesLocal,
         sphereRadius: sphereRadius,

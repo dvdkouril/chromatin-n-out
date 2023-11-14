@@ -12,7 +12,8 @@
     import { useThrelte } from "@threlte/core";
     import {
         computeBoundingCircle,
-        projectModel,
+        projectModelToScreenSpace,
+        projectPoint,
         unprojectToWorldSpace,
     } from "../../../util";
     import type {
@@ -45,11 +46,12 @@
 
     //~ Actual scene content
     export let hyperWindows: HyperWindow[];
-    let camera: PerspectiveCamera;
+    export let camera: PerspectiveCamera;
 
     //~ exports
     export let boundingSpheres: BoundingSphere[]; //~ sending up the computed bounding spheres (center+radius)
-    export let debugPositions: Vector2[]; //~ sending up just the projected bin positions
+    export let debugPositions: [Vector2, string][]; //~ sending up just the projected bin positions
+    export let debugTexts: { text: string; x: number; y: number }[];
     export let showMatterDebug;
 
     $: toggleMatterDebugView(showMatterDebug);
@@ -76,7 +78,7 @@
             Matter.Render.stop(matterRender);
             const context = matterjsDebugCanvas.getContext("2d");
             context.clearRect(0, 0, canvas.width, canvas.height);
-            matterjsDebugCanvas.style.background = 'none';
+            matterjsDebugCanvas.style.background = "none";
         }
     };
 
@@ -188,6 +190,24 @@
             hprWindow.threeDView.rotationY += orbitingSpeed * deltaY;
 
             lastMousePos = { x: x, y: y };
+
+            //~ adjust Matter.js body: Scale
+            let [center, radius] = computeBoundingSphere(hprWindow);
+            const currentRadius = hprWindow.currentRadius;
+            const wantedRadius = radius;
+            const scaleFactor = wantedRadius / currentRadius;
+            hprWindow.currentRadius = wantedRadius;
+
+            Matter.Body.scale(b, scaleFactor, scaleFactor);
+
+            //~ adjust Matter.js body:  Position
+            const wantedPos = center;
+            const currentPos = new Vector2(b.position.x, b.position.y);
+            const offset = wantedPos.clone().sub(currentPos);
+
+            // Matter.Body.translate(b, { x: offset.x, y: offset.y });
+
+            recomputeBoundingSpheres(); //~ TODO: I guess it's unnecessary to compute BS twice
         }
     };
 
@@ -218,20 +238,45 @@
                 }
             }
 
-            // console.log("changing zoom");
             const zoomingSpeed = 0.001;
             hprWindow.threeDView.zoom += zoomingSpeed * e.deltaY;
+
+            //~ adjust Matter.js body: Scale
+            let [center, radius] = computeBoundingSphere(hprWindow);
+            const currentRadius = hprWindow.currentRadius;
+            const wantedRadius = radius;
+            const scaleFactor = wantedRadius / currentRadius;
+            hprWindow.currentRadius = wantedRadius;
+
+            Matter.Body.scale(b, scaleFactor, scaleFactor);
+
+            //~ adjust Matter.js body:  Position
+            const wantedPos = center;
+            const currentPos = new Vector2(b.position.x, b.position.y);
+            const offset = wantedPos.clone().sub(currentPos);
+
+            Matter.Body.translate(b, { x: offset.x, y: offset.y });
+
+            recomputeBoundingSpheres(); //~ TODO: I guess it's unnecessary to compute BS twice
         }
     };
 
     export const newHyperWindowAdded = (newHW: HyperWindow) => {
+        const startWorlPosition = camera
+            ? unprojectToWorldSpace(newHW.screenPosition, camera)
+            : new Vector3(0, 0, 0);
+        newHW.model.modelWorlPosition = startWorlPosition;
+
+        const [center, radius] = computeBoundingSphere(newHW);
+        newHW.currentRadius = radius;
+
         // broken code follows:
         const c = new Vector2(
             newHW.screenPosition.x * canvasWidth,
             newHW.screenPosition.y * canvasHeight
         );
         // const newBody = Matter.Bodies.circle(c.x, c.y, initialRadius, {
-        const newBody = Matter.Bodies.circle(c.x, c.y, 100, {
+        const newBody = Matter.Bodies.circle(c.x, c.y, newHW.currentRadius, {
             restitution: 0,
             friction: 1,
         });
@@ -250,6 +295,8 @@
         console.log(
             "new selection -> new hyperwindow added -> should add new body!"
         );
+
+        recomputeBoundingSpheres();
     };
 
     onMount(() => {
@@ -257,25 +304,36 @@
         var runner = Matter.Runner.create();
         Matter.Runner.run(runner, engine);
 
+        //~ fix the model world position
+        for (let hw of hyperWindows) {
+            const startWorlPosition = unprojectToWorldSpace(hw.screenPosition, camera);
+            hw.model.modelWorlPosition = startWorlPosition;
+        }
+
+        for (let hw of hyperWindows) {
+            const [center, radius] = computeBoundingSphere(hw);
+            hw.currentRadius = radius;
+            hw.screenPosition.x = center.x / canvasWidth;
+            hw.screenPosition.y = center.y / canvasHeight;
+        }
+
         //~ creating the bodies here
         let bodies = [];
         let ids = [];
-        const initialRadius = 100;
-        let i = 0;
-        for (let hw of hyperWindows) {
+        for (let [i, hw] of hyperWindows.entries()) {
+            //~ <0, 1> -> <0, width/height>
             const c = new Vector2(
                 hw.screenPosition.x * canvasWidth,
                 hw.screenPosition.y * canvasHeight
             );
-            const newBody = Matter.Bodies.circle(c.x, c.y, initialRadius, {
+            const newBody = Matter.Bodies.circle(c.x, c.y, hw.currentRadius, {
                 restitution: 0,
                 friction: 1,
             });
             hw.associatedBodyId = newBody.id;
-            (hw.associatedBodyIndex = i), //~ one of these is redundant but i can't say which rn
-                bodies.push(newBody);
+            hw.associatedBodyIndex = i; //~ one of these is redundant but i can't say which rn
+            bodies.push(newBody);
             ids.push(newBody.id);
-            i += 1;
         }
         matter_bodies = bodies;
         matter_body_ids = ids;
@@ -288,21 +346,9 @@
         canvas.addEventListener("mousedown", onMouseDown);
         canvas.addEventListener("mouseup", onMouseUp);
         canvas.addEventListener("wheel", onWheel);
+
+        recomputeBoundingSpheres();
     });
-
-    const projectModelToScreenSpace = (
-        hyperwindow: HyperWindow,
-        camera: PerspectiveCamera
-    ): Vector2[] => {
-        const pointsIn2D = projectModel(hyperwindow, camera);
-
-        //~ transform from <0,1> to <0,width/height>
-        const newPoints = pointsIn2D.map((p: Vector2): Vector2 => {
-            return new Vector2(p.x * canvasWidth, p.y * canvasHeight);
-        });
-
-        return newPoints;
-    };
 
     /**
      *
@@ -313,9 +359,9 @@
         hyperwindow: HyperWindow
     ): [Vector2, number] => {
         //~ 1. project points into screen space
-        const pointsIn2D = projectModelToScreenSpace(hyperwindow, camera);
+        const pointsIn2D = projectModelToScreenSpace(hyperwindow, camera, canvasWidth, canvasHeight);
         //DEBUG
-        debugPositions = debugPositions.concat(pointsIn2D);
+        // debugPositions = debugPositions.concat(pointsIn2D);
 
         //~ 2. Ritter's bounding sphere algorithm (in 2D)
         const bSphere = computeBoundingCircle(pointsIn2D);
@@ -323,7 +369,35 @@
         return bSphere;
     };
 
+    const recomputeBoundingSpheres = () => {
+        boundingSpheres = [];
+        debugTexts = [];
+        for (let hw of hyperWindows) {
+            let [center, radius] = computeBoundingSphere(hw);
+            boundingSpheres.push({ center: center, radius: radius });
+            debugTexts.push({
+                text: "[" + center.x + ", " + center.y + "]",
+                x: center.x,
+                y: center.y,
+            });
+        }
+        boundingSpheres = boundingSpheres;
+    };
+
     useFrame(() => {
+        // recomputeBoundingSpheres();
+
+        //~ debug
+        debugPositions = [];
+        for (let hw of hyperWindows) {
+            const ss = projectPoint(hw.model.modelWorlPosition, camera);
+            debugPositions.push([new Vector2(ss.x * canvasWidth, ss.y * canvasHeight), "#990000"]);
+        }
+        /**
+         * Updating HyperWindows positions based on the physics.
+         * The bounding circles are going to adjust based on the physics,
+         * and here we want to synchronize those. 
+        */
         const newHyperWindows: HyperWindow[] = [];
         for (const [i, b] of matter_bodies.entries()) {
             const oldHW = hyperWindows[i];
@@ -333,52 +407,39 @@
                 b.position.y / canvasHeight
             );
 
+            /**
+             * I think this is where the problem is:
+             * The hwNewWorldPosition is !not! the model origin, it's the position of center of the bounding circle
+             */
+            const hwNewWorldPosition = unprojectToWorldSpace(
+                newScreenPosition,
+                camera
+            );
+            const hwOldWorldPosition = unprojectToWorldSpace(
+                oldHW.screenPosition,
+                camera
+            );
+            const offset = hwNewWorldPosition.clone().sub(hwOldWorldPosition);
+
+            const newModelWorldPosition = oldHW.model.modelWorlPosition
+                .clone()
+                .add(offset);
+
             // spread operator
             newHyperWindows.push({
                 ...oldHW,
                 screenPosition: newScreenPosition,
+                model: {
+                    ...oldHW.model,
+                    modelWorlPosition: newModelWorldPosition,
+                },
                 threeDView: {
                     ...oldHW.threeDView,
-                    worldPosition: camera
-                        ? unprojectToWorldSpace(newScreenPosition, camera)
-                        : new Vector3(0, 0, 0),
                 },
             });
         }
 
         hyperWindows = newHyperWindows;
-
-        debugPositions = [];
-        boundingSpheres = [];
-        for (let hw of hyperWindows) {
-            let [center, radius] = computeBoundingSphere(hw);
-            boundingSpheres.push({ center: center, radius: radius });
-        }
-        boundingSpheres = boundingSpheres;
-
-        //~ update bodies
-        for (let hw of hyperWindows) {
-            let body = matter_bodies[hw.associatedBodyIndex];
-
-            const currentRadius = hw.currentRadius;
-            const wantedRadius = boundingSpheres[hw.associatedBodyIndex].radius;
-            const scaleFactor = wantedRadius / currentRadius; //~ or is it the other way around?
-            hw.currentRadius = wantedRadius;
-
-            // const offsetVec = { x: 0, y: 0};
-            // const offsetVec = hw.screenPosition - boundingSpheres[hw.associatedBodyIndex].center;
-            // console.log("hw.screenPosition: " + hw.screenPosition);
-            // console.log("boundingSpheres[hw.associatedBodyIndex].center: " + boundingSpheres[hw.associatedBodyIndex].center);
-            const wantedPos = boundingSpheres[hw.associatedBodyIndex].center.clone();
-            const currentPos = new Vector2(hw.screenPosition.x * canvasWidth, hw.screenPosition.y * canvasHeight);
-            const offset = wantedPos.sub(currentPos);
-            const offsetVec = {x: offset.x, y: offset.y};
-
-            hw.screenPosition = wantedPos;
-
-            Matter.Body.scale(body, scaleFactor, scaleFactor);
-            Matter.Body.translate(body, offsetVec);
-        }
     });
 </script>
 

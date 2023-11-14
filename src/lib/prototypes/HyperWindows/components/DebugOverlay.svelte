@@ -16,8 +16,8 @@
             opacity={0.1}
         />
     {/each}
-    {#each debugPositions as p}
-        <circle cx={p.x} cy={p.y} r={3} fill="green" opacity={0.3} />
+    {#each debugPositions as [p, col]}
+        <circle cx={p.x} cy={p.y} r={10} fill={col} opacity={0.9} />
     {/each}
     {#each debugTexts as t}
         <text x={t.x} y={t.y} class="debug-text">{t.text}</text>
