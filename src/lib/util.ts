@@ -177,7 +177,7 @@ export const unprojectToWorldSpace = (screenPosition: Vector2, camera: Perspecti
 };
 
 export const projectPoint = (positionWorldSpace: Vector3, camera: PerspectiveCamera): Vector2 => {
-    let projectedP = positionWorldSpace.project(camera);
+    let projectedP = positionWorldSpace.clone().project(camera);
     projectedP.divideScalar(2);
     projectedP.addScalar(0.5);
 
