@@ -386,3 +386,20 @@ export const load3DModel = (
 
     return geom;
 };
+
+export const randomPositionAroundHyperWindow = (
+    sourceWidgetPosition: Vector2,
+    sourceWidgetRadius: number
+): Vector2 => {
+    const rndAngle = getRandomInt(360);
+    const unitVec = new Vector2(1, 0);
+    unitVec.rotateAround(
+        new Vector2(0, 0),
+        (rndAngle * Math.PI) / 180.0
+    );
+    unitVec.normalize();
+    unitVec.multiplyScalar(sourceWidgetRadius * 2.0); //~ x2.0 is overestimation probably
+
+    const newPosition = sourceWidgetPosition.clone().add(unitVec);
+    return newPosition;
+};

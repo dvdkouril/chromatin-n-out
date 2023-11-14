@@ -30,6 +30,12 @@ export type HyperWindow = {
     childHyperWindows: HyperWindow[];
 };
 
+export type Selection = {
+    start: number;
+    end: number;
+    color: string;
+};
+
 /**
  * Should keep information relevant for the selections and selection widget part of a HyperWindow
  */
@@ -41,9 +47,9 @@ export type HWSelectionWidget = {
     selections: { start: number; end: number; color: string }[];
     colorForSelections: string;
     // widgets: Widget[];
-  };
+};
 
 export type BoundingSphere = {
-        center: Vector2;
-        radius: number;
-    };
+    center: Vector2;
+    radius: number;
+};

@@ -1,15 +1,14 @@
 <script lang="ts">
-    import { Canvas, T } from "@threlte/core";
+    import { Canvas } from "@threlte/core";
     import Scene from "./components/Scene.svelte";
-    import { PerspectiveCamera, Vector2, Vector3 } from "three";
+    import { PerspectiveCamera, Vector2 } from "three";
     import DebugOverlay from "./components/DebugOverlay.svelte";
     import SelectionsLayer from "./components/SelectionsLayer.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../../test_BRAFL";
     import {
-        getRandomInt,
         load3DModel,
-        unprojectToWorldSpace,
+        randomPositionAroundHyperWindow,
     } from "../../util";
     import type {
         HWGeometry,
@@ -17,6 +16,7 @@
         HyperWindow,
         HW3DView,
         BoundingSphere,
+        Selection,
     } from "../../hyperwindows-types";
 
     const selectionWidgetThickness = 25;
@@ -55,15 +55,9 @@
         bSpheres: BoundingSphere[]
     ): [HWSelectionWidget, Vector2, number][] => {
         if (widgets.length != bSpheres.length) {
-            console.log(
-                "error: widgets and bSpheres should have the same number of elements."
-            );
-            console.log("widgets: " + widgets.length);
-            console.log("bSpheres: " + bSpheres.length);
             return [];
         }
 
-        // console.log("we good...recomputing position of widget!");
         let res: [HWSelectionWidget, Vector2, number][] = [];
         for (let [i, w] of widgets.entries()) {
             res.push([w, bSpheres[i].center, bSpheres[i].radius]);
@@ -81,75 +75,32 @@
         console.log(ev);
         const sel = ev.detail.selection;
         const sourceWidget = ev.detail.sourceWidget;
-        const offset = sourceWidget.domain.start;
+        const sourceHyperWindow = null; //~ TODO: actually emit
 
         const newWidgetId = nextAvailableId;
         nextAvailableId += 1;
-        const changedLevel = sourceWidget.level + 1;
-        // if (changedLevel > maxLevel) maxLevel = changedLevel;
-        const newWidget: HWSelectionWidget = {
-            id: newWidgetId,
-            level: changedLevel,
-            binsNum: sel.end - sel.start,
-            domain: { start: offset + sel.start, end: offset + sel.end },
-            selections: [],
-            colorForSelections: sel.color,
-            // widgets: [],
-        };
 
-        const randomPositionAroundHyperWindow = (
-            sourceWidgetPosition: Vector2,
-            sourceWidgetRadius: number
-        ): Vector2 => {
-            const rndAngle = getRandomInt(360);
-            const unitVec = new Vector2(1, 0);
-            unitVec.rotateAround(
-                new Vector2(0, 0),
-                (rndAngle * Math.PI) / 180.0
-            );
-            unitVec.normalize();
-            unitVec.multiplyScalar(sourceWidgetRadius * 2.0); //~ x2.0 is overestimation probably
-
-            const newPosition = sourceWidgetPosition.add(unitVec);
-            return newPosition;
-        };
-
-        const startScreenPosition = randomPositionAroundHyperWindow(
+        const newHWScreenPosition = randomPositionAroundHyperWindow(
             new Vector2(0.5, 0.5),
             100 / canvasWidth
         );
 
-        const initialRadius = 100;
-        const new3DView = default3DView();
-        const modelSubset = {
-            ...hwModels[0], //~ TODO: still hacky..I should get the model from the source HW
-            spheres: hwModels[0].spheres.slice(
-                newWidget.domain.start,
-                newWidget.domain.end + 1
-            ),
-            tubes: hwModels[0].tubes.slice(
-                newWidget.domain.start,
-                newWidget.domain.end + 1
-            ), //~ TODO: there's probably a off-by-one error
-        };
-        const newHW: HyperWindow = {
-            screenPosition: startScreenPosition,
-            currentRadius: initialRadius,
-            associatedBodyId: 0,
-            associatedBodyIndex: 0, //~ one of these is redundant but i can't say which rn
-            model: modelSubset, //~ TODO: this needs to be figured out...this is hacky as hell
-            widget: newWidget,
-            threeDView: new3DView,
-            childHyperWindows: [],
-        };
+        //~ Create the actual new HyperWindow
+        const [newHW, newGeo, new3DView, newSelWidget] = makeNewHyperWindow(
+            newWidgetId,
+            newHWScreenPosition,
+            sel,
+            sourceWidget
+        );
 
         hyperWindows = [...hyperWindows, newHW];
         hwModels = [...hwModels, hwModels[0]]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
         hw3DViews = [...hw3DViews, new3DView]; //~ linearized array with information only relevant for the 3D rendering
-        hwWidgets = [...hwWidgets, newWidget];
+        hwWidgets = [...hwWidgets, newSelWidget];
 
         scene.newHyperWindowAdded(newHW);
     };
+
     const default3DView = (): HW3DView => {
         return {
             rotationX: 0,
@@ -158,53 +109,105 @@
         };
     };
 
-    const makeNewHyperWindow = (): [
+    const makeInitialHyperWindow = (): [
         HyperWindow,
         HWGeometry,
         HW3DView,
         HWSelectionWidget
     ] => {
         //~ 1. load the 3D model (future TODO: multiple models)
-        const rootModel = load3DModel(brafl, 0.02);
+        const newModel = load3DModel(brafl, 0.02);
 
         //~ 2. create selection widget
-        const rootWidget: HWSelectionWidget = {
+        const newWidget: HWSelectionWidget = {
             id: 0,
             level: 0,
-            binsNum: rootModel.spheres.length,
+            binsNum: newModel.spheres.length,
             domain: {
                 start: 0,
-                end: rootModel.spheres.length - 1,
+                end: newModel.spheres.length - 1,
             },
             selections: [],
             colorForSelections: null,
         };
 
         //~ 3. create 3D view part of HyperWindow
-        const root3DView: HW3DView = default3DView();
+        const new3DView: HW3DView = default3DView();
 
         //~ 4. create HyperWindow
-        const startScreenPosition = new Vector2(0.5, 0.5); //~ middle of the screen
-        // const startScreenPosition = new Vector2(0.25, 0.5);
-
         const initialRadius = 100;
-        const rootHW: HyperWindow = {
+        const startScreenPosition = new Vector2(0.5, 0.5);
+        const newHW: HyperWindow = {
             screenPosition: startScreenPosition,
             currentRadius: initialRadius,
-            associatedBodyId: 0, //~ these get filled out in Scene
-            associatedBodyIndex: 0, //~ one of these is redundant but i can't say which rn
-            model: rootModel,
-            widget: rootWidget,
-            threeDView: root3DView,
+            associatedBodyId: 0,
+            associatedBodyIndex: 0, //~ these get filled out in Scene
+            model: newModel,
+            widget: newWidget,
+            threeDView: new3DView,
             childHyperWindows: [],
         };
 
-        return [rootHW, rootModel, root3DView, rootWidget];
+        return [newHW, newModel, new3DView, newWidget];
+    };
+
+    const makeNewHyperWindow = (
+        id: number,
+        startScreenPosition: Vector2 = new Vector2(0.5, 0.5),
+        selection: Selection,
+        sourceWidget //~ TODO: type
+    ): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] => {
+        const offset = sourceWidget.domain.start;
+        const newDomain = {
+            start: offset + selection.start,
+            end: offset + selection.end,
+        };
+
+        //~ 1. load the 3D model (future TODO: multiple models)
+        const newModel = {
+            ...hwModels[0], //~ TODO: still hacky..I should get the model from the source HW
+            spheres: hwModels[0].spheres.slice(
+                newDomain.start,
+                newDomain.end + 1
+            ),
+            tubes: hwModels[0].tubes.slice(newDomain.start, newDomain.end + 1), //~ TODO: there's probably a off-by-one error
+        };
+
+        //~ 2. create selection widget
+        const newWidget: HWSelectionWidget = {
+            id: id,
+            level: 0,
+            binsNum: newModel.spheres.length,
+            domain: {
+                start: 0,
+                end: newModel.spheres.length - 1,
+            },
+            selections: [],
+            colorForSelections: null,
+        };
+
+        //~ 3. create 3D view part of HyperWindow
+        const new3DView: HW3DView = default3DView();
+
+        //~ 4. create HyperWindow
+        const initialRadius = 100;
+        const newHW: HyperWindow = {
+            screenPosition: startScreenPosition,
+            currentRadius: initialRadius,
+            associatedBodyId: 0,
+            associatedBodyIndex: 0, //~ these get filled out in Scene
+            model: newModel,
+            widget: newWidget,
+            threeDView: new3DView,
+            childHyperWindows: [],
+        };
+
+        return [newHW, newModel, new3DView, newWidget];
     };
 
     const initWithSingle = () => {
         const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] =
-            makeNewHyperWindow();
+            makeInitialHyperWindow();
 
         hyperWindows = [hwRoot];
         hwModels = [hwRootModel];
