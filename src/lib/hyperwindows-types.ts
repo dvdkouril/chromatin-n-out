@@ -1,7 +1,7 @@
 import type { Euler, Vector3, Vector2 } from "three";
 
 export type HWGeometry = {
-    spheres: { x: number; y: number; z: number }[];
+    spheres: Vector3[];
     tubes: { position: Vector3; rotation: Euler; scale: number }[];
     sphereRadius: number;
     tubeBaseSize: number;

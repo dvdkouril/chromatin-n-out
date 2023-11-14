@@ -66,9 +66,11 @@ export const getRandomInt = (max: number) => {
 }
 
 export const recenter = (
-    ogPositions: { x: number; y: number; z: number }[]
-): vec3[] => {
-    let positions = ogPositions.map(({ x, y, z }) => vec3.fromValues(x, y, z));
+    ogPositions: Vector3[]
+): Vector3[] => {
+    let positions = ogPositions.map((pos: Vector3) => vec3.fromValues(pos.x, pos.y, pos.z));
+    // TODO: it's kinda dumb to convert Vector3 -> vec3 and then back for return
+    // TODO: should get rid of vec3 overall, but I need tests to see if functionality is the same
 
     let bbMax = positions.reduce(
         (a, b) => vec3.max(vec3.create(), a, b),
@@ -100,18 +102,13 @@ export const recenter = (
         1.0 / largestSide
     );
     const atomsNormalized = positions.map((a) =>
-        // vec3.mul(
-        //     vec3.create(),
-        //     vec3.sub(vec3.create(), a, bbCenter),
-        //     bbLength
-        // )
         vec3.sub(vec3.create(), a, bbCenter)
     );
-    // atoms = atomsNormalized;
 
-    // let test = spheres.map((pos: vec3) => { return {x: pos[0], y: pos[1], z: pos[2]} });
+    const outPositions = atomsNormalized.map((p: vec3) => new Vector3(p[0], p[1], p[2]));
 
-    return atomsNormalized;
+    // return atomsNormalized;
+    return outPositions;
 };
 
 export const getRotationFromTwoPositions = (from: Vector3, to: Vector3) => {
@@ -370,15 +367,19 @@ export const load3DModel = (
         z: z * scale,
     }));
 
-    spheres = recenter(spheres).map((pos: vec3) => {
-        return { x: pos[0], y: pos[1], z: pos[2] };
-    });
+    //~ convert to Vector3
+    const spheresConverted: Vector3[] = spheres.map(({x, y, z} : {x: number, y: number, z: number}) : Vector3 => { return new Vector3(x, y, z)});
+    const spheresCentered = recenter(spheresConverted);
 
-    const tubesLocal = computeTubes(spheres);
+    // spheres = recenter(spheres).map((pos: vec3) => {
+    //     return { x: pos[0], y: pos[1], z: pos[2] };
+    // });
+
+    const tubesLocal = computeTubes(spheresCentered);
 
     const geom: HWGeometry = {
         modelWorldPosition: new Vector3(0, 0, 0),
-        spheres: spheres,
+        spheres: spheresCentered,
         tubes: tubesLocal,
         sphereRadius: sphereRadius,
         tubeBaseSize: tubeSize,

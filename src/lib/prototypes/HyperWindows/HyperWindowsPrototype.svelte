@@ -152,10 +152,7 @@
 
         //~ Recenter the submodel
         let subModelPositions = hwModels[0].spheres.slice(newDomain.start, newDomain.end + 1);
-        subModelPositions = recenter(subModelPositions).map((pos: vec3) => {
-            return { x: pos[0], y: pos[1], z: pos[2] };
-        });
-
+        subModelPositions = recenter(subModelPositions);
         let subModelTubes = computeTubes(subModelPositions); //~ TODO: probably unnecessary computation
 
         //~ 1. load the 3D model (future TODO: multiple models)
