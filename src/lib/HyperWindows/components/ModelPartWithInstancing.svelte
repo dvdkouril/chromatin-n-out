@@ -1,7 +1,7 @@
 <script lang="ts">
     import { T } from "@threlte/core";
     import { Instance, InstancedMesh } from "@threlte/extras";
-    import type { HW3DView, HWGeometry } from "../../../hyperwindows-types";
+    import type { HW3DView, HWGeometry } from "../../hyperwindows-types";
 
     export let model: HWGeometry;
     export let viewParams: HW3DView;

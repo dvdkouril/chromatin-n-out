@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Vector2 } from "three";
-    import type { HWSelectionWidget } from "../../../hyperwindows-types";
-    import { generateGrayScale } from "../../../util";
+    import type { HWSelectionWidget } from "../../hyperwindows-types";
+    import { generateGrayScale } from "../../util";
     import SelectionWidget from "./SelectionWidget.svelte";
 
     export let width: number;

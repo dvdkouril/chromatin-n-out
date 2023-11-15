@@ -1,43 +1,17 @@
 <script lang="ts">
-  import BubblesPrototype from "./lib/prototypes/Bubbles/BubblesPrototype.svelte";
-  import HierarchicalSelectionsPrototype from "./lib/prototypes/HierarchicalSelections/HierarchicalSelectionsPrototype.svelte";
-  import BigCanvas from "./lib/prototypes/HyperWindows/HyperWindowsPrototype.svelte";
-
-  let prototypes = ["hierarchical-selections", "bubbles", "big-canvas"];
-  let currentPrototype = "big-canvas";
+  import BigCanvas from "./lib/HyperWindows/HyperWindowsPrototype.svelte";
 </script>
 
 <div id="top-bar">
-  <div id="prototypes-menu">
-    <button
-      on:click={() => {
-        currentPrototype = prototypes[0];
-      }}>hierarchical selections</button
-    >
-    <button
-      on:click={() => {
-        currentPrototype = prototypes[1];
-      }}>bubbles</button
-    >
-    <button
-      on:click={() => {
-        currentPrototype = prototypes[2];
-      }}>big canvas</button
-    >
-  </div>
   <div id="title">HyperWindows</div>
   <div id="project-info">
-    made by david kouril | <a href="https://github.com/dvdkouril/chromatin-n-out" target="_blank" rel="noreferrer">&lt;code&gt;</a>
+    made by david kouril | <a href="https://github.com/dvdkouril/chromatin-n-out" target="_blank" rel="noreferrer"
+      >&lt;code&gt;</a
+    >
   </div>
 </div>
 
-{#if currentPrototype == "hierarchical-selections"}
-  <HierarchicalSelectionsPrototype />
-{:else if currentPrototype == "bubbles"}
-  <BubblesPrototype />
-{:else if currentPrototype == "big-canvas"}
-  <BigCanvas />
-{/if}
+<BigCanvas />
 
 <style>
   #top-bar {
@@ -46,5 +20,4 @@
     /* text-align: left; */
     padding: 10pt;
   }
-  
 </style>

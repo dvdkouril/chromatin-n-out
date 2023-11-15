@@ -9,8 +9,8 @@
         projectModelToScreenSpace,
         projectPoint,
         unprojectToWorldSpace,
-    } from "../../../util";
-    import type { BoundingSphere, HyperWindow } from "../../../hyperwindows-types";
+    } from "../../util";
+    import type { BoundingSphere, HyperWindow } from "../../hyperwindows-types";
     import * as Matter from "matter-js";
 
     //~ Matter.js physics

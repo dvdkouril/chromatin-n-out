@@ -1,7 +1,7 @@
 <script lang="ts">
     import { arc, pie } from "d3-shape";
     import { createEventDispatcher } from "svelte";
-    import { randomNiceColor } from "../../../util";
+    import { randomNiceColor } from "../../util";
 
     const dispatch = createEventDispatcher();
 

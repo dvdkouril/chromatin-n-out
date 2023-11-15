@@ -5,8 +5,8 @@
     import DebugOverlay from "./components/DebugOverlay.svelte";
     import SelectionsLayer from "./components/SelectionsLayer.svelte";
     import { onMount } from "svelte";
-    import { brafl } from "../../test_BRAFL";
-    import { computeTubes, load3DModel, randomPositionAroundHyperWindow, recenter } from "../../util";
+    import { brafl } from "../test_BRAFL";
+    import { computeTubes, load3DModel, randomPositionAroundHyperWindow, recenter } from "../util";
     import type {
         HWGeometry,
         HWSelectionWidget,
@@ -14,7 +14,7 @@
         HW3DView,
         BoundingSphere,
         Selection,
-    } from "../../hyperwindows-types";
+    } from "../hyperwindows-types";
     import type { vec3 } from "gl-matrix";
 
     const selectionWidgetThickness = 25;
