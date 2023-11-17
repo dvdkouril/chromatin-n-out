@@ -1,9 +1,9 @@
 <script lang="ts">
     import { Canvas } from "@threlte/core";
-    import Scene from "./components/Scene.svelte";
+    import Scene from "./HyperWindows/Scene.svelte";
     import { PerspectiveCamera, Vector2 } from "three";
-    import DebugOverlay from "./components/DebugOverlay.svelte";
-    import SelectionsLayer from "./components/SelectionsLayer.svelte";
+    import DebugOverlay from "./HyperWindows/DebugOverlay.svelte";
+    import SelectionsLayer from "./HyperWindows/SelectionsLayer.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../test_BRAFL";
     import { computeTubes, load3DModel, randomPositionAroundHyperWindow, recenter } from "../util";
@@ -15,7 +15,6 @@
         BoundingSphere,
         Selection,
     } from "../hyperwindows-types";
-    import type { vec3 } from "gl-matrix";
 
     const selectionWidgetThickness = 25;
 
@@ -24,7 +23,7 @@
     let matterjsDebugCanvas = undefined;
     let camera: PerspectiveCamera;
 
-    let scene;
+    let scene: Scene;
 
     let nextAvailableId = 1; //~ 0 is hardcoded onMount
 
