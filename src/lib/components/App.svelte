@@ -1,8 +1,5 @@
 <script lang="ts">
-  import { Canvas } from '@threlte/core'
-  import Scene from './Scene.svelte'
+    import HyperWindowsPrototype from './HyperWindowsPrototype.svelte';
 </script>
 
-<Canvas>
-  <Scene />
-</Canvas>
+<HyperWindowsPrototype />

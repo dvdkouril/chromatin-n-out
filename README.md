@@ -1,38 +1,49 @@
-# create-svelte
+# chromatin-n-out
+Prototyping visualization & interaction methods for intuitive hierarchical navigation of 3D data that have a linear component (i.e., 3D chromatin models).
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+![chromatin-n-out WIP screenshot](screenshots/20230317145700.png)
 
-## Creating a project
+## todo
+- [x] rectangular widget mvp
+    - [x] single path selection
+    - [x] individual levels selections can be edited/redefined (only one selection per level for now)
+    - [x] selecting in both directions (0 -> N, N -> 0)
+- [x] arc version of the selection widget
+    - [x] basic functionality: like the rect version
+    - [x] multiple selections: each spawning a new tree
+    - [x] fancy colors for selections; base widget should be grayscale gradient
+- [x] add 3D model rendering (probably threejs as baseline)
+    - [x] include some basic threejs scene
+    - [x] connect the shown 3D with selection widgets
+    - [x] tube representation
+- [x] arc selection widget + 3D view overlaid
+    - [x] figure out how to propagate mousedown/up/move events through svg to threlte canvas
+- [x] base hiearchical layout
+- [ ] connect 2D physics with 3D models
+    - [x] single canvas & scene for all 3D parts
+    - [x] moving a 2D proxy (in physics engine) translates the coordinates into the 3D scene and moves the particular 3D part
+- [ ] local hyperwindows interactions
+    - [ ] model local orbiting: don't move camera but rotate the model
+    - [ ] model local zooming: don't move camera but scale the model
+- [ ] non-uniform, interactive and fluid layouting of 3D+widget
+    - [x] basic physics-based bubbles layout 
+    - [ ] interaction: zoom in/out triggers enlarging/shrinking which leads to fluid layout change
+    - [ ] clicking on bubble makes spawn another one (neighbor/child)
+- [ ] support for larger models
+    - [ ] aggregating the selection widget segments
+    - [x] instancing the meshes (in threlte)
+- [x] switching between base hierarchical prototype and fluid layout (presentation purposes)
+- [ ] load chromosomes segmentation
+- [ ] load gene annotation
 
-If you're seeing this, you've probably already done this step. Congrats!
+### not doing (anymore)
+- [ ] threlte/rapier physics layout 
+- [ ] replace Threlte by chromoskein graphics library?
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+### too small to care
+- [x] base arc widget colormap should always go from light gray to dark gray (don't take the slice of colormap because then you can't see the data segments)
+- [ ] make random colors more disparate (not getting two similar shades after one another)
+- [ ] indicate hovered bin (both on 3D and selection widget)
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+### kinda big issues
+- [ ] 'There are too many active WebGL contexts on this page, the oldest context will be lost.'
