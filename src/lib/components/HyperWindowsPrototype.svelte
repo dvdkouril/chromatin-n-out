@@ -231,18 +231,18 @@
     </Canvas>
 
     <!-- SVG debug overlay -->
-    {#if showBoundingSphereDebug}
+    <!-- {#if showBoundingSphereDebug}
         <DebugOverlay {canvasWidth} {canvasHeight} {boundingSpheres} {debugPositions} {debugTexts} />
-    {/if}
+    {/if} -->
 
     <!-- SVG-based layer with selection widgets for each 3D (sub)model -->
-    <SelectionsLayer
+    <!-- <SelectionsLayer
         width={canvasWidth}
         height={canvasHeight}
         {widgetsAndPositionsAndRadii}
         {selectionWidgetThickness}
         newSelectionCallback={newSelection}
-    />
+    /> -->
 
     <!-- placeholder for Matter.js debug view -->
     <canvas id="matterjs-debug" width={canvasWidth} height={canvasHeight} bind:this={matterjsDebugCanvas} />

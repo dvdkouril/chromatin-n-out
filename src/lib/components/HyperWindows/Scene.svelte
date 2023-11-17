@@ -4,12 +4,7 @@
     import { BoxGeometry, MeshStandardMaterial, PerspectiveCamera, Vector2, Vector3 } from "three";
     import { onMount } from "svelte";
     import { useThrelte } from "@threlte/core";
-    import {
-        computeBoundingCircle,
-        projectModelToScreenSpace,
-        projectPoint,
-        unprojectToWorldSpace,
-    } from "../../util";
+    import { computeBoundingCircle, projectModelToScreenSpace, projectPoint, unprojectToWorldSpace } from "../../util";
     import type { BoundingSphere, HyperWindow } from "../../hyperwindows-types";
     import * as Matter from "matter-js";
 
@@ -22,6 +17,7 @@
     let wall_bottom = undefined;
     let wall_left = undefined;
     let wall_right = undefined;
+    let bodiesInitialized = false;
 
     //~ Threlte lifecycle
     const { renderer, size } = useThrelte();
@@ -33,6 +29,8 @@
     $: sizeChanged($size);
     export let canvasWidth = 123;
     export let canvasHeight = 123;
+    let previousCanvasWidth = 123;
+    let previousCanvasHeight = 123;
     export let matterjsDebugCanvas;
 
     //~ Actual scene content
@@ -74,8 +72,17 @@
     };
 
     const sizeChanged = (size) => {
+        previousCanvasWidth = canvasWidth;
+        previousCanvasHeight = canvasHeight;
         canvasWidth = size.width;
         canvasHeight = size.height;
+
+        if ((previousCanvasWidth == 0 || previousCanvasHeight == 0) && canvasWidth != 0 && canvasHeight != 0) {
+            if (!bodiesInitialized) {
+                initializePhysicsBodies();
+                bodiesInitialized = true;
+            }
+        }
 
         reconfigureWalls(canvasWidth, canvasHeight);
     };
@@ -263,24 +270,7 @@
         recomputeBoundingSpheres();
     };
 
-    onMount(() => {
-        engine.gravity.y = 0;
-        var runner = Matter.Runner.create();
-        Matter.Runner.run(runner, engine);
-
-        //~ fix the model world position
-        for (let hw of hyperWindows) {
-            const startWorlPosition = unprojectToWorldSpace(hw.screenPosition, camera);
-            hw.model.modelWorldPosition = startWorlPosition;
-        }
-
-        for (let hw of hyperWindows) {
-            const [center, radius] = computeBoundingSphere(hw);
-            hw.currentRadius = radius;
-            hw.screenPosition.x = center.x / canvasWidth;
-            hw.screenPosition.y = center.y / canvasHeight;
-        }
-
+    const initializePhysicsBodies = () => {
         //~ creating the bodies here
         let bodies = [];
         let ids = [];
@@ -301,6 +291,31 @@
 
         //~ add bodies to the Matterjs engine's world
         Matter.Composite.add(engine.world, bodies);
+        console.log("initialized physics bodies.");
+    };
+
+    onMount(() => {
+        engine.gravity.y = 0;
+        var runner = Matter.Runner.create();
+        Matter.Runner.run(runner, engine);
+
+        // //~ fix the model world position
+        // for (let hw of hyperWindows) {
+        //     const startWorlPosition = unprojectToWorldSpace(hw.screenPosition, camera);
+        //     hw.model.modelWorldPosition = startWorlPosition;
+        // }
+
+        // for (let hw of hyperWindows) {
+        //     const [center, radius] = computeBoundingSphere(hw);
+        //     hw.currentRadius = radius;
+        //     hw.screenPosition.x = center.x / canvasWidth;
+        //     hw.screenPosition.y = center.y / canvasHeight;
+        // }
+
+        if (canvasWidth != 0 && canvasHeight != 0) {
+            initializePhysicsBodies();
+            bodiesInitialized = true;
+        }
 
         //~ register events
         canvas.addEventListener("mousemove", onMouseMove);
