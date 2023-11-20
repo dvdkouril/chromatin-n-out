@@ -2,18 +2,20 @@
     import { arc, pie } from "d3-shape";
     import { createEventDispatcher } from "svelte";
     import { randomNiceColor } from "../../util";
+    import type { Vector2 } from "three";
+    import type { HWSelectionWidget, Selection } from "$lib/hyperwindows-types";
 
     const dispatch = createEventDispatcher();
 
-    export let position;
-    export let N;
-    export let width;
-    export let height;
+    export let position: Vector2;
+    export let N: number;
+    export let width: number;
+    export let height: number;
     export let widgetThickness = 25;
-    export let selections = [];
-    export let widget;
-    export let colorForSelection = null; //~ if this is null, generate new color; otherwise use this one
-    export let colors;
+    export let selections: Selection[] = [];
+    export let widget: HWSelectionWidget;
+    export let colorForSelection: string | null = null; //~ if this is null, generate new color; otherwise use this one
+    export let colors: string[];
 
     $: bins = [...Array(N).fill(1)];
     $: radius = Math.min(width, height) / 2;
@@ -22,7 +24,7 @@
     $: arcs = pie()(bins);
 
     let selectionInProgress = false;
-    let hoveredBin = null;
+    let hoveredBin: number | null = null;
 
     $: segments = arcs.map((arc) => {
         let input = {
@@ -43,49 +45,49 @@
         })
     );
 
-    const mouseOvered = (event) => {
-        hoveredBin = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
-        //~ multiple selections version
-        if (selectionInProgress) {
-            const binId = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
-            const activeSelection = selections.slice(-1)[0];
-            const selectionsMinusLast = selections.slice(
-                0,
-                selections.length - 1
-            );
-            //~ figure out which direction the selection is
-            if (binId < activeSelection.start) {
-                selections = [
-                    ...selectionsMinusLast,
-                    { ...activeSelection, start: binId },
-                ];
-            } else {
-                selections = [
-                    ...selectionsMinusLast,
-                    { ...activeSelection, end: binId },
-                ];
+    const mouseOvered = (event: MouseEvent) => {
+        if (event.target == undefined) {
+            return;
+        }
+        if (event.target instanceof Element) {
+            hoveredBin = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+            //~ multiple selections version
+            if (selectionInProgress) {
+                const binId = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+                const activeSelection = selections.slice(-1)[0];
+                const selectionsMinusLast = selections.slice(0, selections.length - 1);
+                //~ figure out which direction the selection is
+                if (binId < activeSelection.start) {
+                    selections = [...selectionsMinusLast, { ...activeSelection, start: binId }];
+                } else {
+                    selections = [...selectionsMinusLast, { ...activeSelection, end: binId }];
+                }
             }
         }
     };
 
-    const mouseOut = (event) => {
+    const mouseOut = (event: MouseEvent) => {
         hoveredBin = null;
     };
 
-    const mouseDown = (event) => {
-        console.log("Selection started.");
-        const binId = event.target.id.split("-")[1];
-        const selColor =
-            colorForSelection == null ? randomNiceColor() : colorForSelection;
-        selections.push({
-            start: parseInt(binId),
-            end: parseInt(binId),
-            color: selColor,
-        });
-        selectionInProgress = true;
+    const mouseDown = (event: MouseEvent) => {
+        if (event.target == undefined) {
+            return;
+        }
+        if (event.target instanceof Element) {
+            console.log("Selection started.");
+            const binId = event.target.id.split("-")[1];
+            const selColor = colorForSelection == null ? randomNiceColor() : colorForSelection;
+            selections.push({
+                start: parseInt(binId),
+                end: parseInt(binId),
+                color: selColor,
+            });
+            selectionInProgress = true;
+        }
     };
 
-    const mouseUp = (event) => {
+    const mouseUp = (event: MouseEvent) => {
         //~ => selection finished
         console.log("Selection ended.");
         selectionInProgress = false;
@@ -110,6 +112,7 @@
         on:mouseout={mouseOut}
         on:focus={() => {}}
         on:blur={() => {}}
+        role="none"
     />
 {/each}
 <!-- Selection indication overlay -->
@@ -118,8 +121,7 @@
         <path
             d={selArc}
             id={"selection-arc-" + i}
-            style="stroke-width: 5px; stroke: {selections[i]
-                .color}; fill: none; pointer-events:none"
+            style="stroke-width: 5px; stroke: {selections[i].color}; fill: none; pointer-events:none"
             transform={"translate(" + position.x + "," + position.y + ")"}
         />
     {/each}
