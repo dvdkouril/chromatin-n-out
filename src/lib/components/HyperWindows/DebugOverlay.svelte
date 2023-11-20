@@ -1,8 +1,11 @@
 <script lang="ts">
-    export let canvasWidth;
-    export let canvasHeight;
-    export let boundingSpheres;
-    export let debugPositions;
+    import type { BoundingSphere } from "$lib/hyperwindows-types";
+    import type { Vector2 } from "three";
+
+    export let canvasWidth: number;
+    export let canvasHeight: number;
+    export let boundingSpheres: BoundingSphere[];
+    export let debugPositions: [Vector2, string][];
     export let debugTexts: { text: string, x: number, y: number }[];
 </script>
 
