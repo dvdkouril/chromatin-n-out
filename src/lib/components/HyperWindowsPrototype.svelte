@@ -20,7 +20,7 @@
 
     let canvasWidth = 800; //~ binding these upwards with useThrelte
     let canvasHeight = 600;
-    let matterjsDebugCanvas = undefined;
+    let matterjsDebugCanvas: HTMLCanvasElement | undefined = undefined;
     let camera: PerspectiveCamera;
 
     let scene: Scene;

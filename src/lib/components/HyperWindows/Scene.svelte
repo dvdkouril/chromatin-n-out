@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { T, useFrame } from "@threlte/core";
+    import { T, useFrame, type Size } from "@threlte/core";
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
     import { BoxGeometry, MeshStandardMaterial, PerspectiveCamera, Vector2, Vector3 } from "three";
     import { onMount } from "svelte";
@@ -10,13 +10,13 @@
 
     //~ Matter.js physics
     let engine = Matter.Engine.create();
-    let matterRender = undefined;
-    let matter_bodies = [];
-    let matter_body_ids = [];
-    let wall_top = undefined;
-    let wall_bottom = undefined;
-    let wall_left = undefined;
-    let wall_right = undefined;
+    let matterRender: Matter.Render | undefined = undefined;
+    let matter_bodies: Matter.Body[] = [];
+    let matter_body_ids: number[] = [];
+    let wall_top: Matter.Body | undefined = undefined;
+    let wall_bottom: Matter.Body | undefined = undefined;
+    let wall_left: Matter.Body | undefined = undefined;
+    let wall_right: Matter.Body | undefined = undefined;
     let bodiesInitialized = false;
 
     //~ Threlte lifecycle
@@ -31,7 +31,7 @@
     export let canvasHeight = 123;
     let previousCanvasWidth = 123;
     let previousCanvasHeight = 123;
-    export let matterjsDebugCanvas;
+    export let matterjsDebugCanvas: HTMLCanvasElement;
 
     //~ Actual scene content
     export let hyperWindows: HyperWindow[];
@@ -41,7 +41,7 @@
     export let boundingSpheres: BoundingSphere[]; //~ sending up the computed bounding spheres (center+radius)
     export let debugPositions: [Vector2, string][]; //~ sending up just the projected bin positions
     export let debugTexts: { text: string; x: number; y: number }[];
-    export let showMatterDebug;
+    export let showMatterDebug: boolean;
 
     $: toggleMatterDebugView(showMatterDebug);
 
@@ -66,12 +66,15 @@
             console.log("stopping matter render");
             Matter.Render.stop(matterRender);
             const context = matterjsDebugCanvas.getContext("2d");
+            if (context == null) {
+                return;
+            }
             context.clearRect(0, 0, canvas.width, canvas.height);
             matterjsDebugCanvas.style.background = "none";
         }
     };
 
-    const sizeChanged = (size) => {
+    const sizeChanged = (size: Size) => {
         previousCanvasWidth = canvasWidth;
         previousCanvasHeight = canvasHeight;
         canvasWidth = size.width;
@@ -120,7 +123,13 @@
         Matter.Composite.add(engine.world, [ground, leftWall, rightWall, topWall]);
     };
 
-    const onMouseDown = (e) => {
+    const onMouseDown = (e: MouseEvent) => {
+        if (e.target == null) {
+            return; 
+        }
+        if (!(e.target instanceof Element)) {
+            return;
+        }
         dragging = true;
 
         let rect = e.target.getBoundingClientRect();
@@ -130,7 +139,7 @@
         lastMousePos = { x: x, y: y };
     };
 
-    const onMouseUp = (e) => {
+    const onMouseUp = (e: MouseEvent) => {
         dragging = false;
     };
 
@@ -138,7 +147,13 @@
      * Local orbiting (ray casting the associated Matterjs body)
      * @param e
      */
-    const onMouseMove = (e) => {
+    const onMouseMove = (e: MouseEvent) => {
+        if (e.target == null) {
+            return; 
+        }
+        if (!(e.target instanceof Element)) {
+            return;
+        }
         let rect = e.target.getBoundingClientRect();
         let x = e.clientX - rect.left; //x position within the element.
         let y = e.clientY - rect.top; //y position within the element.
@@ -193,10 +208,18 @@
      * Local zooming
      * @param e
      */
-    const onWheel = (e) => {
+    const onWheel = (e: WheelEvent) => {
         //~ disable scrolling the page with mouse wheel
         e.preventDefault();
         e.stopPropagation();
+
+        if (e.target == null) {
+            return;
+        }
+
+        if (!(e.target instanceof Element)) {
+            return;
+        }
 
         let rect = e.target.getBoundingClientRect();
         let x = e.clientX - rect.left; //x position within the element.

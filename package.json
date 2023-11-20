@@ -18,6 +18,7 @@
     "@threlte/core": "^6.1.1",
     "@threlte/extras": "^7.5.1",
     "@types/d3-shape": "^3.1.5",
+    "@types/matter-js": "^0.19.4",
     "@types/three": "^0.157.2",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
