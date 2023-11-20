@@ -3,11 +3,12 @@
     import type { HWSelectionWidget } from "../../hyperwindows-types";
     import { generateGrayScale } from "../../util";
     import SelectionWidget from "./SelectionWidget.svelte";
+    import type {Selection} from "$lib/hyperwindows-types";
 
     export let width: number;
     export let height: number;
     export let selectionWidgetThickness: number;
-    export let newSelectionCallback;
+    export let newSelectionCallback: (ev: CustomEvent<{selection: Selection, sourceWidget: HWSelectionWidget}>) => void;
 
     // let hoveredBin: number = null;
 

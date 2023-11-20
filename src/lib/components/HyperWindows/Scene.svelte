@@ -31,7 +31,7 @@
     export let canvasHeight = 123;
     let previousCanvasWidth = 123;
     let previousCanvasHeight = 123;
-    export let matterjsDebugCanvas: HTMLCanvasElement;
+    export let matterjsDebugCanvas: HTMLCanvasElement | undefined;
 
     //~ Actual scene content
     export let hyperWindows: HyperWindow[];
@@ -65,6 +65,10 @@
             }
             console.log("stopping matter render");
             Matter.Render.stop(matterRender);
+
+            if (matterjsDebugCanvas == undefined) {
+                return;
+            }
             const context = matterjsDebugCanvas.getContext("2d");
             if (context == null) {
                 return;

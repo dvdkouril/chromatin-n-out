@@ -64,7 +64,7 @@
         //~ for now I can just update the arrays directly though
     };
 
-    const newSelection = (ev) => {
+    const newSelection = (ev: CustomEvent<{selection:Selection, sourceWidget:HWSelectionWidget}>): void => {
         console.log("App: seeing change");
         console.log(ev);
         const sel = ev.detail.selection;
@@ -114,7 +114,7 @@
                 end: newModel.spheres.length - 1,
             },
             selections: [],
-            colorForSelections: null,
+            colorForSelections: "",
         };
 
         //~ 3. create 3D view part of HyperWindow
@@ -141,7 +141,7 @@
         id: number,
         startScreenPosition: Vector2 = new Vector2(0.5, 0.5),
         selection: Selection,
-        sourceWidget //~ TODO: type
+        sourceWidget: HWSelectionWidget //~ TODO: type
     ): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] => {
         const offset = sourceWidget.domain.start;
         const newDomain = {
@@ -171,7 +171,7 @@
                 end: newModel.spheres.length - 1,
             },
             selections: [],
-            colorForSelections: null,
+            colorForSelections: "",
         };
 
         //~ 3. create 3D view part of HyperWindow
