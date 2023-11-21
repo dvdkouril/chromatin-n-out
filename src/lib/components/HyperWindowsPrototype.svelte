@@ -40,8 +40,8 @@
 
     //~ DEBUG
     let debugPositions: [Vector2, string][] = []; //~ for now used for screen space positions of model spheres
-    let showMatterDebug: boolean = true;
-    let showBoundingSphereDebug: boolean = true;
+    let showMatterDebug: boolean = false;
+    let showBoundingSphereDebug: boolean = false;
     let debugTexts: { text: string; x: number; y: number }[] = [];
 
     const updateWidgetsScreenPositions = (
