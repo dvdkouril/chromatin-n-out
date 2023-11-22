@@ -129,7 +129,7 @@
 
     const onMouseDown = (e: MouseEvent) => {
         if (e.target == null) {
-            return; 
+            return;
         }
         if (!(e.target instanceof Element)) {
             return;
@@ -143,7 +143,33 @@
         lastMousePos = { x: x, y: y };
     };
 
+    const onTouchStart = (e: TouchEvent) => {
+        switch (e.touches.length) {
+            case 1:
+                if (e.target == undefined) {
+                    break;
+                }
+                if (e.target instanceof Element) {
+                    dragging = true;
+
+                    let rect = e.target.getBoundingClientRect();
+                    let x = e.touches[0].clientX - rect.left; //x position within the element.
+                    let y = e.touches[0].clientY - rect.top; //y position within the element.
+
+                    lastMousePos = { x: x, y: y };
+                }
+                break;
+            // case 2: break;
+            default:
+                break;
+        }
+    };
+
     const onMouseUp = (e: MouseEvent) => {
+        dragging = false;
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
         dragging = false;
     };
 
@@ -153,7 +179,7 @@
      */
     const onMouseMove = (e: MouseEvent) => {
         if (e.target == null) {
-            return; 
+            return;
         }
         if (!(e.target instanceof Element)) {
             return;
@@ -161,6 +187,74 @@
         let rect = e.target.getBoundingClientRect();
         let x = e.clientX - rect.left; //x position within the element.
         let y = e.clientY - rect.top; //y position within the element.
+
+        if (!dragging) {
+            return;
+        }
+
+        //~ use the x,y to query the physics engine; get the body under cursor
+        let hitBodies = Matter.Query.point(engine.world.bodies, { x: x, y: y });
+        if (hitBodies.length > 0) {
+            let b = hitBodies[0]; //~ assume for now that we don't have overlapping bodies
+            const bodyId = b.id;
+
+            //TODO: better way to fetch hyperwindow associated with this body? (probably need some map structure)
+            let hprWindow = hyperWindows[0]; // just for testing
+            for (let hw of hyperWindows) {
+                if (hw.associatedBodyId == bodyId) {
+                    hprWindow = hw;
+                }
+            }
+
+            const deltaX = x - lastMousePos.x;
+            const deltaY = y - lastMousePos.y;
+            const orbitingSpeed = 0.8;
+            hprWindow.threeDView.rotationX += orbitingSpeed * deltaX;
+            hprWindow.threeDView.rotationY += orbitingSpeed * deltaY;
+
+            lastMousePos = { x: x, y: y };
+
+            //~ adjust Matter.js body: Scale
+            let [center, radius] = computeBoundingSphere(hprWindow);
+            const currentRadius = hprWindow.currentRadius;
+            const wantedRadius = radius;
+            const scaleFactor = wantedRadius / currentRadius;
+            hprWindow.currentRadius = wantedRadius;
+
+            Matter.Body.scale(b, scaleFactor, scaleFactor);
+
+            //~ adjust Matter.js body:  Position
+            const wantedPos = center;
+            const currentPos = new Vector2(b.position.x, b.position.y);
+            const offset = wantedPos.clone().sub(currentPos);
+
+            // Matter.Body.translate(b, { x: offset.x, y: offset.y });
+
+            recomputeBoundingSpheres(); //~ TODO: I guess it's unnecessary to compute BS twice
+        }
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+        console.log("touch move");
+        event.preventDefault();
+        event.stopPropagation();
+        const firstTouch = event.touches[0];
+        const elUnderTouch = document.elementFromPoint(firstTouch.clientX, firstTouch.clientY);
+        if (elUnderTouch == null) {
+            return;
+        }
+
+        if (event.target == null) {
+            return;
+        }
+
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        let rect = event.target.getBoundingClientRect();
+        let x = firstTouch.clientX - rect.left; //x position within the element.
+        let y = firstTouch.clientY - rect.top; //y position within the element.
 
         if (!dragging) {
             return;
@@ -349,6 +443,9 @@
         canvas.addEventListener("mousedown", onMouseDown);
         canvas.addEventListener("mouseup", onMouseUp);
         canvas.addEventListener("wheel", onWheel);
+        canvas.addEventListener("touchstart", onTouchStart);
+        canvas.addEventListener("touchend", onTouchEnd);
+        canvas.addEventListener("touchmove", onTouchMove);
 
         recomputeBoundingSpheres();
     });
