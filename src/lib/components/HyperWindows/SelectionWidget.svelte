@@ -77,7 +77,7 @@
         if (event.target instanceof Element) {
             console.log("Selection started.");
             const binId = event.target.id.split("-")[1];
-            const selColor = colorForSelection == null ? randomNiceColor() : colorForSelection;
+            const selColor = (colorForSelection == null) || (colorForSelection == "") ? randomNiceColor() : colorForSelection;
             selections.push({
                 start: parseInt(binId),
                 end: parseInt(binId),
