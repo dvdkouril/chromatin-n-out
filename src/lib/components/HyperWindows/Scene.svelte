@@ -234,6 +234,15 @@
         }
     };
 
+    // const handlePinchZoom = (touchA: Touch, touchB: Touch) => {
+    //     const dx = touchA.pageX - touchB.pageX;
+    //     const dy = touchA.pageY - touchB.pageY;
+
+    //     const distance = Math.sqrt(dx * dx + dy * dy);
+
+    //     dollyStart.set(0, distance);
+    // };
+
     const onTouchMove = (event: TouchEvent) => {
         console.log("touch move");
         event.preventDefault();
