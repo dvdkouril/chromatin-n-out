@@ -384,8 +384,16 @@
         // matter_bodies = bodies;
         // matter_body_ids = ids;
 
+        const sourceHWBody = TODO;
+        var constraint = Matter.Constraint.create({
+            bodyA: sourceHWBody,
+            bodyB: newBody,
+            stiffness: 0.001,
+            damping: 0.05,
+        });
+
         //~ add bodies to the Matterjs engine's world
-        Matter.Composite.add(engine.world, [newBody]);
+        Matter.Composite.add(engine.world, [newBody, constraint]);
         console.log("new selection -> new hyperwindow added -> should add new body!");
 
         recomputeBoundingSpheres();
