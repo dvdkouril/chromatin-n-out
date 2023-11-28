@@ -74,7 +74,9 @@
         const newWidgetId = nextAvailableId;
         nextAvailableId += 1;
 
-        const newHWScreenPosition = randomPositionAroundHyperWindow(new Vector2(0.5, 0.5), 100 / canvasWidth);
+        const sourceHWPosition = sourceHyperWindow.screenPosition;
+        const sourceHWRadius = sourceHyperWindow.currentRadius;
+        const newHWScreenPosition = randomPositionAroundHyperWindow(sourceHWPosition, sourceHWRadius / canvasWidth);
 
         //~ Create the actual new HyperWindow
         const [newHW, newGeo, new3DView, newSelWidget] = makeNewHyperWindow(
