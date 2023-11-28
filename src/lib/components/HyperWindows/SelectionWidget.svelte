@@ -3,7 +3,7 @@
     import { createEventDispatcher } from "svelte";
     import { randomNiceColor } from "../../util";
     import type { Vector2 } from "three";
-    import type { HWSelectionWidget, Selection } from "$lib/hyperwindows-types";
+    import type { HWSelectionWidget, HyperWindow, Selection } from "$lib/hyperwindows-types";
 
     const dispatch = createEventDispatcher();
 
@@ -14,6 +14,7 @@
     export let widgetThickness = 25;
     export let selections: Selection[] = [];
     export let widget: HWSelectionWidget;
+    export let hyperWindow: HyperWindow;
     export let colorForSelection: string | null = null; //~ if this is null, generate new color; otherwise use this one
     export let colors: string[];
 
@@ -93,8 +94,8 @@
         selectionInProgress = false;
         dispatch("selectionFinished", {
             selection: selections.slice(-1)[0],
-            // sourceWidget: widgetId,
             sourceWidget: widget,
+            sourceHW: hyperWindow,
         });
     };
 

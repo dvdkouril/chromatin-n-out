@@ -47,14 +47,14 @@
     const updateWidgetsScreenPositions = (
         widgets: HWSelectionWidget[],
         bSpheres: BoundingSphere[]
-    ): [HWSelectionWidget, Vector2, number][] => {
+    ): [HWSelectionWidget, HyperWindow, Vector2, number][] => {
         if (widgets.length != bSpheres.length) {
             return [];
         }
 
-        let res: [HWSelectionWidget, Vector2, number][] = [];
+        let res: [HWSelectionWidget, HyperWindow, Vector2, number][] = [];
         for (let [i, w] of widgets.entries()) {
-            res.push([w, bSpheres[i].center, bSpheres[i].radius]);
+            res.push([w, hyperWindows[i], bSpheres[i].center, bSpheres[i].radius]);
         }
         return res;
     };
@@ -64,12 +64,12 @@
         //~ for now I can just update the arrays directly though
     };
 
-    const newSelection = (ev: CustomEvent<{selection:Selection, sourceWidget:HWSelectionWidget}>): void => {
+    const newSelection = (ev: CustomEvent<{selection:Selection, sourceWidget:HWSelectionWidget, sourceHW: HyperWindow}>): void => {
         console.log("App: seeing change");
         console.log(ev);
         const sel = ev.detail.selection;
         const sourceWidget = ev.detail.sourceWidget;
-        const sourceHyperWindow = null; //~ TODO: actually emit
+        const sourceHyperWindow = ev.detail.sourceHW; 
 
         const newWidgetId = nextAvailableId;
         nextAvailableId += 1;
@@ -89,7 +89,7 @@
         hw3DViews = [...hw3DViews, new3DView]; //~ linearized array with information only relevant for the 3D rendering
         hwWidgets = [...hwWidgets, newSelWidget];
 
-        scene.newHyperWindowAdded(newHW);
+        scene.newHyperWindowAdded(newHW, sourceHyperWindow);
     };
 
     const default3DView = (): HW3DView => {

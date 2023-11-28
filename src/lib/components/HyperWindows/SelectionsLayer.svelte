@@ -3,19 +3,19 @@
     import type { HWSelectionWidget } from "../../hyperwindows-types";
     import { generateGrayScale } from "../../util";
     import SelectionWidget from "./SelectionWidget.svelte";
-    import type {Selection} from "$lib/hyperwindows-types";
+    import type {Selection, HyperWindow} from "$lib/hyperwindows-types";
 
     export let width: number;
     export let height: number;
     export let selectionWidgetThickness: number;
-    export let newSelectionCallback: (ev: CustomEvent<{selection: Selection, sourceWidget: HWSelectionWidget}>) => void;
+    export let newSelectionCallback: (ev: CustomEvent<{selection: Selection, sourceWidget: HWSelectionWidget, sourceHW: HyperWindow}>) => void;
 
     // let hoveredBin: number = null;
 
     $: maxBinsNum = widgetsAndPositionsAndRadii.length > 0 ? widgetsAndPositionsAndRadii[0][0].binsNum : 0;
     $: grayColorMap = generateGrayScale(maxBinsNum);
    
-    export let widgetsAndPositionsAndRadii: [HWSelectionWidget, Vector2, number][];
+    export let widgetsAndPositionsAndRadii: [HWSelectionWidget, HyperWindow, Vector2, number][];
 
 </script>
 
@@ -25,7 +25,7 @@
         {height}
         pointer-events="none"
     >
-        {#each widgetsAndPositionsAndRadii as [widget, screenPosition, radius]}
+        {#each widgetsAndPositionsAndRadii as [widget, hyperWindow, screenPosition, radius]}
             <SelectionWidget
                 position={new Vector2(screenPosition.x - radius, screenPosition.y - radius)}
                 width={100}
@@ -37,6 +37,7 @@
                 on:selectionFinished={newSelectionCallback}
                 bind:selections={widget.selections}
                 {widget}
+                {hyperWindow}
             />
         {/each}
     </svg>

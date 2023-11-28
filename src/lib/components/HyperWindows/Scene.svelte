@@ -360,7 +360,7 @@
         }
     };
 
-    export const newHyperWindowAdded = (newHW: HyperWindow) => {
+    export const newHyperWindowAdded = (newHW: HyperWindow, sourceHW: HyperWindow) => {
         const startWorlPosition = camera ? unprojectToWorldSpace(newHW.screenPosition, camera) : new Vector3(0, 0, 0);
         newHW.model.modelWorldPosition = startWorlPosition;
 
@@ -384,7 +384,7 @@
         // matter_bodies = bodies;
         // matter_body_ids = ids;
 
-        const sourceHWBody = TODO;
+        const sourceHWBody = matter_bodies[sourceHW.associatedBodyIndex];
         var constraint = Matter.Constraint.create({
             bodyA: sourceHWBody,
             bodyB: newBody,
