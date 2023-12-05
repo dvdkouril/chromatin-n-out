@@ -46,29 +46,20 @@
     $: toggleMatterDebugView(showMatterDebug);
 
     const toggleMatterDebugView = (show: boolean) => {
-        console.log("Toggled Matter debug view.");
-        if (show == true) {
-            // create a renderer
-            // let render = Matter.Render.create({
-            matterRender = Matter.Render.create({
-                // element: parentElement,
-                // element: matterjsDebugCanvas,
-                canvas: matterjsDebugCanvas,
-                engine: engine,
-                options: { width: canvasWidth, height: canvasHeight },
-            });
+        console.log("Toggled Matter debug view: " + show);
+        if (matterRender == undefined) {
+            initMatterDebugView();
+        }
 
+        if ((matterjsDebugCanvas == undefined) || (matterRender == undefined)) {
+            return;
+        }
+
+        if (show == true) {
             Matter.Render.run(matterRender);
         } else {
-            if (matterRender == undefined) {
-                return;
-            }
-            console.log("stopping matter render");
             Matter.Render.stop(matterRender);
 
-            if (matterjsDebugCanvas == undefined) {
-                return;
-            }
             const context = matterjsDebugCanvas.getContext("2d");
             if (context == null) {
                 return;
@@ -76,6 +67,17 @@
             context.clearRect(0, 0, canvas.width, canvas.height);
             matterjsDebugCanvas.style.background = "none";
         }
+    };
+
+    const initMatterDebugView = () => {
+        if (matterRender != undefined) return;
+
+        // create a renderer
+        matterRender = Matter.Render.create({
+            canvas: matterjsDebugCanvas,
+            engine: engine,
+            options: { width: canvasWidth, height: canvasHeight },
+        });
     };
 
     const sizeChanged = (size: Size) => {
@@ -427,6 +429,8 @@
         engine.gravity.y = 0;
         var runner = Matter.Runner.create();
         Matter.Runner.run(runner, engine);
+
+        initMatterDebugView();
 
         // //~ fix the model world position
         // for (let hw of hyperWindows) {
