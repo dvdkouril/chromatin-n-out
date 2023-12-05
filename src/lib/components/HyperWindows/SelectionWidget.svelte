@@ -155,6 +155,9 @@
 	};
 </script>
 
+<text x={position.x - 10} y={position.y - radius + 20} fill="#ffffff" font-family="sans-serif">
+    { hoveredBin == null ? "#" + N.toString() : hoveredBin}
+</text>
 {#each segments as bin, i}
     <path
         d={bin}
