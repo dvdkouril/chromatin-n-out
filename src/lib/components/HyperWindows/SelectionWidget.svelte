@@ -22,7 +22,8 @@
     $: radius = Math.min(width, height) / 2;
 
     const arcGen = arc();
-    $: arcs = pie()(bins);
+    const arcGapAngle = 0.5; //~ in radians
+    $: arcs = pie().startAngle(arcGapAngle).endAngle(2 * Math.PI - arcGapAngle)(bins);
 
     let selectionInProgress = false;
     let hoveredBin: number | null = null;
