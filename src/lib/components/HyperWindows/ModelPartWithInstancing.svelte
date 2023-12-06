@@ -29,7 +29,7 @@
     <!-- Tubes connecting the bin positions -->
     <InstancedMesh>
         <T.CylinderGeometry args={[model.tubeBaseSize, model.tubeBaseSize, 1.0]} />
-        <T.MeshStandardMaterial color="#aaaaaa" />
+        <T.MeshStandardMaterial color="#ffffff" />
 
         {#each model.tubes as tube, i}
             <Instance position={tube.position.toArray()} rotation={tube.rotation.toArray()} color={getSelectionOrBaseColor(selections, i)} scale.y={tube.scale} />
@@ -39,7 +39,7 @@
     <!-- Spheres at bin positions -->
     <InstancedMesh>
         <T.SphereGeometry args={[model.sphereRadius]} />
-        <T.MeshStandardMaterial color="#aaaaaa" />
+        <T.MeshStandardMaterial color="#ffffff" />
 
         {#each model.spheres as s, i}
             <Instance position.x={s.x} position.y={s.y} position.z={s.z} color={getSelectionOrBaseColor(selections, i)} />
