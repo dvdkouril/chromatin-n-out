@@ -553,7 +553,7 @@
 <T.AmbientLight intensity={0.2} />
 
 {#each hyperWindows as hw}
-    <ModelPartWithInstancing model={hw.model} viewParams={hw.threeDView} />
+    <ModelPartWithInstancing model={hw.model} viewParams={hw.threeDView} selections={hw.widget.selections} />
 {/each}
 
 <T.Group position={[0, -20, 0]}>

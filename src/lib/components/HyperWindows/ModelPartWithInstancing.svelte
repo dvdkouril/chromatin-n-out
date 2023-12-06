@@ -1,38 +1,38 @@
 <script lang="ts">
     import { T } from "@threlte/core";
     import { Instance, InstancedMesh } from "@threlte/extras";
-    import type { HW3DView, HWGeometry } from "../../hyperwindows-types";
+    import type { HW3DView, HWGeometry, Selection } from "../../hyperwindows-types";
 
     export let model: HWGeometry;
     export let viewParams: HW3DView;
+
+    export let selections: Selection[];
+
+    const getSelectionOrBaseColor = (sels: Selection[], binId: number) => {
+        for (let sel of sels) {
+            // if (binId == hoveredBin) {
+            //     return "red";
+            // }
+            if (binId <= sel.end && binId >= sel.start) {
+                return sel.color;
+            }
+        }
+        return "#aaaaaa";
+    };
 </script>
 
 <T.Group
-    position={[
-        model.modelWorldPosition.x,
-        model.modelWorldPosition.y,
-        model.modelWorldPosition.z,
-    ]}
+    position={[model.modelWorldPosition.x, model.modelWorldPosition.y, model.modelWorldPosition.z]}
     scale={[viewParams.zoom, viewParams.zoom, viewParams.zoom]}
-    rotation={[
-        (viewParams.rotationY * Math.PI) / 180,
-        (viewParams.rotationX * Math.PI) / 180,
-        0,
-    ]}
+    rotation={[(viewParams.rotationY * Math.PI) / 180, (viewParams.rotationX * Math.PI) / 180, 0]}
 >
     <!-- Tubes connecting the bin positions -->
     <InstancedMesh>
-        <T.CylinderGeometry
-            args={[model.tubeBaseSize, model.tubeBaseSize, 1.0]}
-        />
+        <T.CylinderGeometry args={[model.tubeBaseSize, model.tubeBaseSize, 1.0]} />
         <T.MeshStandardMaterial color="#aaaaaa" />
 
         {#each model.tubes as tube, i}
-            <Instance
-                position={tube.position.toArray()}
-                rotation={tube.rotation.toArray()}
-                scale.y={tube.scale}
-            />
+            <Instance position={tube.position.toArray()} rotation={tube.rotation.toArray()} color={getSelectionOrBaseColor(selections, i)} scale.y={tube.scale} />
         {/each}
     </InstancedMesh>
 
@@ -42,7 +42,7 @@
         <T.MeshStandardMaterial color="#aaaaaa" />
 
         {#each model.spheres as s, i}
-            <Instance position.x={s.x} position.y={s.y} position.z={s.z} />
+            <Instance position.x={s.x} position.y={s.y} position.z={s.z} color={getSelectionOrBaseColor(selections, i)} />
         {/each}
     </InstancedMesh>
 
