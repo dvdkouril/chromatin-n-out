@@ -2,7 +2,7 @@
     import { arc, pie } from "d3-shape";
     import { createEventDispatcher } from "svelte";
     import { randomNiceColor } from "../../util";
-    import type { Vector2 } from "three";
+    import type { Path, Vector2 } from "three";
     import type { HWSelectionWidget, HyperWindow, Selection } from "$lib/hyperwindows-types";
 
     const dispatch = createEventDispatcher();
@@ -23,7 +23,9 @@
 
     const arcGen = arc();
     const arcGapAngle = 0.5; //~ in radians
-    $: arcs = pie().startAngle(arcGapAngle).endAngle(2 * Math.PI - arcGapAngle)(bins);
+    $: arcs = pie()
+        .startAngle(arcGapAngle)
+        .endAngle(2 * Math.PI - arcGapAngle)(bins);
 
     let selectionInProgress = false;
     let hoveredBin: number | null = null;
@@ -44,8 +46,17 @@
             outerRadius: radius,
             startAngle: arcs[sel.start].startAngle,
             endAngle: arcs[sel.end].endAngle,
-        })
+        }),
     );
+
+    $: selectionColorArc = arcGen({
+        innerRadius: radius - widgetThickness,
+        outerRadius: radius,
+        startAngle: -arcGapAngle,
+        endAngle: arcGapAngle,
+    });
+
+    const widgetColorFromParent = "#ff0000";
 
     const mouseOvered = (event: MouseEvent) => {
         if (event.target == undefined) {
@@ -79,7 +90,8 @@
         if (event.target instanceof Element) {
             console.log("Selection started.");
             const binId = event.target.id.split("-")[1];
-            const selColor = (colorForSelection == null) || (colorForSelection == "") ? randomNiceColor() : colorForSelection;
+            const selColor =
+                colorForSelection == null || colorForSelection == "" ? randomNiceColor() : colorForSelection;
             selections.push({
                 start: parseInt(binId),
                 end: parseInt(binId),
@@ -101,63 +113,74 @@
     };
 
     const touchStart = (event: TouchEvent) => {
-		console.log('touch start.');
-		switch (event.touches.length) {
-			case 1:
-				if (event.target == undefined) {
-					break;
-				}
-				if (event.target instanceof Element) {
-					const binId = event.target.id.split('-')[1];
-					const selColor = (colorForSelection == null) || (colorForSelection == "") ? randomNiceColor() : colorForSelection;
-					selections.push({ start: parseInt(binId), end: parseInt(binId), color: selColor });
-					selectionInProgress = true;
-				}
-				break;
-			// case 2: break;
-			default:
-				break;
-		}
-	};
+        console.log("touch start.");
+        switch (event.touches.length) {
+            case 1:
+                if (event.target == undefined) {
+                    break;
+                }
+                if (event.target instanceof Element) {
+                    const binId = event.target.id.split("-")[1];
+                    const selColor =
+                        colorForSelection == null || colorForSelection == "" ? randomNiceColor() : colorForSelection;
+                    selections.push({ start: parseInt(binId), end: parseInt(binId), color: selColor });
+                    selectionInProgress = true;
+                }
+                break;
+            // case 2: break;
+            default:
+                break;
+        }
+    };
     const touchEnd = (event: TouchEvent) => {
-		//~ => selection finished
-		console.log('touch end.');
-		selectionInProgress = false;
-		dispatch('selectionFinished', {
-			selection: selections.slice(-1)[0],
-			// sourceWidget: widgetId,
-			sourceWidget: widget
-		});
-	};
+        //~ => selection finished
+        console.log("touch end.");
+        selectionInProgress = false;
+        dispatch("selectionFinished", {
+            selection: selections.slice(-1)[0],
+            // sourceWidget: widgetId,
+            sourceWidget: widget,
+        });
+    };
     const touchMove = (event: TouchEvent) => {
-		console.log('touch move');
-		event.preventDefault();
-		event.stopPropagation();
+        console.log("touch move");
+        event.preventDefault();
+        event.stopPropagation();
         const firstTouch = event.touches[0];
         const elUnderTouch = document.elementFromPoint(firstTouch.clientX, firstTouch.clientY);
         if (elUnderTouch == null) {
             return;
         }
-		hoveredBin = parseInt(elUnderTouch.id.split('-')[1]); //~ this is bit of a weird solution...maybe fix later
-		//~ multiple selections version
-		if (selectionInProgress) {
-			console.log('hoveredBin:' + hoveredBin);
-			const binId = parseInt(elUnderTouch.id.split('-')[1]); //~ this is bit of a weird solution...maybe fix later
-			const activeSelection = selections.slice(-1)[0];
-			const selectionsMinusLast = selections.slice(0, selections.length - 1);
-			//~ figure out which direction the selection is
-			if (binId < activeSelection.start) {
-				selections = [...selectionsMinusLast, { ...activeSelection, start: binId }];
-			} else {
-				selections = [...selectionsMinusLast, { ...activeSelection, end: binId }];
-			}
-		}
-	};
+        hoveredBin = parseInt(elUnderTouch.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+        //~ multiple selections version
+        if (selectionInProgress) {
+            console.log("hoveredBin:" + hoveredBin);
+            const binId = parseInt(elUnderTouch.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+            const activeSelection = selections.slice(-1)[0];
+            const selectionsMinusLast = selections.slice(0, selections.length - 1);
+            //~ figure out which direction the selection is
+            if (binId < activeSelection.start) {
+                selections = [...selectionsMinusLast, { ...activeSelection, start: binId }];
+            } else {
+                selections = [...selectionsMinusLast, { ...activeSelection, end: binId }];
+            }
+        }
+    };
 </script>
 
+<!-- Color arc indicating association with parent HW's selection -->
+<path
+    d={selectionColorArc}
+    id={"parent-selection-" + widget.id}
+    fill={widget.colorForSelections}
+    pointer-events="none"
+    transform={"translate(" + position.x + "," + position.y + ")"}
+/>
+<!-- Info about # of bins or the hovered bin -->
 <text x={position.x - 10} y={position.y - radius + 20} fill="#ffffff" font-family="sans-serif">
-    { hoveredBin == null ? "#" + N.toString() : hoveredBin}
+    {hoveredBin == null ? "#" + N.toString() : hoveredBin}
 </text>
+<!-- Individual segments of the selection widget -->
 {#each segments as bin, i}
     <path
         d={bin}

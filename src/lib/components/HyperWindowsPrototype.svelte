@@ -173,7 +173,7 @@
                 end: newModel.spheres.length - 1,
             },
             selections: [],
-            colorForSelections: "",
+            colorForSelections: selection.color,
         };
 
         //~ 3. create 3D view part of HyperWindow
