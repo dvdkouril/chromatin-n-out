@@ -53,3 +53,8 @@ export type BoundingSphere = {
     center: Vector2;
     radius: number;
 };
+
+export enum WidgetStyle {
+        SmallTopLeft,
+        Boundary,
+    }

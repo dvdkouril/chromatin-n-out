@@ -7,13 +7,14 @@
     import { onMount } from "svelte";
     import { brafl } from "../test_BRAFL";
     import { computeTubes, load3DModel, randomPositionAroundHyperWindow, recenter } from "../util";
-    import type {
-        HWGeometry,
-        HWSelectionWidget,
-        HyperWindow,
-        HW3DView,
-        BoundingSphere,
-        Selection,
+    import {
+        type HWGeometry,
+        type HWSelectionWidget,
+        type HyperWindow,
+        type HW3DView,
+        type BoundingSphere,
+        type Selection,
+        WidgetStyle,
     } from "../hyperwindows-types";
 
     const selectionWidgetThickness = 25;
@@ -42,6 +43,7 @@
     let debugPositions: [Vector2, string][] = []; //~ for now used for screen space positions of model spheres
     let showMatterDebug: boolean = false;
     let showBoundingSphereDebug: boolean = false;
+    let widgetDesign: WidgetStyle = WidgetStyle.Boundary;
     let debugTexts: { text: string; x: number; y: number }[] = [];
 
     const updateWidgetsScreenPositions = (
@@ -214,6 +216,9 @@
     <button on:click={() => (showBoundingSphereDebug = !showBoundingSphereDebug)}
         >{showBoundingSphereDebug ? "~on~" : "-off-"}</button
     >
+    <span style="color: white; font-family:Arial, Helvetica, sans-serif">widget style: </span>
+    <button on:click={() => (widgetDesign = WidgetStyle.Boundary)}>~1~</button>
+    <button on:click={() => (widgetDesign = WidgetStyle.SmallTopLeft)}>~2~</button>
 </div>
 <div id="canvas-container">
     <!-- Canvas containing 3D models -->
@@ -246,6 +251,7 @@
         {boundingSpheres}
         {selectionWidgetThickness}
         newSelectionCallback={newSelection}
+        {widgetDesign}
     />
 
     <!-- placeholder for Matter.js debug view -->
