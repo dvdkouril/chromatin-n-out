@@ -217,7 +217,7 @@
             lastMousePos = { x: x, y: y };
 
             //~ adjust Matter.js body: Scale
-            let [center, radius] = computeBoundingSphere(hprWindow);
+            let [center, radius] = computeBoundingSphere(hprWindow, camera);
             const currentRadius = hprWindow.currentRadius;
             const wantedRadius = radius;
             const scaleFactor = wantedRadius / currentRadius;
@@ -232,7 +232,7 @@
 
             // Matter.Body.translate(b, { x: offset.x, y: offset.y });
 
-            recomputeBoundingSpheres(); //~ TODO: I guess it's unnecessary to compute BS twice
+            recomputeBoundingSpheres(hyperWindows); //~ TODO: I guess it's unnecessary to compute BS twice
         }
     };
 
@@ -285,7 +285,7 @@
             lastMousePos = { x: x, y: y };
 
             //~ adjust Matter.js body: Scale
-            let [center, radius] = computeBoundingSphere(hprWindow);
+            let [center, radius] = computeBoundingSphere(hprWindow, camera);
             const currentRadius = hprWindow.currentRadius;
             const wantedRadius = radius;
             const scaleFactor = wantedRadius / currentRadius;
@@ -300,7 +300,7 @@
 
             // Matter.Body.translate(b, { x: offset.x, y: offset.y });
 
-            recomputeBoundingSpheres(); //~ TODO: I guess it's unnecessary to compute BS twice
+            recomputeBoundingSpheres(hyperWindows); //~ TODO: I guess it's unnecessary to compute BS twice
         }
     };
 
@@ -343,7 +343,7 @@
             hprWindow.threeDView.zoom += zoomingSpeed * e.deltaY;
 
             //~ adjust Matter.js body: Scale
-            let [center, radius] = computeBoundingSphere(hprWindow);
+            let [center, radius] = computeBoundingSphere(hprWindow, camera);
             const currentRadius = hprWindow.currentRadius;
             const wantedRadius = radius;
             const scaleFactor = wantedRadius / currentRadius;
@@ -358,7 +358,7 @@
 
             // Matter.Body.translate(b, { x: offset.x, y: offset.y });
 
-            recomputeBoundingSpheres(); //~ TODO: I guess it's unnecessary to compute BS twice
+            recomputeBoundingSpheres(hyperWindows); //~ TODO: I guess it's unnecessary to compute BS twice
         }
     };
 
@@ -366,7 +366,7 @@
         const startWorlPosition = camera ? unprojectToWorldSpace(newHW.screenPosition, camera) : new Vector3(0, 0, 0);
         newHW.model.modelWorldPosition = startWorlPosition;
 
-        const [center, radius] = computeBoundingSphere(newHW);
+        const [center, radius] = computeBoundingSphere(newHW, camera);
         newHW.currentRadius = radius;
 
         // broken code follows:
@@ -398,7 +398,8 @@
         Matter.Composite.add(engine.world, [newBody, constraint]);
         console.log("new selection -> new hyperwindow added -> should add new body!");
 
-        recomputeBoundingSpheres();
+        hyperWindows.push(newHW); //~ just temporarily, until next "update"
+        recomputeBoundingSpheres(hyperWindows);
     };
 
     const initializePhysicsBodies = () => {
@@ -459,7 +460,7 @@
         canvas.addEventListener("touchend", onTouchEnd);
         canvas.addEventListener("touchmove", onTouchMove);
 
-        recomputeBoundingSpheres();
+        recomputeBoundingSpheres(hyperWindows);
     });
 
     /**
@@ -467,7 +468,7 @@
      * @param pointsIn3D an array of points in 3D which will be projected into 2D and then the computation of a bounding sphere bounding "circle"
      * returns a 2D position and a radius of the bounding circle
      */
-    const computeBoundingSphere = (hyperwindow: HyperWindow): [Vector2, number] => {
+    const computeBoundingSphere = (hyperwindow: HyperWindow, camera: PerspectiveCamera): [Vector2, number]  => {
         //~ 1. project points into screen space
         const pointsIn2D = projectModelToScreenSpace(hyperwindow, camera, canvasWidth, canvasHeight);
         //DEBUG
@@ -479,11 +480,14 @@
         return bSphere;
     };
 
-    const recomputeBoundingSpheres = () => {
+    const recomputeBoundingSpheres = (hyperwindows: HyperWindow[]) => {
+        if (camera == undefined) {
+            return;
+        }
         boundingSpheres = [];
         debugTexts = [];
-        for (let hw of hyperWindows) {
-            let [center, radius] = computeBoundingSphere(hw);
+        for (let hw of hyperwindows) {
+            let [center, radius] = computeBoundingSphere(hw, camera);
             boundingSpheres.push({ center: center, radius: radius });
             debugTexts.push({
                 text: "[" + center.x + ", " + center.y + "]",

@@ -36,7 +36,7 @@
 
     //~ Structures related to computation of the bounding sphere and final screen positions
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
-    $: widgetsAndPositionsAndRadii = updateWidgetsScreenPositions(hwWidgets, boundingSpheres); //~ for SelectionsLayer
+    // $: widgetsAndPositionsAndRadii = updateWidgetsScreenPositions(hwWidgets, boundingSpheres); //~ for SelectionsLayer
 
     //~ DEBUG
     let debugPositions: [Vector2, string][] = []; //~ for now used for screen space positions of model spheres
@@ -241,7 +241,9 @@
     <SelectionsLayer
         width={canvasWidth}
         height={canvasHeight}
-        {widgetsAndPositionsAndRadii}
+        widgets={hwWidgets}
+        {hyperWindows}
+        {boundingSpheres}
         {selectionWidgetThickness}
         newSelectionCallback={newSelection}
     />
