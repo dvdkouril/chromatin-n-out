@@ -6,6 +6,7 @@
     import SelectionsLayer from "./HyperWindows/SelectionsLayer.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../test_BRAFL";
+    import { cell7 } from "../test_cell7";
     import { computeTubes, load3DModel, randomPositionAroundHyperWindow, recenter } from "../util";
     import {
         type HWGeometry,
@@ -106,7 +107,8 @@
 
     const makeInitialHyperWindow = (): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] => {
         //~ 1. load the 3D model (future TODO: multiple models)
-        const newModel = load3DModel(brafl, 0.02);
+        // const newModel = load3DModel(brafl, 0.02);
+        const newModel = load3DModel(cell7, 0.5);
 
         //~ 2. create selection widget
         const newWidget: HWSelectionWidget = {
@@ -243,7 +245,7 @@
     {/if}
 
     <!-- SVG-based layer with selection widgets for each 3D (sub)model -->
-    <SelectionsLayer
+    <!-- <SelectionsLayer
         width={canvasWidth}
         height={canvasHeight}
         widgets={hwWidgets}
@@ -252,7 +254,7 @@
         {selectionWidgetThickness}
         newSelectionCallback={newSelection}
         {widgetDesign}
-    />
+    /> -->
 
     <!-- placeholder for Matter.js debug view -->
     <canvas id="matterjs-debug" width={canvasWidth} height={canvasHeight} bind:this={matterjsDebugCanvas} />

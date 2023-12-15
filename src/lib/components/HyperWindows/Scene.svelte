@@ -1,5 +1,6 @@
 <script lang="ts">
     import { T, useFrame, type Size } from "@threlte/core";
+    import { OrbitControls } from "@threlte/extras";
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
     import { BoxGeometry, MeshStandardMaterial, PerspectiveCamera, Vector2, Vector3 } from "three";
     import { onMount } from "svelte";
@@ -51,7 +52,7 @@
             initMatterDebugView();
         }
 
-        if ((matterjsDebugCanvas == undefined) || (matterRender == undefined)) {
+        if (matterjsDebugCanvas == undefined || matterRender == undefined) {
             return;
         }
 
@@ -468,7 +469,7 @@
      * @param pointsIn3D an array of points in 3D which will be projected into 2D and then the computation of a bounding sphere bounding "circle"
      * returns a 2D position and a radius of the bounding circle
      */
-    const computeBoundingSphere = (hyperwindow: HyperWindow, camera: PerspectiveCamera): [Vector2, number]  => {
+    const computeBoundingSphere = (hyperwindow: HyperWindow, camera: PerspectiveCamera): [Vector2, number] => {
         //~ 1. project points into screen space
         const pointsIn2D = projectModelToScreenSpace(hyperwindow, camera, canvasWidth, canvasHeight);
         //DEBUG
@@ -481,6 +482,7 @@
     };
 
     const recomputeBoundingSpheres = (hyperwindows: HyperWindow[]) => {
+        return;
         if (camera == undefined) {
             return;
         }
@@ -546,7 +548,9 @@
     });
 </script>
 
-<T.PerspectiveCamera bind:ref={camera} makeDefault position={[0, 0, 50]} fov={24} />
+<T.PerspectiveCamera bind:ref={camera} makeDefault position={[0, 0, 50]} fov={24}>
+    <OrbitControls autoRotate enableZoom={true} enableDamping autoRotateSpeed={0.5} target.y={1.5} />
+</T.PerspectiveCamera>
 
 <T.DirectionalLight castShadow position={[3, 10, 10]} />
 <T.DirectionalLight position={[-3, 10, -10]} intensity={0.2} />
