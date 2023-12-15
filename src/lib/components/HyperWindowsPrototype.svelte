@@ -101,6 +101,9 @@
             rotationX: 0,
             rotationY: 0,
             zoom: 1,
+            viewSettings: {
+                showPivotOrigin: false,
+            }
         };
     };
 

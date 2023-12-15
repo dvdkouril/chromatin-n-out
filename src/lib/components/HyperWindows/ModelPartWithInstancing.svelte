@@ -47,16 +47,15 @@
         <T.MeshStandardMaterial color="#ffffff" />
 
         {#each model.spheres as s, i}
-            <Instance
-                position={s.toArray()}
-                color={getSelectionOrBaseColor(selections, i)}
-            />
+            <Instance position={s.toArray()} color={getSelectionOrBaseColor(selections, i)} />
         {/each}
     </InstancedMesh>
 
     <!-- Debug: Pivot point indication -->
-    <T.Mesh>
-        <T.BoxGeometry args={[0.5, 0.5, 0.5]} />
-        <T.MeshStandardMaterial color="#ff0000" />
-    </T.Mesh>
+    {#if viewParams.viewSettings.showPivotOrigin}
+        <T.Mesh>
+            <T.BoxGeometry args={[0.5, 0.5, 0.5]} />
+            <T.MeshStandardMaterial color="#ff0000" />
+        </T.Mesh>
+    {/if}
 </T.Group>

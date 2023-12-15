@@ -12,6 +12,10 @@ export type HW3DView = {
     rotationX: number;
     rotationY: number;
     zoom: number;
+
+    viewSettings: {
+        showPivotOrigin: boolean,
+    }
 };
 
 /**
