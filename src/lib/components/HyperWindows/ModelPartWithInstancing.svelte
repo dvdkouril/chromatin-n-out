@@ -32,7 +32,12 @@
         <T.MeshStandardMaterial color="#ffffff" />
 
         {#each model.tubes as tube, i}
-            <Instance position={tube.position.toArray()} rotation={tube.rotation.toArray()} color={getSelectionOrBaseColor(selections, i)} scale.y={tube.scale} />
+            <Instance
+                position={tube.position.toArray()}
+                rotation={[tube.rotation.x, tube.rotation.y, tube.rotation.z, tube.rotation.order]}
+                color={getSelectionOrBaseColor(selections, i)}
+                scale.y={tube.scale}
+            />
         {/each}
     </InstancedMesh>
 
@@ -42,7 +47,10 @@
         <T.MeshStandardMaterial color="#ffffff" />
 
         {#each model.spheres as s, i}
-            <Instance position.x={s.x} position.y={s.y} position.z={s.z} color={getSelectionOrBaseColor(selections, i)} />
+            <Instance
+                position={s.toArray()}
+                color={getSelectionOrBaseColor(selections, i)}
+            />
         {/each}
     </InstancedMesh>
 
