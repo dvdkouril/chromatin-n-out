@@ -27,7 +27,7 @@
     rotation={[(viewParams.rotationY * Math.PI) / 180, (viewParams.rotationX * Math.PI) / 180, 0]}
 >
     <!-- Tubes connecting the bin positions -->
-    <InstancedMesh>
+    <InstancedMesh limit={30000} range={30000}>
         <T.CylinderGeometry args={[model.tubeBaseSize, model.tubeBaseSize, 1.0]} />
         <T.MeshStandardMaterial color="#ffffff" />
 
@@ -37,8 +37,8 @@
     </InstancedMesh>
 
     <!-- Spheres at bin positions -->
-    <InstancedMesh>
-        <T.SphereGeometry args={[model.sphereRadius]} />
+    <InstancedMesh limit={30000} range={30000}>
+        <T.SphereGeometry args={[model.sphereRadius, 4, 4]} />
         <T.MeshStandardMaterial color="#ffffff" />
 
         {#each model.spheres as s, i}
