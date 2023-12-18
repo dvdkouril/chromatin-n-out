@@ -48,7 +48,7 @@
 
     const updateWidgetsScreenPositions = (
         widgets: HWSelectionWidget[],
-        bSpheres: BoundingSphere[]
+        bSpheres: BoundingSphere[],
     ): [HWSelectionWidget, HyperWindow, Vector2, number][] => {
         if (widgets.length != bSpheres.length) {
             return [];
@@ -66,12 +66,14 @@
         //~ for now I can just update the arrays directly though
     };
 
-    const newSelection = (ev: CustomEvent<{selection:Selection, sourceWidget:HWSelectionWidget, sourceHW: HyperWindow}>): void => {
+    const newSelection = (
+        ev: CustomEvent<{ selection: Selection; sourceWidget: HWSelectionWidget; sourceHW: HyperWindow }>,
+    ): void => {
         console.log("App: seeing change");
         console.log(ev);
         const sel = ev.detail.selection;
         const sourceWidget = ev.detail.sourceWidget;
-        const sourceHyperWindow = ev.detail.sourceHW; 
+        const sourceHyperWindow = ev.detail.sourceHW;
 
         const newWidgetId = nextAvailableId;
         nextAvailableId += 1;
@@ -85,7 +87,7 @@
             newWidgetId,
             newHWScreenPosition,
             sel,
-            sourceWidget
+            sourceWidget,
         );
 
         hyperWindows = [...hyperWindows, newHW];
@@ -103,7 +105,7 @@
             zoom: 1,
             viewSettings: {
                 showPivotOrigin: false,
-            }
+            },
         };
     };
 
@@ -148,7 +150,7 @@
         id: number,
         startScreenPosition: Vector2 = new Vector2(0.5, 0.5),
         selection: Selection,
-        sourceWidget: HWSelectionWidget //~ TODO: type
+        sourceWidget: HWSelectionWidget, //~ TODO: type
     ): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] => {
         const offset = sourceWidget.domain.start;
         const newDomain = {
@@ -165,7 +167,7 @@
         const newModel = {
             ...hwModels[0], //~ TODO: still hacky..I should get the model from the source HW
             spheres: subModelPositions,
-            tubes: subModelTubes, 
+            tubes: subModelTubes,
         };
 
         //~ 2. create selection widget
@@ -214,39 +216,40 @@
     });
 </script>
 
-<div id="debug-bar">
-    <button on:click={() => (showMatterDebug = !showMatterDebug)}>{showMatterDebug ? "~on~" : "-off-"}</button>
-    <button on:click={() => (showBoundingSphereDebug = !showBoundingSphereDebug)}
-        >{showBoundingSphereDebug ? "~on~" : "-off-"}</button
-    >
-    <span style="color: white; font-family:Arial, Helvetica, sans-serif">widget style: </span>
-    <button on:click={() => (widgetDesign = WidgetStyle.Boundary)}>~1~</button>
-    <button on:click={() => (widgetDesign = WidgetStyle.SmallTopLeft)}>~2~</button>
-</div>
-<div id="canvas-container">
-    <!-- Canvas containing 3D models -->
-    <Canvas>
-        <Scene
-            bind:this={scene}
-            bind:hyperWindows
-            bind:canvasWidth
-            bind:canvasHeight
-            bind:boundingSpheres
-            bind:debugPositions
-            bind:debugTexts
-            bind:camera
-            {showMatterDebug}
-            {matterjsDebugCanvas}
-        />
-    </Canvas>
+<div id="wrapper">
+    <div id="debug-bar">
+        <button on:click={() => (showMatterDebug = !showMatterDebug)}>{showMatterDebug ? "~on~" : "-off-"}</button>
+        <button on:click={() => (showBoundingSphereDebug = !showBoundingSphereDebug)}
+            >{showBoundingSphereDebug ? "~on~" : "-off-"}</button
+        >
+        <span style="color: white; font-family:Arial, Helvetica, sans-serif">widget style: </span>
+        <button on:click={() => (widgetDesign = WidgetStyle.Boundary)}>~1~</button>
+        <button on:click={() => (widgetDesign = WidgetStyle.SmallTopLeft)}>~2~</button>
+    </div>
+    <div id="canvas-container">
+        <!-- Canvas containing 3D models -->
+        <Canvas>
+            <Scene
+                bind:this={scene}
+                bind:hyperWindows
+                bind:canvasWidth
+                bind:canvasHeight
+                bind:boundingSpheres
+                bind:debugPositions
+                bind:debugTexts
+                bind:camera
+                {showMatterDebug}
+                {matterjsDebugCanvas}
+            />
+        </Canvas>
 
-    <!-- SVG debug overlay -->
-    {#if showBoundingSphereDebug}
-        <DebugOverlay {canvasWidth} {canvasHeight} {boundingSpheres} {debugPositions} {debugTexts} />
-    {/if}
+        <!-- SVG debug overlay -->
+        {#if showBoundingSphereDebug}
+            <DebugOverlay {canvasWidth} {canvasHeight} {boundingSpheres} {debugPositions} {debugTexts} />
+        {/if}
 
-    <!-- SVG-based layer with selection widgets for each 3D (sub)model -->
-    <SelectionsLayer
+        <!-- SVG-based layer with selection widgets for each 3D (sub)model -->
+        <SelectionsLayer
         width={canvasWidth}
         height={canvasHeight}
         widgets={hwWidgets}
@@ -257,16 +260,23 @@
         {widgetDesign}
     />
 
-    <!-- placeholder for Matter.js debug view -->
-    <canvas id="matterjs-debug" width={canvasWidth} height={canvasHeight} bind:this={matterjsDebugCanvas} />
+        <!-- placeholder for Matter.js debug view -->
+        <canvas id="matterjs-debug" width={canvasWidth} height={canvasHeight} bind:this={matterjsDebugCanvas} />
+    </div>
 </div>
 
 <style>
+    #wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
     #canvas-container {
-        overflow: hidden;
-        position: relative;
         width: 100%;
         height: 100%;
+        flex: 1;
+        overflow: hidden;
     }
 
     #matterjs-debug {
@@ -276,4 +286,5 @@
         opacity: 50%;
         pointer-events: none;
     }
+
 </style>
