@@ -16,6 +16,7 @@
         type Selection,
         WidgetStyle,
     } from "../hyperwindows-types";
+    import { cell7 } from "$lib/test_cell7";
 
     const selectionWidgetThickness = 25;
 
@@ -27,6 +28,13 @@
     let scene: Scene;
 
     let nextAvailableId = 1; //~ 0 is hardcoded onMount
+
+    //~ example dataset selection
+    const exampleDatasets = [
+        { id: 1, name: "brafl" },
+        { id: 2, name: "cell7" },
+    ];
+    let selectedDataset: { id: number; name: string } = exampleDatasets[1];
 
     //~ Main data structures
     // let rootHyperWindows: HyperWindow[] = []; //~ contains roots of HyperWindow hierarchies
@@ -67,7 +75,11 @@
     };
 
     const newSelection = (
-        ev: CustomEvent<{ selection: Selection; sourceWidget: HWSelectionWidget; sourceHW: HyperWindow }>,
+        ev: CustomEvent<{
+            selection: Selection;
+            sourceWidget: HWSelectionWidget;
+            sourceHW: HyperWindow;
+        }>,
     ): void => {
         console.log("App: seeing change");
         console.log(ev);
@@ -109,9 +121,16 @@
         };
     };
 
-    const makeInitialHyperWindow = (): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] => {
+    const makeInitialHyperWindow = (): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] | null => {
         //~ 1. load the 3D model (future TODO: multiple models)
-        const newModel = load3DModel(brafl, 0.02);
+        let newModel = undefined;
+        if (selectedDataset.name == "brafl") {
+            newModel = load3DModel(brafl, 0.02);
+        } else if (selectedDataset.name == "cell7") {
+            newModel = load3DModel(cell7, 0.5);
+        } else {
+            return null;
+        }
 
         //~ 2. create selection widget
         const newWidget: HWSelectionWidget = {
@@ -203,7 +222,13 @@
     };
 
     const initWithSingle = () => {
-        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] = makeInitialHyperWindow();
+        const res = makeInitialHyperWindow();
+
+        if (res == null) {
+            return;
+        }
+
+        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] = res;
 
         hyperWindows = [hwRoot];
         hwModels = [hwRootModel];
@@ -225,6 +250,13 @@
         <span style="color: white; font-family:Arial, Helvetica, sans-serif">widget style: </span>
         <button on:click={() => (widgetDesign = WidgetStyle.Boundary)}>~1~</button>
         <button on:click={() => (widgetDesign = WidgetStyle.SmallTopLeft)}>~2~</button>
+        <select bind:value={selectedDataset} on:change={initWithSingle}>
+            {#each exampleDatasets as dataset}
+                <option value={dataset}>
+                    {dataset.name}
+                </option>
+            {/each}
+        </select>
     </div>
     <div id="canvas-container">
         <!-- Canvas containing 3D models -->
@@ -250,15 +282,15 @@
 
         <!-- SVG-based layer with selection widgets for each 3D (sub)model -->
         <SelectionsLayer
-        width={canvasWidth}
-        height={canvasHeight}
-        widgets={hwWidgets}
-        {hyperWindows}
-        {boundingSpheres}
-        {selectionWidgetThickness}
-        newSelectionCallback={newSelection}
-        {widgetDesign}
-    />
+            width={canvasWidth}
+            height={canvasHeight}
+            widgets={hwWidgets}
+            {hyperWindows}
+            {boundingSpheres}
+            {selectionWidgetThickness}
+            newSelectionCallback={newSelection}
+            {widgetDesign}
+        />
 
         <!-- placeholder for Matter.js debug view -->
         <canvas id="matterjs-debug" width={canvasWidth} height={canvasHeight} bind:this={matterjsDebugCanvas} />
@@ -286,5 +318,4 @@
         opacity: 50%;
         pointer-events: none;
     }
-
 </style>
