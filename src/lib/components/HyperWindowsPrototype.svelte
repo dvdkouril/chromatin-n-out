@@ -34,7 +34,7 @@
         { id: 1, name: "brafl" },
         { id: 2, name: "cell7" },
     ];
-    let selectedDataset: { id: number; name: string } = exampleDatasets[1];
+    let selectedDataset: { id: number; name: string } = exampleDatasets[0];
 
     //~ Main data structures
     // let rootHyperWindows: HyperWindow[] = []; //~ contains roots of HyperWindow hierarchies
@@ -127,7 +127,7 @@
         if (selectedDataset.name == "brafl") {
             newModel = load3DModel(brafl, 0.02);
         } else if (selectedDataset.name == "cell7") {
-            newModel = load3DModel(cell7, 0.5);
+            newModel = load3DModel(cell7, 0.2);
         } else {
             return null;
         }
