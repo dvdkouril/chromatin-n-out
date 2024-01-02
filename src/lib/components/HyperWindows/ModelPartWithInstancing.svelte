@@ -17,7 +17,7 @@
                 return sel.color;
             }
         }
-        return "#aaaaaa";
+        return "#ffffff";
     };
 </script>
 
@@ -27,8 +27,8 @@
     rotation={[(viewParams.rotationY * Math.PI) / 180, (viewParams.rotationX * Math.PI) / 180, 0]}
 >
     <!-- Tubes connecting the bin positions -->
-    <InstancedMesh>
-        <T.CylinderGeometry args={[model.tubeBaseSize, model.tubeBaseSize, 1.0]} />
+    <InstancedMesh limit={30000} range={30000}>
+        <T.CylinderGeometry args={[model.tubeBaseSize, model.tubeBaseSize, 1.0, 3, 1]} />
         <T.MeshStandardMaterial color="#ffffff" />
 
         {#each model.tubes as tube, i}
@@ -42,7 +42,7 @@
     </InstancedMesh>
 
     <!-- Spheres at bin positions -->
-    <InstancedMesh>
+    <InstancedMesh limit={30000} range={30000}>
         <T.SphereGeometry args={[model.sphereRadius]} />
         <T.MeshStandardMaterial color="#ffffff" />
 
