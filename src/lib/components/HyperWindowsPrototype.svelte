@@ -6,6 +6,7 @@
     import SelectionsLayer from "./HyperWindows/SelectionsLayer.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../test_BRAFL";
+    import { spomb } from "../test_SPOMB";
     import { computeTubes, load3DModel, randomPositionAroundHyperWindow, recenter } from "../util";
     import {
         type HWGeometry,
@@ -33,8 +34,9 @@
     const exampleDatasets = [
         { id: 1, name: "brafl" },
         { id: 2, name: "cell7" },
+        { id: 3, name: "spomb" },
     ];
-    let selectedDataset: { id: number; name: string } = exampleDatasets[0];
+    let selectedDataset: { id: number; name: string } = exampleDatasets[2];
 
     //~ Main data structures
     // let rootHyperWindows: HyperWindow[] = []; //~ contains roots of HyperWindow hierarchies
@@ -128,6 +130,8 @@
             newModel = load3DModel(brafl, 0.02);
         } else if (selectedDataset.name == "cell7") {
             newModel = load3DModel(cell7, 0.2);
+        } else if (selectedDataset.name == "spomb") {
+            newModel = load3DModel(spomb, 0.1);
         } else {
             return null;
         }
