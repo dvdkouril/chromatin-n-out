@@ -18,6 +18,7 @@
         WidgetStyle,
     } from "../hyperwindows-types";
     import { cell7 } from "$lib/test_cell7";
+    import DebugBar from "./HyperWindows/DebugBar.svelte";
 
     const selectionWidgetThickness = 25;
 
@@ -246,22 +247,7 @@
 </script>
 
 <div id="wrapper">
-    <div id="debug-bar">
-        <button on:click={() => (showMatterDebug = !showMatterDebug)}>{showMatterDebug ? "~on~" : "-off-"}</button>
-        <button on:click={() => (showBoundingSphereDebug = !showBoundingSphereDebug)}
-            >{showBoundingSphereDebug ? "~on~" : "-off-"}</button
-        >
-        <span style="color: white; font-family:Arial, Helvetica, sans-serif">widget style: </span>
-        <button on:click={() => (widgetDesign = WidgetStyle.Boundary)}>~1~</button>
-        <button on:click={() => (widgetDesign = WidgetStyle.SmallTopLeft)}>~2~</button>
-        <select bind:value={selectedDataset} on:change={initWithSingle}>
-            {#each exampleDatasets as dataset}
-                <option value={dataset}>
-                    {dataset.name}
-                </option>
-            {/each}
-        </select>
-    </div>
+    <DebugBar onChangeCallback={initWithSingle} bind:showMatterDebug={showMatterDebug} bind:showBoundingSphereDebug={showBoundingSphereDebug} bind:widgetDesign={widgetDesign} {exampleDatasets} bind:selectedDataset={selectedDataset} />
     <div id="canvas-container">
         <!-- Canvas containing 3D models -->
         <Canvas>
