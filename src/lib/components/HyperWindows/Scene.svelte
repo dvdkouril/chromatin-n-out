@@ -1,14 +1,15 @@
 <script lang="ts">
     import { T } from "@threlte/core";
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
-    import { PerspectiveCamera, Vector2 } from "three";
+    import type { PerspectiveCamera, Vector2 } from "three";
     import { onMount } from "svelte";
     import { computeBoundingCircle, projectModelToScreenSpace } from "../../util";
     import type { BoundingSphere, HyperWindow } from "../../hyperwindows-types";
     import Matter from "matter-js";
 
     //~ TODO: change to a better design
-    export let engine: Matter.Engine;
+    export let engine: Matter.Engine; //~ TODO: I might instead just send a function
+                                        //~     to check where the click landed
     export let canvas: HTMLElement; //~ should come from useThrelte renderer
 
     //~ Threlte lifecycle
@@ -20,9 +21,8 @@
     let dragging = false;
     export let canvasWidth = 123;
     export let canvasHeight = 123;
-    let previousCanvasWidth = 123;
-    let previousCanvasHeight = 123;
-    export let matterjsDebugCanvas: HTMLCanvasElement | undefined;
+    
+    // export let matterjsDebugCanvas: HTMLCanvasElement | undefined;
 
     //~ Actual scene content
     export let hyperWindows: HyperWindow[];
@@ -30,9 +30,9 @@
 
     //~ exports
     export let boundingSpheres: BoundingSphere[]; //~ sending up the computed bounding spheres (center+radius)
-    export let debugPositions: [Vector2, string][]; //~ sending up just the projected bin positions
+    // export let debugPositions: [Vector2, string][]; //~ sending up just the projected bin positions
     export let debugTexts: { text: string; x: number; y: number }[];
-    export let showMatterDebug: boolean;
+    // export let showMatterDebug: boolean;
 
     
     const onMouseDown = (e: MouseEvent) => {
@@ -142,7 +142,7 @@
             lastMousePos = { x: x, y: y };
 
             //~ adjust Matter.js body: Scale
-            let [center, radius] = computeBoundingSphere(hprWindow, camera);
+            let [_, radius] = computeBoundingSphere(hprWindow, camera);
             const currentRadius = hprWindow.currentRadius;
             const wantedRadius = radius;
             const scaleFactor = wantedRadius / currentRadius;
@@ -151,9 +151,9 @@
             Matter.Body.scale(b, scaleFactor, scaleFactor);
 
             //~ adjust Matter.js body:  Position
-            const wantedPos = center;
-            const currentPos = new Vector2(b.position.x, b.position.y);
-            const offset = wantedPos.clone().sub(currentPos);
+            // const wantedPos = center;
+            // const currentPos = new Vector2(b.position.x, b.position.y);
+            // const offset = wantedPos.clone().sub(currentPos);
 
             // Matter.Body.translate(b, { x: offset.x, y: offset.y });
 
@@ -200,7 +200,7 @@
             hprWindow.threeDView.zoom += zoomingSpeed * delta;
 
             //~ adjust Matter.js body: Scale
-            let [center, radius] = computeBoundingSphere(hprWindow, camera);
+            let [_, radius] = computeBoundingSphere(hprWindow, camera);
             const currentRadius = hprWindow.currentRadius;
             const wantedRadius = radius;
             const scaleFactor = wantedRadius / currentRadius;
@@ -209,9 +209,9 @@
             Matter.Body.scale(b, scaleFactor, scaleFactor);
 
             //~ adjust Matter.js body:  Position
-            const wantedPos = center;
-            const currentPos = new Vector2(b.position.x, b.position.y);
-            const offset = wantedPos.clone().sub(currentPos);
+            // const wantedPos = center;
+            // const currentPos = new Vector2(b.position.x, b.position.y);
+            // const offset = wantedPos.clone().sub(currentPos);
 
             // Matter.Body.translate(b, { x: offset.x, y: offset.y });
 

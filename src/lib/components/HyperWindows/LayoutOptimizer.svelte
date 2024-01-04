@@ -1,10 +1,11 @@
 <script lang="ts">
     import Scene from "./Scene.svelte";
-    import { Vector2, type PerspectiveCamera } from "three";
-    import type { BoundingSphere } from "$lib/hyperwindows-types";
+    import { Vector2, Vector3, type PerspectiveCamera } from "three";
+    import type { BoundingSphere, HyperWindow } from "$lib/hyperwindows-types";
     import Matter from "matter-js";
     import { onMount } from "svelte";
     import { useThrelte, useFrame, type Size } from "@threlte/core";
+    import { unprojectToWorldSpace } from "$lib/util";
 
     let hyperWindowsPositions: Vector2[] = [];
     /**
@@ -24,6 +25,8 @@
     let wall_right: Matter.Body | undefined = undefined;
     let bodiesInitialized = false;
 
+    export let hyperWindows: HyperWindow[];
+
     //~ copied from elsewhere
     let scene: Scene;
     let canvasWidth = 800; //~ binding these upwards with useThrelte
@@ -38,6 +41,8 @@
     $: sizeChanged($size);
     const { renderer, size } = useThrelte();
     const canvas = renderer?.domElement;
+    let previousCanvasWidth = 123;
+    let previousCanvasHeight = 123;
 
     const sizeChanged = (size: Size) => {
         previousCanvasWidth = canvasWidth;
@@ -148,43 +153,44 @@
     };
 
     export const newHyperWindowAdded = (newHW: HyperWindow, sourceHW: HyperWindow) => {
-        const startWorlPosition = camera ? unprojectToWorldSpace(newHW.screenPosition, camera) : new Vector3(0, 0, 0);
-        newHW.model.modelWorldPosition = startWorlPosition;
-
-        const [_, radius] = computeBoundingSphere(newHW, camera);
-        newHW.currentRadius = radius;
-
-        // broken code follows:
-        const c = new Vector2(newHW.screenPosition.x * canvasWidth, newHW.screenPosition.y * canvasHeight);
-        // const newBody = Matter.Bodies.circle(c.x, c.y, initialRadius, {
-        const newBody = Matter.Bodies.circle(c.x, c.y, newHW.currentRadius, {
-            restitution: 0,
-            friction: 1,
-        });
-        newHW.associatedBodyId = newBody.id;
-        newHW.associatedBodyIndex = matter_bodies.length;
-        // (hw.associatedBodyIndex = i), //~ one of these is redundant but i can't say which rn
-        matter_bodies.push(newBody);
-        matter_body_ids.push(newBody.id);
-        // i += 1;
-
-        // matter_bodies = bodies;
-        // matter_body_ids = ids;
-
-        const sourceHWBody = matter_bodies[sourceHW.associatedBodyIndex];
-        var constraint = Matter.Constraint.create({
-            bodyA: sourceHWBody,
-            bodyB: newBody,
-            stiffness: 0.001,
-            damping: 0.05,
-        });
-
-        //~ add bodies to the Matterjs engine's world
-        Matter.Composite.add(engine.world, [newBody, constraint]);
-        console.log("new selection -> new hyperwindow added -> should add new body!");
-
-        hyperWindows.push(newHW); //~ just temporarily, until next "update"
-        recomputeBoundingSpheres(hyperWindows);
+        ////~ TODO: I think this is the part that needs to be reworked the most, so I'm commenting it out for now
+        // const startWorlPosition = camera ? unprojectToWorldSpace(newHW.screenPosition, camera) : new Vector3(0, 0, 0);
+        // newHW.model.modelWorldPosition = startWorlPosition;
+        //
+        // const [_, radius] = computeBoundingSphere(newHW, camera);
+        // newHW.currentRadius = radius;
+        //
+        // // broken code follows:
+        // const c = new Vector2(newHW.screenPosition.x * canvasWidth, newHW.screenPosition.y * canvasHeight);
+        // // const newBody = Matter.Bodies.circle(c.x, c.y, initialRadius, {
+        // const newBody = Matter.Bodies.circle(c.x, c.y, newHW.currentRadius, {
+        //     restitution: 0,
+        //     friction: 1,
+        // });
+        // newHW.associatedBodyId = newBody.id;
+        // newHW.associatedBodyIndex = matter_bodies.length;
+        // // (hw.associatedBodyIndex = i), //~ one of these is redundant but i can't say which rn
+        // matter_bodies.push(newBody);
+        // matter_body_ids.push(newBody.id);
+        // // i += 1;
+        //
+        // // matter_bodies = bodies;
+        // // matter_body_ids = ids;
+        //
+        // const sourceHWBody = matter_bodies[sourceHW.associatedBodyIndex];
+        // var constraint = Matter.Constraint.create({
+        //     bodyA: sourceHWBody,
+        //     bodyB: newBody,
+        //     stiffness: 0.001,
+        //     damping: 0.05,
+        // });
+        //
+        // //~ add bodies to the Matterjs engine's world
+        // Matter.Composite.add(engine.world, [newBody, constraint]);
+        // console.log("new selection -> new hyperwindow added -> should add new body!");
+        //
+        // // hyperWindows.push(newHW); //~ just temporarily, until next "update"
+        // // recomputeBoundingSpheres(hyperWindows);
     };
 
     useFrame(() => {
@@ -247,6 +253,7 @@
             bodiesInitialized = true;
         }
 
+        console.log("LayoutOptimizer::onMount");
 
     });
 </script>
@@ -257,15 +264,14 @@ The purpose of LayoutOptimizer is to manage all the Matter.js logic behind placi
 
 -->
 <Scene
-    {hyperWindowsPositions}
+    {hyperWindows}
+    {engine}
+    {canvas}
     bind:this={scene}
     bind:canvasWidth
     bind:canvasHeight
     bind:boundingSpheres
-    bind:debugPositions
     bind:debugTexts
     bind:camera
-    {showMatterDebug}
-    {matterjsDebugCanvas}
 />
 <!-- TODO: probably also move the Selections layer here, I will need to send the HW positions also there-->
