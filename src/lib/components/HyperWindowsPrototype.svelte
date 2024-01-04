@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Canvas } from "@threlte/core";
-    import Scene from "./HyperWindows/Scene.svelte";
+    // import Scene from "./HyperWindows/Scene.svelte";
+    import type Scene from "./HyperWindows/Scene.svelte";
     import { PerspectiveCamera, Vector2 } from "three";
     import DebugOverlay from "./HyperWindows/DebugOverlay.svelte";
     import SelectionsLayer from "./HyperWindows/SelectionsLayer.svelte";
@@ -19,6 +20,7 @@
     } from "../hyperwindows-types";
     import { cell7 } from "$lib/test_cell7";
     import DebugBar from "./HyperWindows/DebugBar.svelte";
+    import LayoutOptimizer from "./HyperWindows/LayoutOptimizer.svelte";
 
     const selectionWidgetThickness = 25;
 
@@ -40,11 +42,15 @@
     let selectedDataset: { id: number; name: string } = exampleDatasets[2];
 
     //~ Main data structures
-    // let rootHyperWindows: HyperWindow[] = []; //~ contains roots of HyperWindow hierarchies
     let hyperWindows: HyperWindow[] = [];
     let hwModels: HWGeometry[] = []; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
     let hw3DViews: HW3DView[] = []; //~ linearized array with information only relevant for the 3D rendering
     let hwWidgets: HWSelectionWidget[] = []; //~ linearized array with information only relevant for the selection widget
+
+    /*
+    The main array to hold current positions of all HyperWindows
+    */
+    let hyperWindowsPositions: Vector2[] = [];
 
     //~ Structures related to computation of the bounding sphere and final screen positions
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
@@ -71,12 +77,7 @@
         }
         return res;
     };
-
-    const processHyperWindowsHierarchy = () => {
-        //~ TODO: based on the above processWidgetsHierarchy, I might want to generate the arrays from the tree
-        //~ for now I can just update the arrays directly though
-    };
-
+    
     const newSelection = (
         ev: CustomEvent<{
             selection: Selection;
@@ -251,18 +252,18 @@
     <div id="canvas-container">
         <!-- Canvas containing 3D models -->
         <Canvas>
-            <Scene
-                bind:this={scene}
-                bind:hyperWindows
-                bind:canvasWidth
-                bind:canvasHeight
-                bind:boundingSpheres
-                bind:debugPositions
-                bind:debugTexts
-                bind:camera
-                {showMatterDebug}
-                {matterjsDebugCanvas}
-            />
+            <LayoutOptimizer />
+            <!-- <Scene -->
+            <!--     bind:this={scene} -->
+            <!--     bind:canvasWidth -->
+            <!--     bind:canvasHeight -->
+            <!--     bind:boundingSpheres -->
+            <!--     bind:debugPositions -->
+            <!--     bind:debugTexts -->
+            <!--     bind:camera -->
+            <!--     {showMatterDebug} -->
+            <!--     {matterjsDebugCanvas} -->
+            <!-- /> -->
         </Canvas>
 
         <!-- SVG debug overlay -->
