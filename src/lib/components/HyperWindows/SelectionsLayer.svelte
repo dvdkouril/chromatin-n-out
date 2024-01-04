@@ -12,7 +12,7 @@
 
     export let width: number;
     export let height: number;
-    export let selectionWidgetThickness: number;
+    const selectionWidgetThickness = 25;
     export let newSelectionCallback: (
         ev: CustomEvent<{
             selection: Selection;

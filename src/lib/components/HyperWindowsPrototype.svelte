@@ -1,10 +1,10 @@
 <script lang="ts">
     import { Canvas } from "@threlte/core";
     // import Scene from "./HyperWindows/Scene.svelte";
-    import type Scene from "./HyperWindows/Scene.svelte";
-    import { PerspectiveCamera, Vector2 } from "three";
+    // import Scene from "./HyperWindows/Scene.svelte";
+    import { Vector2 } from "three";
     import DebugOverlay from "./HyperWindows/DebugOverlay.svelte";
-    import SelectionsLayer from "./HyperWindows/SelectionsLayer.svelte";
+    // import SelectionsLayer from "./HyperWindows/SelectionsLayer.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../test_BRAFL";
     import { spomb } from "../test_SPOMB";
@@ -18,19 +18,20 @@
         type Selection,
         type HyperWindowsLayout,
         WidgetStyle,
-    } from "../hyperwindows-types";
+    } from "$lib/hyperwindows-types";
     import { cell7 } from "$lib/test_cell7";
     import DebugBar from "./HyperWindows/DebugBar.svelte";
     import LayoutOptimizer from "./HyperWindows/LayoutOptimizer.svelte";
 
-    const selectionWidgetThickness = 25;
 
     let canvasWidth = 800; //~ binding these upwards with useThrelte
     let canvasHeight = 600;
     let matterjsDebugCanvas: HTMLCanvasElement | undefined = undefined;
-    let camera: PerspectiveCamera;
+    // let camera: PerspectiveCamera;
 
-    let scene: Scene;
+    // let scene: Scene;
+
+    let layoutOptimizer: LayoutOptimizer;
 
     let nextAvailableId = 1; //~ 0 is hardcoded onMount
 
@@ -49,14 +50,11 @@
     let hwWidgets: HWSelectionWidget[] = []; //~ linearized array with information only relevant for the selection widget
     let hwLayout: HyperWindowsLayout = { num: 0, centers: [], radii: [] };
 
-    /*
-    The main array to hold current positions of all HyperWindows
-    */
-    let hyperWindowsPositions: Vector2[] = [];
+    $: updateLayout(physicsBodiesPositions);
 
     //~ Structures related to computation of the bounding sphere and final screen positions
+    let physicsBodiesPositions: Vector2[] = [];
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
-    // $: widgetsAndPositionsAndRadii = updateWidgetsScreenPositions(hwWidgets, boundingSpheres); //~ for SelectionsLayer
 
     //~ DEBUG
     let debugPositions: [Vector2, string][] = []; //~ for now used for screen space positions of model spheres
@@ -65,21 +63,19 @@
     let widgetDesign: WidgetStyle = WidgetStyle.Boundary;
     let debugTexts: { text: string; x: number; y: number }[] = [];
 
-    const updateWidgetsScreenPositions = (
-        widgets: HWSelectionWidget[],
-        bSpheres: BoundingSphere[],
-    ): [HWSelectionWidget, HyperWindow, Vector2, number][] => {
-        if (widgets.length != bSpheres.length) {
-            return [];
+    /*
+        The idea is to have these handlers for changing the layout:
+        - the physics: bodiesPositions could theoretically change every frame, based on the physics simulation
+        - zooming (and maybe orbiting?): when you zoom in and enlarge the HW, the physics bodies should also be updated
+        - 
+    */
+    const updateLayout = (bodiesPositions: Vector2[]) => {
+        for (let [i, bPos] of bodiesPositions.entries()) {
+            hwLayout.centers[i] = bPos;
         }
-
-        let res: [HWSelectionWidget, HyperWindow, Vector2, number][] = [];
-        for (let [i, w] of widgets.entries()) {
-            res.push([w, hyperWindows[i], bSpheres[i].center, bSpheres[i].radius]);
-        }
-        return res;
+        hwLayout = hwLayout; //~ reactivity
     };
-    
+
     const newSelection = (
         ev: CustomEvent<{
             selection: Selection;
@@ -101,7 +97,7 @@
         const newHWScreenPosition = randomPositionAroundHyperWindow(sourceHWPosition, sourceHWRadius / canvasWidth);
 
         //~ Create the actual new HyperWindow
-        const [newHW, newGeo, new3DView, newSelWidget] = makeNewHyperWindow(
+        const [newHW, _, new3DView, newSelWidget] = makeNewHyperWindow(
             newWidgetId,
             newHWScreenPosition,
             sel,
@@ -121,6 +117,8 @@
         hwWidgets = [...hwWidgets, newSelWidget];
 
         // scene.newHyperWindowAdded(newHW, sourceHyperWindow);
+        //~ instead:
+        layoutOptimizer.addBodyForNewHyperWindow(/*TODO: parameters*/);
     };
 
     const default3DView = (): HW3DView => {
@@ -265,43 +263,15 @@
 
 <div id="wrapper">
     <DebugBar onChangeCallback={initWithSingle} bind:showMatterDebug={showMatterDebug} bind:showBoundingSphereDebug={showBoundingSphereDebug} bind:widgetDesign={widgetDesign} {exampleDatasets} bind:selectedDataset={selectedDataset} />
+
     <div id="canvas-container">
-        <!-- Canvas containing 3D models -->
-        <Canvas>
-            <LayoutOptimizer {hyperWindows} />
-            <!-- alternatively I could do this with slots (???) -->
-            <!-- <LayoutOptimizer {hyperWindows}> -->
-            <!-- <Scene -->
-            <!--     bind:this={scene} -->
-            <!--     bind:canvasWidth -->
-            <!--     bind:canvasHeight -->
-            <!--     bind:boundingSpheres -->
-            <!--     bind:debugPositions -->
-            <!--     bind:debugTexts -->
-            <!--     bind:camera -->
-            <!--     {showMatterDebug} -->
-            <!--     {matterjsDebugCanvas} -->
-            <!-- /> -->
-            <!-- </LayoutOptimizer> -->
-            
-        </Canvas>
+        <!-- Manages the positioning of HyperWindows (both the 3D part and the SelectionWidget) -->
+        <LayoutOptimizer bind:this={layoutOptimizer} {hyperWindows} {hwWidgets} {hwLayout} newSelectionCallback={newSelection} {widgetDesign} {matterjsDebugCanvas} />
 
         <!-- SVG debug overlay -->
         {#if showBoundingSphereDebug}
             <DebugOverlay {canvasWidth} {canvasHeight} {boundingSpheres} {debugPositions} {debugTexts} />
         {/if}
-
-        <!-- SVG-based layer with selection widgets for each 3D (sub)model -->
-        <SelectionsLayer
-            width={canvasWidth}
-            height={canvasHeight}
-            widgets={hwWidgets}
-            {hyperWindows}
-            layout={hwLayout}
-            {selectionWidgetThickness}
-            newSelectionCallback={newSelection}
-            {widgetDesign}
-        />
 
         <!-- placeholder for Matter.js debug view -->
         <canvas id="matterjs-debug" width={canvasWidth} height={canvasHeight} bind:this={matterjsDebugCanvas} />

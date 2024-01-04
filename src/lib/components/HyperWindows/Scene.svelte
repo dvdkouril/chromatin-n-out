@@ -1,32 +1,38 @@
 <script lang="ts">
-    import { T } from "@threlte/core";
+    import { T, useThrelte, type Size } from "@threlte/core";
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
     import type { PerspectiveCamera, Vector2 } from "three";
     import { onMount } from "svelte";
     import { computeBoundingCircle, projectModelToScreenSpace } from "../../util";
-    import type { BoundingSphere, HyperWindow } from "../../hyperwindows-types";
+    import type { BoundingSphere, HyperWindow, HyperWindowsLayout } from "../../hyperwindows-types";
     import Matter from "matter-js";
 
     //~ TODO: change to a better design
     export let engine: Matter.Engine; //~ TODO: I might instead just send a function
                                         //~     to check where the click landed
-    export let canvas: HTMLElement; //~ should come from useThrelte renderer
+    // export let canvas: HTMLElement; //~ should come from useThrelte renderer
 
     //~ Threlte lifecycle
     // const { renderer, size } = useThrelte();
-
+    // $: sizeChanged($size);
+    const { renderer, size } = useThrelte();
+    const canvas = renderer?.domElement;
+    // let previousCanvasWidth = 123;
+    // let previousCanvasHeight = 123;
     //~ DOM
     // const canvas = renderer?.domElement;
     let lastMousePos = { x: 0, y: 0 };
     let dragging = false;
     export let canvasWidth = 123;
     export let canvasHeight = 123;
+    $: sizeChanged($size);
     
     // export let matterjsDebugCanvas: HTMLCanvasElement | undefined;
 
     //~ Actual scene content
     export let hyperWindows: HyperWindow[];
     export let camera: PerspectiveCamera;
+    export let hwLayout: HyperWindowsLayout; //~ TODO: use this for getting position of the HW
 
     //~ exports
     export let boundingSpheres: BoundingSphere[]; //~ sending up the computed bounding spheres (center+radius)
@@ -34,6 +40,23 @@
     export let debugTexts: { text: string; x: number; y: number }[];
     // export let showMatterDebug: boolean;
 
+
+    const sizeChanged = (size: Size) => {
+        // previousCanvasWidth = canvasWidth;
+        // previousCanvasHeight = canvasHeight;
+        canvasWidth = size.width;
+        canvasHeight = size.height;
+
+        //~ TODO: this should happen in LayoutOptimizer now
+        // if ((previousCanvasWidth == 0 || previousCanvasHeight == 0) && canvasWidth != 0 && canvasHeight != 0) {
+        //     if (!bodiesInitialized) {
+        //         initializePhysicsBodies();
+        //         bodiesInitialized = true;
+        //     }
+        // }
+        //
+        // reconfigureWalls(canvasWidth, canvasHeight);
+    };
     
     const onMouseDown = (e: MouseEvent) => {
         if ((e.target == null) || !(e.target instanceof Element)) {
