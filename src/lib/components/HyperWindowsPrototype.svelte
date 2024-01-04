@@ -8,7 +8,7 @@
     import { onMount } from "svelte";
     import { brafl } from "../test_BRAFL";
     import { spomb } from "../test_SPOMB";
-    import { computeTubes, load3DModel, randomPositionAroundHyperWindow, recenter } from "../util";
+    import { computeTubes, load3DModel, randomPositionAroundHyperWindow, recenter, uvToScreen } from "../util";
     import {
         type HWGeometry,
         type HWSelectionWidget,
@@ -108,12 +108,19 @@
             sourceWidget,
         );
 
+        //~ add to layout
+        hwLayout = {
+            num: hwLayout.num + 1,
+            centers: [...hwLayout.centers, uvToScreen(newHWScreenPosition, canvasWidth, canvasHeight)],
+            radii: [...hwLayout.radii, sourceHWRadius],
+        };
+
         hyperWindows = [...hyperWindows, newHW];
         hwModels = [...hwModels, hwModels[0]]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
         hw3DViews = [...hw3DViews, new3DView]; //~ linearized array with information only relevant for the 3D rendering
         hwWidgets = [...hwWidgets, newSelWidget];
 
-        scene.newHyperWindowAdded(newHW, sourceHyperWindow);
+        // scene.newHyperWindowAdded(newHW, sourceHyperWindow);
     };
 
     const default3DView = (): HW3DView => {
@@ -127,7 +134,7 @@
         };
     };
 
-    const makeInitialHyperWindow = (): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] | null => {
+    const makeInitialHyperWindow = (): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget, HyperWindowsLayout] | null => {
         //~ 1. load the 3D model (future TODO: multiple models)
         let newModel = undefined;
         if (selectedDataset.name == "brafl") {
@@ -170,7 +177,13 @@
             childHyperWindows: [],
         };
 
-        return [newHW, newModel, new3DView, newWidget];
+        const newLayout: HyperWindowsLayout = {
+            num: 1,
+            centers: [uvToScreen(startScreenPosition, canvasWidth, canvasHeight)],
+            radii: [initialRadius],
+        };
+
+        return [newHW, newModel, new3DView, newWidget, newLayout];
     };
 
     const makeNewHyperWindow = (
@@ -236,12 +249,13 @@
             return;
         }
 
-        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] = res;
+        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget, layout] = res;
 
         hyperWindows = [hwRoot];
         hwModels = [hwRootModel];
         hw3DViews = [hwRoot3DView];
         hwWidgets = [hwRootWidget];
+        hwLayout = layout;
     };
 
     onMount(() => {

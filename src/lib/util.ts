@@ -395,3 +395,13 @@ export const randomPositionAroundHyperWindow = (
     const newPosition = sourceWidgetPosition.clone().add(unitVec);
     return newPosition;
 };
+
+export const uvToScreen = (coords: Vector2, width: number, height: number): Vector2 => {
+    const screenCoords = new Vector2(coords.x * width, coords.y * height);
+    return screenCoords;
+}
+
+export const screenToUV = (coords: Vector2, width: number, height: number): Vector2 => {
+    const uvCoords = new Vector2(coords.x / width, coords.y / height);
+    return uvCoords;
+}
