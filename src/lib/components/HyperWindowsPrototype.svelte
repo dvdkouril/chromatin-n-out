@@ -252,7 +252,9 @@
     <div id="canvas-container">
         <!-- Canvas containing 3D models -->
         <Canvas>
-            <LayoutOptimizer />
+            <LayoutOptimizer {hyperWindows} />
+            <!-- alternatively I could do this with slots (???) -->
+            <!-- <LayoutOptimizer {hyperWindows}> -->
             <!-- <Scene -->
             <!--     bind:this={scene} -->
             <!--     bind:canvasWidth -->
@@ -264,6 +266,8 @@
             <!--     {showMatterDebug} -->
             <!--     {matterjsDebugCanvas} -->
             <!-- /> -->
+            <!-- </LayoutOptimizer> -->
+            
         </Canvas>
 
         <!-- SVG debug overlay -->
