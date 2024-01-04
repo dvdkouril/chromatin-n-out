@@ -16,6 +16,7 @@
         type HW3DView,
         type BoundingSphere,
         type Selection,
+        type HyperWindowsLayout,
         WidgetStyle,
     } from "../hyperwindows-types";
     import { cell7 } from "$lib/test_cell7";
@@ -46,6 +47,7 @@
     let hwModels: HWGeometry[] = []; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
     let hw3DViews: HW3DView[] = []; //~ linearized array with information only relevant for the 3D rendering
     let hwWidgets: HWSelectionWidget[] = []; //~ linearized array with information only relevant for the selection widget
+    let hwLayout: HyperWindowsLayout = { num: 0, centers: [], radii: [] };
 
     /*
     The main array to hold current positions of all HyperWindows
@@ -281,7 +283,7 @@
             height={canvasHeight}
             widgets={hwWidgets}
             {hyperWindows}
-            {boundingSpheres}
+            layout={hwLayout}
             {selectionWidgetThickness}
             newSelectionCallback={newSelection}
             {widgetDesign}

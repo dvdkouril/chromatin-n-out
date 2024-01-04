@@ -4,7 +4,7 @@
     import SelectionWidget from "./SelectionWidget.svelte";
     import { WidgetStyle } from "$lib/hyperwindows-types";
     import type {
-        BoundingSphere,
+        HyperWindowsLayout, 
         HWSelectionWidget,
         Selection,
         HyperWindow,
@@ -23,12 +23,12 @@
 
     export let widgets: HWSelectionWidget[];
     export let hyperWindows: HyperWindow[];
-    export let boundingSpheres: BoundingSphere[];
+    export let layout: HyperWindowsLayout;
 
     export let widgetDesign: WidgetStyle = WidgetStyle.SmallTopLeft;
 
     $: maxBinsNum = widgets.length > 0 ? widgets[0].binsNum : 0; //~ it should be that the first widget (= top level) has the most bins
-    $: grayColorMap = generateGrayScale(maxBinsNum);
+    $: grayColorMap = generateGrayScale(maxBinsNum); //~ the colormap is generated for each HW tree, subsequent HWs only get subparts
 
     const getPositionBasedOnStyle = (
         style: WidgetStyle,
@@ -66,21 +66,21 @@
 
 <div id="arc-selection-widget">
     <svg {width} {height} pointer-events="none">
-        {#each widgets as widget, i}
-            {#if i < boundingSpheres.length}
+        {#if layout.num == widgets.length }
+            {#each widgets as widget, i}
                 <SelectionWidget
                     position={getPositionBasedOnStyle(
                         widgetDesign,
-                        boundingSpheres[i].center,
-                        boundingSpheres[i].radius,
+                        layout.centers[i],
+                        layout.radii[i],
                     )}
                     width={getSizeBasedOnStyle(
                         widgetDesign,
-                        boundingSpheres[i].radius,
+                        layout.radii[i],
                     )}
                     height={getSizeBasedOnStyle(
                         widgetDesign,
-                        boundingSpheres[i].radius,
+                        layout.radii[i],
                     )}
                     widgetThickness={selectionWidgetThickness}
                     N={widget.binsNum}
@@ -91,8 +91,11 @@
                     {widget}
                     hyperWindow={hyperWindows[i]}
                 />
-            {/if}
-        {/each}
+            
+            {/each}
+        {:else}
+            ERROR: less widgets than boundingSpheres
+        {/if}
     </svg>
 </div>
 

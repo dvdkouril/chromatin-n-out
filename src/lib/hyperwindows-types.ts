@@ -53,6 +53,16 @@ export type HWSelectionWidget = {
     // widgets: Widget[];
 };
 
+/**
+ * The single sourse of truth about where individual HyperWindows (and SelectionWidgets) should be positioned
+ */
+export type HyperWindowsLayout = {
+    num: number; //~ number of HyperWindows/Widgets (centers/radii.length)
+
+    centers: Vector2[];
+    radii: number[];
+};
+
 export type BoundingSphere = {
     center: Vector2;
     radius: number;
