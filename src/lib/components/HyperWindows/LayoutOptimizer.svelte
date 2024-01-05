@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     //~ three, threlte, matter
-    import type { PerspectiveCamera } from "three";
+    import { Vector2, type PerspectiveCamera } from "three";
     import { Canvas } from "@threlte/core";
     import Matter from "matter-js";
     //~ my own types and components
@@ -9,7 +9,6 @@
     import SelectionsLayer from "./SelectionsLayer.svelte";
     import type { BoundingSphere, HWSelectionWidget, HyperWindow, HyperWindowsLayout, Selection, WidgetStyle } from "$lib/hyperwindows-types";
     import { uvToScreen } from "$lib/util";
-    import App from "../App.svelte";
 
     //~ Matter.js physics
     let matterEngine = Matter.Engine.create();
@@ -37,6 +36,9 @@
     export let hwWidgets: HWSelectionWidget[];
     export let hwLayout: HyperWindowsLayout;
 
+    //~ Reactivity: for when we add/remove hyperwindows
+    $: updateBodies(hyperWindows);
+
     export let newSelectionCallback: (
         ev: CustomEvent<{
             selection: Selection;
@@ -50,6 +52,8 @@
     let scene: Scene;
     let canvasWidth = 800; //~ binding these upwards with useThrelte
     let canvasHeight = 600;
+    $: sizeChanged(canvasWidth, canvasHeight);
+    
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
     let debugTexts: { text: string; x: number; y: number }[] = [];
     let camera: PerspectiveCamera;
@@ -58,9 +62,28 @@
     export let showMatterDebug: boolean = false;
     export let matterjsDebugCanvas: HTMLCanvasElement | undefined = undefined;
 
-    $: sizeChanged(canvasWidth, canvasHeight);
-    // let previousCanvasWidth = 123;
-    // let previousCanvasHeight = 123;
+
+    /*
+      Update bodies based on changed hyperwindows.
+      Current use cases in mind:
+      - init (first hyperwindows are empty => can't create bodies onMount)
+      - added a new HW (although do I want to remove all previous HW bodies?)
+    */
+    const updateBodies = (hws: HyperWindow[]) => {
+        console.log("LayoutOptimizer::updateBodies");
+        console.log(hws.length);
+
+        //~ TODO: this is probably wrong! just testing;
+        Matter.Composite.remove(matterEngine.world, matter_bodies);
+        initializePhysicsBodies();
+    };
+
+    //~ use case in mind: actually idk, lol
+    //~ cause mainly the positions should change because of the physics
+    //~ and that gets updated here in this component
+    const updateBodiesPositions = (layout: HyperWindowsLayout) => {
+        console.log(layout.num);
+    };
 
     const sizeChanged = (width: number, height: number) => {
         // previousCanvasWidth = canvasWidth;
@@ -223,61 +246,21 @@
     // };
 
     const update = () => {
-        //~ TODO: poll the Matter physics and update positions of HyperWindows
-        // console.log("LayoutOptimizer::update");
+        //~ poll the Matter physics and update positions of HyperWindows
+        let newLayout: HyperWindowsLayout = {
+            num: 0,
+            centers: [],
+            radii: [],
+        };
+        for (let b of matter_bodies) {
+            newLayout.centers.push(new Vector2(b.position.x, b.position.y));
+            newLayout.radii.push(b.circleRadius || 0);
+            newLayout.num += 1;
+        }
+        hwLayout = newLayout;
 
         requestAnimationFrame(update); 
     };
-
-    //~ TODO: I have to poll the physics system with requestAnimationFrame
-    //~       because useFrame would need to be inside <Canvas></Canvas>
-    // useFrame(() => {
-    //     // recomputeBoundingSpheres();
-    //
-    //     //~ debug
-    //     // debugPositions = [];
-    //     // for (let hw of hyperWindows) {
-    //     //     const ss = projectPoint(hw.model.modelWorldPosition, camera);
-    //     //     debugPositions.push([new Vector2(ss.x * canvasWidth, ss.y * canvasHeight), "#990000"]);
-    //     // }
-    //
-    //     /**
-    //      * Updating HyperWindows positions based on the physics.
-    //      * The bounding circles are going to adjust based on the physics,
-    //      * and here we want to synchronize those.
-    //      */
-    //     const newHyperWindows: HyperWindow[] = [];
-    //     for (const [i, b] of matter_bodies.entries()) {
-    //         const oldHW = hyperWindows[i];
-    //
-    //          const newScreenPosition = new Vector2(b.position.x / canvasWidth, b.position.y / canvasHeight);
-    //
-    //          /**
-    //           * I think this is where the problem is:
-    //           * The hwNewWorldPosition is !not! the model origin, it's the position of center of the bounding circle
-    //           */
-    //          const hwNewWorldPosition = unprojectToWorldSpace(newScreenPosition, camera);
-    //          const hwOldWorldPosition = unprojectToWorldSpace(oldHW.screenPosition, camera);
-    //          const offset = hwNewWorldPosition.clone().sub(hwOldWorldPosition);
-    //
-    //          const newModelWorldPosition = oldHW.model.modelWorldPosition.clone().add(offset);
-    //
-    //         // spread operator
-    //         newHyperWindows.push({
-    //             ...oldHW,
-    //             screenPosition: newScreenPosition,
-    //             model: {
-    //                 ...oldHW.model,
-    //                 modelWorldPosition: newModelWorldPosition,
-    //             },
-    //             threeDView: {
-    //                 ...oldHW.threeDView,
-    //             },
-    //         });
-    //     }
-    //
-    //     hyperWindows = newHyperWindows;
-    // });
 
     onMount(() => {
         matterEngine.gravity.y = 0;
