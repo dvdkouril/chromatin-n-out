@@ -8,6 +8,7 @@
    
     //~ provided from LayoutOptimizer, for querying the physics during interaction (zooming, orbiting)
     export let getHyperWindowAtPosition: (x: number, y: number) => HyperWindow | undefined;
+    export let needToScaleBodyForHyperWindow: (hw: HyperWindow, scale: number) => void;
 
     //~ Threlte lifecycle
     const { renderer, size } = useThrelte();
@@ -34,7 +35,6 @@
             return;
         }
 
-        console.log("Scene::layoutChanged");
         for (let [i, hw] of hyperWindows.entries()) {
             //~ TODO: there's got to be a better way: LayoutOptimizer -> HW.screenPosition -> HW.worldPosition (worldposition is what gets actually used in rendering
             const hwPosition = new Vector2(layout.centers[i].x, layout.centers[i].y);
@@ -164,9 +164,8 @@
         const scaleFactor = wantedRadius / currentRadius;
         // hprWindow.currentRadius = wantedRadius;
 
-        //~ TODO:
-        // zoomedCallback(scaleFactor); //~ maybe something like a callback?
-        // Matter.Body.scale(b, scaleFactor, scaleFactor);
+        //~ message back the optimizer to adjust bodies size
+        needToScaleBodyForHyperWindow(hprWindow, scaleFactor);
 
         //~ adjust Matter.js body:  Position
         // const wantedPos = center;
@@ -212,8 +211,8 @@
         const scaleFactor = wantedRadius / currentRadius;
         // hprWindow.currentRadius = wantedRadius;
 
-        //~ TODO: later
-        // Matter.Body.scale(b, scaleFactor, scaleFactor);
+        //~ message back the optimizer to adjust bodies size
+        needToScaleBodyForHyperWindow(hprWindow, scaleFactor);
 
         //~ adjust Matter.js body:  Position
         // const wantedPos = center;

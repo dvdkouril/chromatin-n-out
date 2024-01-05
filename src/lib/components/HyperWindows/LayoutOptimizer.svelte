@@ -272,6 +272,11 @@
         return undefined;
     };
 
+    const needToScaleBodyForHyperWindow = (hw: HyperWindow, scaleFactor: number) => {
+        const b = matter_bodies[hw.id];
+        Matter.Body.scale(b, scaleFactor, scaleFactor);
+    };
+
     const update = () => {
         //~ poll the Matter physics and update positions of HyperWindows
         let newLayout: HyperWindowsLayout = {
@@ -325,6 +330,7 @@ The purpose of LayoutOptimizer is to manage all the Matter.js logic behind placi
         bind:debugTexts
         bind:camera
         {getHyperWindowAtPosition}
+        {needToScaleBodyForHyperWindow}
     />
 </Canvas>
 
