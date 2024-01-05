@@ -33,6 +33,7 @@
 
         for (let [i, hw] of hyperWindows.entries()) {
             //~ TODO: there's got to be a better way: LayoutOptimizer -> HW.screenPosition -> HW.worldPosition (worldposition is what gets actually used in rendering
+            //~ TODO: this is actually again wrong: the center of the bounding sphere is not the center (origin) of the model...but for now it's fine
             const hwPosition = new Vector2(layout.centers[i].x, layout.centers[i].y);
             hw.model.modelWorldPosition = unprojectToWorldSpace(screenToUV(hwPosition, canvasWidth, canvasHeight), camera);
         }
