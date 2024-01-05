@@ -36,6 +36,9 @@
     export let hwWidgets: HWSelectionWidget[];
     export let hwLayout: HyperWindowsLayout;
 
+    //~ TODO: move to LayoutOptimizer!
+    let bodyToHWLookup = new Map<number, HyperWindow>();
+
     //~ Reactivity: for when we add/remove hyperwindows
     $: updateBodies(hyperWindows);
 
@@ -146,18 +149,23 @@
         //~ creating the bodies here
         let bodies = [];
         let ids = [];
-        for (let [i, hw] of hyperWindows.entries()) {
+        bodyToHWLookup.clear();
+        for (let i = 0; i < hwLayout.num; i++) {
             //~ <0, 1> -> <0, width/height>
-            // const c = new Vector2(hw.screenPosition.x * canvasWidth, hw.screenPosition.y * canvasHeight);
-            const c = uvToScreen(hw.screenPosition, canvasWidth, canvasHeight);
-            const newBody = Matter.Bodies.circle(c.x, c.y, hw.currentRadius, {
+            const position = hwLayout.centers[i];
+            const radius = hwLayout.radii[i];
+            // const c = uvToScreen(hw.screenPosition, canvasWidth, canvasHeight);
+            const c = position;
+            const newBody = Matter.Bodies.circle(c.x, c.y, radius, {
                 restitution: 0,
                 friction: 1,
             });
-            hw.associatedBodyId = newBody.id;
-            hw.associatedBodyIndex = i; //~ one of these is redundant but i can't say which rn
+            // hw.associatedBodyId = newBody.id;
+            // hw.associatedBodyIndex = i; //~ one of these is redundant but i can't say which rn
             bodies.push(newBody);
             ids.push(newBody.id);
+            //~ I'm not 100% sure about the hyperWindows[i] access
+            bodyToHWLookup.set(newBody.id, hyperWindows[i]);
         }
         matter_bodies = bodies;
         matter_body_ids = ids;
@@ -245,6 +253,25 @@
     //     // // recomputeBoundingSpheres(hyperWindows);
     // };
 
+    /*
+     * Provided to the Scene to access the engine during interactions
+     */
+    const getHyperWindowAtPosition = (x: number, y: number): HyperWindow | undefined => {
+        //~ use the x,y to query the physics engine; get the body under cursor
+        let hitBodies = Matter.Query.point(matterEngine.world.bodies, { x: x, y: y });
+        if (hitBodies.length > 0) {
+            let b = hitBodies[0]; //~ assume for now that we don't have overlapping bodies
+            const bodyId = b.id;
+
+            if (!bodyToHWLookup.has(bodyId)) {
+                return undefined;
+            }
+            let hprWindow = bodyToHWLookup.get(bodyId);
+            return hprWindow;
+        }
+        return undefined;
+    };
+
     const update = () => {
         //~ poll the Matter physics and update positions of HyperWindows
         let newLayout: HyperWindowsLayout = {
@@ -291,13 +318,13 @@ The purpose of LayoutOptimizer is to manage all the Matter.js logic behind placi
     <Scene
         {hyperWindows}
         {hwLayout}
-        engine={matterEngine}
         bind:this={scene}
         bind:canvasWidth
         bind:canvasHeight
         bind:boundingSpheres
         bind:debugTexts
         bind:camera
+        {getHyperWindowAtPosition}
     />
 </Canvas>
 
@@ -311,5 +338,3 @@ The purpose of LayoutOptimizer is to manage all the Matter.js logic behind placi
     {newSelectionCallback}
     {widgetDesign}
 />
-
-<!-- TODO: probably also move the Selections layer here, I will need to send the HW positions also there-->

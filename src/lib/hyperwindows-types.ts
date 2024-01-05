@@ -22,10 +22,11 @@ export type HW3DView = {
  * Node in a tree of HyperWindows hierarchy
  */
 export type HyperWindow = {
-    screenPosition: Vector2;
-    currentRadius: number;
-    associatedBodyId: number;
-    associatedBodyIndex: number;
+    // screenPosition: Vector2;
+    // currentRadius: number;
+    // associatedBodyId: number;
+    // associatedBodyIndex: number;
+    id: number;
 
     model: HWGeometry;
     threeDView: HW3DView;

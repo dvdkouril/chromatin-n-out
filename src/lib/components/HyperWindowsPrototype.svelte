@@ -88,23 +88,25 @@
         const newWidgetId = nextAvailableId;
         nextAvailableId += 1;
 
-        const sourceHWPosition = sourceHyperWindow.screenPosition;
-        const sourceHWRadius = sourceHyperWindow.currentRadius;
-        const newHWScreenPosition = randomPositionAroundHyperWindow(sourceHWPosition, sourceHWRadius / canvasWidth);
+        // const sourceHWPosition = sourceHyperWindow.screenPosition;
+        // const sourceHWRadius = sourceHyperWindow.currentRadius;
+        // const newHWScreenPosition = randomPositionAroundHyperWindow(sourceHWPosition, sourceHWRadius / canvasWidth);
 
         //~ Create the actual new HyperWindow
         const [newHW, _, new3DView, newSelWidget] = makeNewHyperWindow(
             newWidgetId,
-            newHWScreenPosition,
+            // newHWScreenPosition,
             sel,
             sourceWidget,
         );
 
         //~ add to layout
+        const newHWPosition = uvToScreen(new Vector2(0.5, 0.5), canvasWidth, canvasHeight); //~ TODO: much more sophisticated approach
+        const newHWRadius = 100;
         hwLayout = {
             num: hwLayout.num + 1,
-            centers: [...hwLayout.centers, uvToScreen(newHWScreenPosition, canvasWidth, canvasHeight)],
-            radii: [...hwLayout.radii, sourceHWRadius],
+            centers: [...hwLayout.centers, newHWPosition],
+            radii: [...hwLayout.radii, newHWRadius],
         };
 
         hyperWindows = [...hyperWindows, newHW];
@@ -161,10 +163,11 @@
         const initialRadius = 100;
         const startScreenPosition = new Vector2(0.5, 0.5);
         const newHW: HyperWindow = {
-            screenPosition: startScreenPosition,
-            currentRadius: initialRadius,
-            associatedBodyId: 0,
-            associatedBodyIndex: 0, //~ these get filled out in Scene
+            // screenPosition: startScreenPosition,
+            // currentRadius: initialRadius,
+            // associatedBodyId: 0,
+            // associatedBodyIndex: 0, //~ these get filled out in Scene
+            id: 0,
             model: newModel,
             widget: newWidget,
             threeDView: new3DView,
@@ -182,7 +185,7 @@
 
     const makeNewHyperWindow = (
         id: number,
-        startScreenPosition: Vector2 = new Vector2(0.5, 0.5),
+        // startScreenPosition: Vector2 = new Vector2(0.5, 0.5),
         selection: Selection,
         sourceWidget: HWSelectionWidget, //~ TODO: type
     ): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] => {
@@ -221,12 +224,13 @@
         const new3DView: HW3DView = default3DView();
 
         //~ 4. create HyperWindow
-        const initialRadius = 100;
+        // const initialRadius = 100;
         const newHW: HyperWindow = {
-            screenPosition: startScreenPosition,
-            currentRadius: initialRadius,
-            associatedBodyId: 0,
-            associatedBodyIndex: 0, //~ these get filled out in Scene
+            // screenPosition: startScreenPosition,
+            // currentRadius: initialRadius,
+            // associatedBodyId: 0,
+            // associatedBodyIndex: 0, //~ these get filled out in Scene
+            id: id,
             model: newModel,
             widget: newWidget,
             threeDView: new3DView,

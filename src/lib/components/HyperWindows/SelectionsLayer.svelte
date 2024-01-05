@@ -22,7 +22,7 @@
     ) => void;
 
     export let widgets: HWSelectionWidget[];
-    export let hyperWindows: HyperWindow[];
+    export let hyperWindows: HyperWindow[]; //~ TODO: this is really only sent to the Widget (for the new selection callback)...there's probably a better way
     export let layout: HyperWindowsLayout;
 
     export let widgetDesign: WidgetStyle = WidgetStyle.SmallTopLeft;

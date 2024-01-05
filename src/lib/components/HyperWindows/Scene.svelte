@@ -1,45 +1,47 @@
 <script lang="ts">
     import { T, useThrelte, type Size } from "@threlte/core";
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
-    import type { PerspectiveCamera, Vector2 } from "three";
+    import { type PerspectiveCamera, Vector2 } from "three";
     import { onMount } from "svelte";
-    import { computeBoundingCircle, projectModelToScreenSpace } from "../../util";
+    import { computeBoundingCircle, projectModelToScreenSpace, screenToUV, unprojectToWorldSpace } from "../../util";
     import type { BoundingSphere, HyperWindow, HyperWindowsLayout } from "../../hyperwindows-types";
-    import Matter from "matter-js";
-
-    //~ TODO: change to a better design
-    export let engine: Matter.Engine; //~ TODO: I might instead just send a function
-                                        //~     to check where the click landed
-    // export let canvas: HTMLElement; //~ should come from useThrelte renderer
+   
+    //~ provided from LayoutOptimizer, for querying the physics during interaction (zooming, orbiting)
+    export let getHyperWindowAtPosition: (x: number, y: number) => HyperWindow | undefined;
 
     //~ Threlte lifecycle
-    // const { renderer, size } = useThrelte();
-    // $: sizeChanged($size);
     const { renderer, size } = useThrelte();
     const canvas = renderer?.domElement;
-    // let previousCanvasWidth = 123;
-    // let previousCanvasHeight = 123;
-    //~ DOM
-    // const canvas = renderer?.domElement;
-    let lastMousePos = { x: 0, y: 0 };
-    let dragging = false;
     export let canvasWidth = 123;
     export let canvasHeight = 123;
-    $: sizeChanged($size);
-    
-    // export let matterjsDebugCanvas: HTMLCanvasElement | undefined;
+    $: sizeChanged($size); 
+    //~ Interaction
+    let lastMousePos = { x: 0, y: 0 };
+    let dragging = false;
 
     //~ Actual scene content
     export let hyperWindows: HyperWindow[];
-    export let camera: PerspectiveCamera;
-    export let hwLayout: HyperWindowsLayout; //~ TODO: use this for getting position of the HW
+    export let camera: PerspectiveCamera; //~ bound here and sent upwards
+    export let hwLayout: HyperWindowsLayout; 
+    $: layoutChanged(hwLayout);
 
     //~ exports
     export let boundingSpheres: BoundingSphere[]; //~ sending up the computed bounding spheres (center+radius)
-    // export let debugPositions: [Vector2, string][]; //~ sending up just the projected bin positions
     export let debugTexts: { text: string; x: number; y: number }[];
-    // export let showMatterDebug: boolean;
 
+    const layoutChanged = (layout: HyperWindowsLayout) => {
+        if (camera == undefined) { //~ not ready to show anything yet
+            return;
+        }
+
+        console.log("Scene::layoutChanged");
+        for (let [i, hw] of hyperWindows.entries()) {
+            //~ TODO: there's got to be a better way: LayoutOptimizer -> HW.screenPosition -> HW.worldPosition (worldposition is what gets actually used in rendering
+            const hwPosition = new Vector2(layout.centers[i].x, layout.centers[i].y);
+            hw.model.modelWorldPosition = unprojectToWorldSpace(screenToUV(hwPosition, canvasWidth, canvasHeight), camera);
+        }
+        hyperWindows = hyperWindows; // TODO: this is just temporary, for testing
+    };
 
     const sizeChanged = (size: Size) => {
         // previousCanvasWidth = canvasWidth;
@@ -142,46 +144,36 @@
      * @param e
      */
     const processOrbiting = (x: number, y: number) => {
-        //~ use the x,y to query the physics engine; get the body under cursor
-        let hitBodies = Matter.Query.point(engine.world.bodies, { x: x, y: y });
-        if (hitBodies.length > 0) {
-            let b = hitBodies[0]; //~ assume for now that we don't have overlapping bodies
-            const bodyId = b.id;
+        let hprWindow: HyperWindow | undefined = getHyperWindowAtPosition(x, y);
 
-            //TODO: better way to fetch hyperwindow associated with this body? (probably need some map structure)
-            let hprWindow = hyperWindows[0]; // just for testing
-            for (let hw of hyperWindows) {
-                if (hw.associatedBodyId == bodyId) {
-                    hprWindow = hw;
-                }
-            }
+        if (hprWindow == undefined) return;
 
-            const deltaX = x - lastMousePos.x;
-            const deltaY = y - lastMousePos.y;
-            const orbitingSpeed = 0.8;
-            hprWindow.threeDView.rotationX += orbitingSpeed * deltaX;
-            hprWindow.threeDView.rotationY += orbitingSpeed * deltaY;
+        const deltaX = x - lastMousePos.x;
+        const deltaY = y - lastMousePos.y;
+        const orbitingSpeed = 0.8;
+        hprWindow.threeDView.rotationX += orbitingSpeed * deltaX;
+        hprWindow.threeDView.rotationY += orbitingSpeed * deltaY;
 
-            lastMousePos = { x: x, y: y };
+        lastMousePos = { x: x, y: y };
 
-            //~ adjust Matter.js body: Scale
-            let [_, radius] = computeBoundingSphere(hprWindow, camera);
-            const currentRadius = hprWindow.currentRadius;
-            const wantedRadius = radius;
-            const scaleFactor = wantedRadius / currentRadius;
-            hprWindow.currentRadius = wantedRadius;
+        //~ adjust Matter.js body: Scale
+        let [_, radius] = computeBoundingSphere(hprWindow, camera);
+        // const currentRadius = hprWindow.currentRadius;
+        const currentRadius = hwLayout.radii[hprWindow.id];
+        const wantedRadius = radius;
+        const scaleFactor = wantedRadius / currentRadius;
+        // hprWindow.currentRadius = wantedRadius;
 
-            Matter.Body.scale(b, scaleFactor, scaleFactor);
+        //~ TODO:
+        // zoomedCallback(scaleFactor); //~ maybe something like a callback?
+        // Matter.Body.scale(b, scaleFactor, scaleFactor);
 
-            //~ adjust Matter.js body:  Position
-            // const wantedPos = center;
-            // const currentPos = new Vector2(b.position.x, b.position.y);
-            // const offset = wantedPos.clone().sub(currentPos);
+        //~ adjust Matter.js body:  Position
+        // const wantedPos = center;
+        // const currentPos = new Vector2(b.position.x, b.position.y);
+        // const offset = wantedPos.clone().sub(currentPos);
 
-            // Matter.Body.translate(b, { x: offset.x, y: offset.y });
-
-            // recomputeBoundingSpheres(hyperWindows); //~ TODO: I guess it's unnecessary to compute BS twice
-        }
+        // Matter.Body.translate(b, { x: offset.x, y: offset.y });
     };
 
     
@@ -206,42 +198,30 @@
      */
     const processZooming = (x: number, y: number, delta: number) => {
         //~ use the x,y to query the physics engine; get the body under cursor
-        let hitBodies = Matter.Query.point(engine.world.bodies, { x: x, y: y });
-        if (hitBodies.length > 0) {
-            let b = hitBodies[0]; //~ assume for now that we don't have overlapping bodies
-            const bodyId = b.id;
+        let hprWindow: HyperWindow | undefined = getHyperWindowAtPosition(x, y);
 
-            //~ fetch hyperwindow associated with this body
-            let hprWindow = hyperWindows[0];
-            for (let hw of hyperWindows) {
-                if (hw.associatedBodyId == bodyId) {
-                    hprWindow = hw;
-                }
-            }
+        if (hprWindow == undefined) return;
 
-            const zoomingSpeed = 0.001;
-            hprWindow.threeDView.zoom += zoomingSpeed * delta;
+        const zoomingSpeed = 0.001;
+        hprWindow.threeDView.zoom += zoomingSpeed * delta;
 
-            //~ adjust Matter.js body: Scale
-            let [_, radius] = computeBoundingSphere(hprWindow, camera);
-            const currentRadius = hprWindow.currentRadius;
-            const wantedRadius = radius;
-            const scaleFactor = wantedRadius / currentRadius;
-            hprWindow.currentRadius = wantedRadius;
+        //~ adjust Matter.js body: Scale
+        let [_, radius] = computeBoundingSphere(hprWindow, camera);
+        const currentRadius = hwLayout.radii[hprWindow.id];
+        const wantedRadius = radius;
+        const scaleFactor = wantedRadius / currentRadius;
+        // hprWindow.currentRadius = wantedRadius;
 
-            Matter.Body.scale(b, scaleFactor, scaleFactor);
+        //~ TODO: later
+        // Matter.Body.scale(b, scaleFactor, scaleFactor);
 
-            //~ adjust Matter.js body:  Position
-            // const wantedPos = center;
-            // const currentPos = new Vector2(b.position.x, b.position.y);
-            // const offset = wantedPos.clone().sub(currentPos);
+        //~ adjust Matter.js body:  Position
+        // const wantedPos = center;
+        // const currentPos = new Vector2(b.position.x, b.position.y);
+        // const offset = wantedPos.clone().sub(currentPos);
 
-            // Matter.Body.translate(b, { x: offset.x, y: offset.y });
+        // Matter.Body.translate(b, { x: offset.x, y: offset.y });
 
-            //~ in order to trigger redraw in the ModelPartWithInstancing
-            // hyperWindows = hyperWindows;
-            // recomputeBoundingSpheres(hyperWindows); //~ TODO: I guess it's unnecessary to compute BS twice
-        }
     };
 
     onMount(() => {
