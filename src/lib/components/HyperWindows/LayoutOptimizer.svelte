@@ -8,7 +8,6 @@
     import Scene from "./Scene.svelte";
     import SelectionsLayer from "./SelectionsLayer.svelte";
     import type { BoundingSphere, HWSelectionWidget, HyperWindow, HyperWindowsLayout, Selection, WidgetStyle } from "$lib/hyperwindows-types";
-    import { uvToScreen } from "$lib/util";
 
     //~ Matter.js physics
     let matterEngine = Matter.Engine.create();
@@ -36,7 +35,6 @@
     export let hwWidgets: HWSelectionWidget[];
     export let hwLayout: HyperWindowsLayout;
 
-    //~ TODO: move to LayoutOptimizer!
     let bodyToHWLookup = new Map<number, HyperWindow>();
 
     //~ Reactivity: for when we add/remove hyperwindows
@@ -275,6 +273,9 @@
     const needToScaleBodyForHyperWindow = (hw: HyperWindow, scaleFactor: number) => {
         const b = matter_bodies[hw.id];
         Matter.Body.scale(b, scaleFactor, scaleFactor);
+        //~ hm, if I want to adjust the radius in layout, it becames really significantly choppy...
+        // const prevRadius = hwLayout.radii[hw.id];
+        // hwLayout.radii[hw.id] = prevRadius * scaleFactor;
     };
 
     const update = () => {
