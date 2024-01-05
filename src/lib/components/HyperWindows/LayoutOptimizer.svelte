@@ -1,25 +1,38 @@
 <script lang="ts">
     import { onMount } from "svelte";
     //~ three, threlte, matter
-    import { Vector2, type PerspectiveCamera } from "three";
+    import type { PerspectiveCamera } from "three";
     import { Canvas } from "@threlte/core";
     import Matter from "matter-js";
     //~ my own types and components
     import Scene from "./Scene.svelte";
     import SelectionsLayer from "./SelectionsLayer.svelte";
     import type { BoundingSphere, HWSelectionWidget, HyperWindow, HyperWindowsLayout, Selection, WidgetStyle } from "$lib/hyperwindows-types";
+    import { uvToScreen } from "$lib/util";
+    import App from "../App.svelte";
 
     //~ Matter.js physics
-    let engine = Matter.Engine.create();
+    let matterEngine = Matter.Engine.create();
     let matterRender: Matter.Render | undefined = undefined;
     let matter_bodies: Matter.Body[] = [];
     let matter_body_ids: number[] = [];
-    let wall_top: Matter.Body | undefined = undefined;
-    let wall_bottom: Matter.Body | undefined = undefined;
-    let wall_left: Matter.Body | undefined = undefined;
-    let wall_right: Matter.Body | undefined = undefined;
+
+    type WallBodies = {
+        top: Matter.Body | undefined,
+        bottom: Matter.Body | undefined,
+        left: Matter.Body | undefined,
+        right: Matter.Body | undefined
+    };
+
+    let wallBodies: WallBodies = {
+        top: undefined,
+        bottom: undefined,
+        left: undefined,
+        right: undefined,
+    }; 
     let bodiesInitialized = false;
 
+    //~ Main data structures: HyperWindows, widgets, and their positioning on the canvas
     export let hyperWindows: HyperWindow[];
     export let hwWidgets: HWSelectionWidget[];
     export let hwLayout: HyperWindowsLayout;
@@ -38,15 +51,14 @@
     let canvasWidth = 800; //~ binding these upwards with useThrelte
     let canvasHeight = 600;
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
-    // let debugPositions: [Vector2, string][] = []; //~ for now used for screen space positions of model spheres
     let debugTexts: { text: string; x: number; y: number }[] = [];
     let camera: PerspectiveCamera;
-    // let showMatterDebug: boolean = false;
+
+    //~ TODO: candidate for a store?
+    export let showMatterDebug: boolean = false;
     export let matterjsDebugCanvas: HTMLCanvasElement | undefined = undefined;
 
     $: sizeChanged(canvasWidth, canvasHeight);
-    // const { renderer, size } = useThrelte();
-    // const canvas = renderer?.domElement;
     // let previousCanvasWidth = 123;
     // let previousCanvasHeight = 123;
 
@@ -67,37 +79,42 @@
         reconfigureWalls(width, height);
     };
 
-    // $: toggleMatterDebugView(showMatterDebug);
-    // const toggleMatterDebugView = (show: boolean) => {
-    //     // if (matterRender == undefined) {
-    //     //     initMatterDebugView();
-    //     // }
-    //     //
-    //     // if ((matterjsDebugCanvas == undefined) || (matterRender == undefined)) {
-    //     //     return;
-    //     // }
-    //     //
-    //     // if (show == true) {
-    //     //     Matter.Render.run(matterRender);
-    //     // } else {
-    //     //     Matter.Render.stop(matterRender);
-    //     //
-    //     //     const context = matterjsDebugCanvas.getContext("2d");
-    //     //     if (context == null) {
-    //     //         return;
-    //     //     }
-    //     //     context.clearRect(0, 0, canvas.width, canvas.height);
-    //     //     matterjsDebugCanvas.style.background = "none";
-    //     // }
-    // };
+    $: toggleMatterDebugView(showMatterDebug);
+    const toggleMatterDebugView = (show: boolean) => {
+        if (matterRender == undefined) {
+            initMatterDebugView();
+        }
+
+        if ((matterjsDebugCanvas == undefined) || (matterRender == undefined)) {
+            return;
+        }
+
+        if (show == true) {
+            Matter.Render.run(matterRender);
+        } else {
+            Matter.Render.stop(matterRender);
+
+            const context = matterjsDebugCanvas.getContext("2d");
+            if (context == null) {
+                return;
+            }
+            context.clearRect(0, 0, canvasWidth, canvasHeight);
+            matterjsDebugCanvas.style.background = "none";
+        }
+    };
 
     const initMatterDebugView = () => {
         if (matterRender != undefined) return;
 
+        if (matterjsDebugCanvas == undefined) {
+            console.log("matterjsDebugCanvas is undefined!");
+            return;
+        }
+ 
         // create a renderer
         matterRender = Matter.Render.create({
             canvas: matterjsDebugCanvas,
-            engine: engine,
+            engine: matterEngine,
             options: { width: canvasWidth, height: canvasHeight },
         });
     };
@@ -108,7 +125,8 @@
         let ids = [];
         for (let [i, hw] of hyperWindows.entries()) {
             //~ <0, 1> -> <0, width/height>
-            const c = new Vector2(hw.screenPosition.x * canvasWidth, hw.screenPosition.y * canvasHeight);
+            // const c = new Vector2(hw.screenPosition.x * canvasWidth, hw.screenPosition.y * canvasHeight);
+            const c = uvToScreen(hw.screenPosition, canvasWidth, canvasHeight);
             const newBody = Matter.Bodies.circle(c.x, c.y, hw.currentRadius, {
                 restitution: 0,
                 friction: 1,
@@ -122,7 +140,7 @@
         matter_body_ids = ids;
 
         //~ add bodies to the Matterjs engine's world
-        Matter.Composite.add(engine.world, bodies);
+        Matter.Composite.add(matterEngine.world, bodies);
         console.log("initialized physics bodies.");
     };
     
@@ -146,17 +164,17 @@
         });
 
         //~ remove old
-        if (wall_top != undefined && wall_bottom != undefined && wall_left != undefined && wall_right != undefined) {
-            Matter.Composite.remove(engine.world, [wall_top, wall_bottom, wall_left, wall_right]);
+        if (wallBodies.top != undefined && wallBodies.bottom != undefined && wallBodies.left != undefined && wallBodies.right != undefined) {
+            Matter.Composite.remove(matterEngine.world, [wallBodies.top, wallBodies.bottom, wallBodies.left, wallBodies.right]);
         }
 
-        wall_bottom = ground;
-        wall_top = topWall;
-        wall_left = leftWall;
-        wall_right = rightWall;
+        wallBodies.bottom = ground;
+        wallBodies.top = topWall;
+        wallBodies.left = leftWall;
+        wallBodies.right = rightWall;
 
         // add all of the bodies to the world
-        Matter.Composite.add(engine.world, [ground, leftWall, rightWall, topWall]);
+        Matter.Composite.add(matterEngine.world, [ground, leftWall, rightWall, topWall]);
     };
 
     export const addBodyForNewHyperWindow = () => {
@@ -262,9 +280,9 @@
     // });
 
     onMount(() => {
-        engine.gravity.y = 0;
+        matterEngine.gravity.y = 0;
         var runner = Matter.Runner.create();
-        Matter.Runner.run(runner, engine);
+        Matter.Runner.run(runner, matterEngine);
 
         initMatterDebugView();
 
@@ -290,7 +308,7 @@ The purpose of LayoutOptimizer is to manage all the Matter.js logic behind placi
     <Scene
         {hyperWindows}
         {hwLayout}
-        {engine}
+        engine={matterEngine}
         bind:this={scene}
         bind:canvasWidth
         bind:canvasHeight

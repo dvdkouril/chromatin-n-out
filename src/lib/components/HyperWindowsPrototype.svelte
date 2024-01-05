@@ -1,10 +1,6 @@
 <script lang="ts">
-    import { Canvas } from "@threlte/core";
-    // import Scene from "./HyperWindows/Scene.svelte";
-    // import Scene from "./HyperWindows/Scene.svelte";
     import { Vector2 } from "three";
     import DebugOverlay from "./HyperWindows/DebugOverlay.svelte";
-    // import SelectionsLayer from "./HyperWindows/SelectionsLayer.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../test_BRAFL";
     import { spomb } from "../test_SPOMB";
@@ -266,7 +262,7 @@
 
     <div id="canvas-container">
         <!-- Manages the positioning of HyperWindows (both the 3D part and the SelectionWidget) -->
-        <LayoutOptimizer bind:this={layoutOptimizer} {hyperWindows} {hwWidgets} {hwLayout} newSelectionCallback={newSelection} {widgetDesign} {matterjsDebugCanvas} />
+        <LayoutOptimizer bind:this={layoutOptimizer} {hyperWindows} {hwWidgets} {hwLayout} newSelectionCallback={newSelection} {widgetDesign} {matterjsDebugCanvas} {showMatterDebug} />
 
         <!-- SVG debug overlay -->
         {#if showBoundingSphereDebug}
