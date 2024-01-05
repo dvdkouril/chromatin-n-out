@@ -4,7 +4,7 @@
     import { type PerspectiveCamera, Vector2 } from "three";
     import { onMount } from "svelte";
     import { computeBoundingCircle, projectModelToScreenSpace, screenToUV, unprojectToWorldSpace } from "../../util";
-    import type { BoundingSphere, HyperWindow, HyperWindowsLayout } from "../../hyperwindows-types";
+    import type { HyperWindow, HyperWindowsLayout } from "../../hyperwindows-types";
    
     //~ provided from LayoutOptimizer, for querying the physics during interaction (zooming, orbiting)
     export let getHyperWindowAtPosition: (x: number, y: number) => HyperWindow | undefined;
@@ -25,10 +25,6 @@
     export let camera: PerspectiveCamera; //~ bound here and sent upwards
     export let hwLayout: HyperWindowsLayout; 
     $: layoutChanged(hwLayout);
-
-    //~ exports
-    export let boundingSpheres: BoundingSphere[]; //~ sending up the computed bounding spheres (center+radius)
-    export let debugTexts: { text: string; x: number; y: number }[];
 
     const layoutChanged = (layout: HyperWindowsLayout) => {
         if (camera == undefined) { //~ not ready to show anything yet
@@ -232,8 +228,6 @@
         canvas.addEventListener("touchstart", onTouchStart);
         canvas.addEventListener("touchend", onTouchEnd);
         canvas.addEventListener("touchmove", onTouchMove);
-
-        recomputeBoundingSpheres(hyperWindows);
     });
 
     /**
@@ -251,24 +245,6 @@
         const bSphere = computeBoundingCircle(pointsIn2D);
 
         return bSphere;
-    };
-
-    const recomputeBoundingSpheres = (hyperwindows: HyperWindow[]) => {
-        if (camera == undefined) {
-            return;
-        }
-        boundingSpheres = [];
-        debugTexts = [];
-        for (let hw of hyperwindows) {
-            let [center, radius] = computeBoundingSphere(hw, camera);
-            boundingSpheres.push({ center: center, radius: radius });
-            debugTexts.push({
-                text: "[" + center.x + ", " + center.y + "]",
-                x: center.x,
-                y: center.y,
-            });
-        }
-        boundingSpheres = boundingSpheres;
     };
 
 </script>

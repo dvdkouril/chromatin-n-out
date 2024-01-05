@@ -327,8 +327,6 @@ The purpose of LayoutOptimizer is to manage all the Matter.js logic behind placi
         bind:this={scene}
         bind:canvasWidth
         bind:canvasHeight
-        bind:boundingSpheres
-        bind:debugTexts
         bind:camera
         {getHyperWindowAtPosition}
         {needToScaleBodyForHyperWindow}
