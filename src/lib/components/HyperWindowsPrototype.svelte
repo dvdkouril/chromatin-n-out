@@ -19,13 +19,9 @@
     import DebugBar from "./HyperWindows/DebugBar.svelte";
     import LayoutOptimizer from "./HyperWindows/LayoutOptimizer.svelte";
 
-
     let canvasWidth = 800; //~ binding these upwards with useThrelte
     let canvasHeight = 600;
     let matterjsDebugCanvas: HTMLCanvasElement | undefined = undefined;
-    // let camera: PerspectiveCamera;
-
-    // let scene: Scene;
 
     let layoutOptimizer: LayoutOptimizer;
 
@@ -229,7 +225,7 @@
             // screenPosition: startScreenPosition,
             // currentRadius: initialRadius,
             // associatedBodyId: 0,
-            // associatedBodyIndex: 0, //~ these get filled out in Scene
+            // associaedBodyIndex: 0, //~ these get filled out in Scene
             id: id,
             model: newModel,
             widget: newWidget,

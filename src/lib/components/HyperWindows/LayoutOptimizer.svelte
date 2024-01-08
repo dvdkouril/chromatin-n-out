@@ -209,48 +209,7 @@
     export const addBodyForNewHyperWindow = () => {
         //~ basically do what happens in the function below
     };
-
-    // export const newHyperWindowAdded = (newHW: HyperWindow, sourceHW: HyperWindow) => {
-    //     ////~ TODO: I think this is the part that needs to be reworked the most, so I'm commenting it out for now
-    //     // const startWorlPosition = camera ? unprojectToWorldSpace(newHW.screenPosition, camera) : new Vector3(0, 0, 0);
-    //     // newHW.model.modelWorldPosition = startWorlPosition;
-    //     //
-    //     // const [_, radius] = computeBoundingSphere(newHW, camera);
-    //     // newHW.currentRadius = radius;
-    //     //
-    //     // // broken code follows:
-    //     // const c = new Vector2(newHW.screenPosition.x * canvasWidth, newHW.screenPosition.y * canvasHeight);
-    //     // // const newBody = Matter.Bodies.circle(c.x, c.y, initialRadius, {
-    //     // const newBody = Matter.Bodies.circle(c.x, c.y, newHW.currentRadius, {
-    //     //     restitution: 0,
-    //     //     friction: 1,
-    //     // });
-    //     // newHW.associatedBodyId = newBody.id;
-    //     // newHW.associatedBodyIndex = matter_bodies.length;
-    //     // // (hw.associatedBodyIndex = i), //~ one of these is redundant but i can't say which rn
-    //     // matter_bodies.push(newBody);
-    //     // matter_body_ids.push(newBody.id);
-    //     // // i += 1;
-    //     //
-    //     // // matter_bodies = bodies;
-    //     // // matter_body_ids = ids;
-    //     //
-    //     // const sourceHWBody = matter_bodies[sourceHW.associatedBodyIndex];
-    //     // var constraint = Matter.Constraint.create({
-    //     //     bodyA: sourceHWBody,
-    //     //     bodyB: newBody,
-    //     //     stiffness: 0.001,
-    //     //     damping: 0.05,
-    //     // });
-    //     //
-    //     // //~ add bodies to the Matterjs engine's world
-    //     // Matter.Composite.add(engine.world, [newBody, constraint]);
-    //     // console.log("new selection -> new hyperwindow added -> should add new body!");
-    //     //
-    //     // // hyperWindows.push(newHW); //~ just temporarily, until next "update"
-    //     // // recomputeBoundingSpheres(hyperWindows);
-    // };
-
+    
     /*
      * Provided to the Scene to access the engine during interactions
      */
