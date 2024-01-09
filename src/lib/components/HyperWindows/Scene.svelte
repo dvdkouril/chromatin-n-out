@@ -2,9 +2,10 @@
     import { T, useThrelte, type Size } from "@threlte/core";
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
     import { type PerspectiveCamera, Vector2 } from "three";
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import { computeBoundingCircle, projectModelToScreenSpace, screenToUV, unprojectToWorldSpace } from "../../util";
     import type { HyperWindow, HyperWindowsLayout } from "../../hyperwindows-types";
+    import { alert, canvasSize } from "$lib/stores";
    
     //~ provided from LayoutOptimizer, for querying the physics during interaction (zooming, orbiting)
     export let getHyperWindowAtPosition: (x: number, y: number) => HyperWindow | undefined;
@@ -13,8 +14,8 @@
     //~ Threlte lifecycle
     const { renderer, size } = useThrelte();
     const canvas = renderer?.domElement;
-    export let canvasWidth = 123;
-    export let canvasHeight = 123;
+    let canvasWidth = 123;
+    let canvasHeight = 123;
     $: sizeChanged($size); 
     //~ Interaction
     let lastMousePos = { x: 0, y: 0 };
@@ -25,6 +26,11 @@
     export let camera: PerspectiveCamera; //~ bound here and sent upwards
     export let hwLayout: HyperWindowsLayout; 
     $: layoutChanged(hwLayout);
+
+    //~ stores
+    let alertContent = '';
+
+    const unsubscribe = alert.subscribe((value) => alertContent = value);
 
     const layoutChanged = (layout: HyperWindowsLayout) => {
         if (camera == undefined) { //~ not ready to show anything yet
@@ -45,6 +51,8 @@
         // previousCanvasHeight = canvasHeight;
         canvasWidth = size.width;
         canvasHeight = size.height;
+
+        $canvasSize = { width: size.width, height: size.height };
 
         //~ TODO: this should happen in LayoutOptimizer now
         // if ((previousCanvasWidth == 0 || previousCanvasHeight == 0) && canvasWidth != 0 && canvasHeight != 0) {
@@ -230,6 +238,8 @@
         canvas.addEventListener("touchend", onTouchEnd);
         canvas.addEventListener("touchmove", onTouchMove);
     });
+
+    onDestroy(unsubscribe);
 
     /**
      *

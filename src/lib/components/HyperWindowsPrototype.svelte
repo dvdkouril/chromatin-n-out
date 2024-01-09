@@ -18,10 +18,13 @@
     import { cell7 } from "$lib/test_cell7";
     import DebugBar from "./HyperWindows/DebugBar.svelte";
     import LayoutOptimizer from "./HyperWindows/LayoutOptimizer.svelte";
+    import { canvasSize } from "$lib/stores";
 
     let canvasWidth = 800; //~ binding these upwards with useThrelte
     let canvasHeight = 600;
     let matterjsDebugCanvas: HTMLCanvasElement | undefined = undefined;
+
+    $: sizeChanged($canvasSize); 
 
     let layoutOptimizer: LayoutOptimizer;
 
@@ -54,6 +57,11 @@
     let showBoundingSphereDebug: boolean = false;
     let widgetDesign: WidgetStyle = WidgetStyle.Boundary;
     let debugTexts: { text: string; x: number; y: number }[] = [];
+
+    const sizeChanged = (size: { width: number, height: number }) => {
+        canvasWidth = size.width;
+        canvasHeight = size.height;
+    };
 
     /*
         The idea is to have these handlers for changing the layout:

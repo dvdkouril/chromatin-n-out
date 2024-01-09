@@ -8,6 +8,7 @@
     import Scene from "./Scene.svelte";
     import SelectionsLayer from "./SelectionsLayer.svelte";
     import type { BoundingSphere, HWSelectionWidget, HyperWindow, HyperWindowsLayout, Selection, WidgetStyle } from "$lib/hyperwindows-types";
+    import { canvasSize } from "$lib/stores";
 
     //~ Matter.js physics
     let matterEngine = Matter.Engine.create();
@@ -51,9 +52,10 @@
 
     //~ copied from elsewhere
     let scene: Scene;
-    let canvasWidth = 800; //~ binding these upwards with useThrelte
+    let canvasWidth = 800;
     let canvasHeight = 600;
-    $: sizeChanged(canvasWidth, canvasHeight);
+    // $: sizeChanged(canvasWidth, canvasHeight);
+    $: sizeChanged($canvasSize);
     
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
     let debugTexts: { text: string; x: number; y: number }[] = [];
@@ -86,7 +88,8 @@
         console.log(layout.num);
     };
 
-    const sizeChanged = (width: number, height: number) => {
+    // const sizeChanged = (width: number, height: number) => {
+    const sizeChanged = (size: { width: number, height: number }) => {
         // previousCanvasWidth = canvasWidth;
         // previousCanvasHeight = canvasHeight;
         // canvasWidth = size.width;
@@ -100,7 +103,10 @@
         //     }
         // }
 
-        reconfigureWalls(width, height);
+        canvasWidth = size.width;
+        canvasHeight = size.height;
+
+        reconfigureWalls(canvasWidth, canvasHeight);
     };
 
     $: toggleMatterDebugView(showMatterDebug);
@@ -284,8 +290,6 @@ The purpose of LayoutOptimizer is to manage all the Matter.js logic behind placi
         {hyperWindows}
         {hwLayout}
         bind:this={scene}
-        bind:canvasWidth
-        bind:canvasHeight
         bind:camera
         {getHyperWindowAtPosition}
         {needToScaleBodyForHyperWindow}
