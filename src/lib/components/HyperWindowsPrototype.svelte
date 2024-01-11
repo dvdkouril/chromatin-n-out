@@ -1,18 +1,17 @@
 <script lang="ts">
-    import { Vector2 } from "three";
+    import type { Vector2 } from "three";
     import DebugOverlay from "./HyperWindows/DebugOverlay.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../test_BRAFL";
     import { spomb } from "../test_SPOMB";
-    import { computeTubes, load3DModel, randomPositionAroundHyperWindow, recenter, uvToScreen } from "../util";
+    import { computeTubes, load3DModel, recenter } from "../util";
     import {
         type HWGeometry,
         type HWSelectionWidget,
         type HyperWindow,
         type HW3DView,
         type BoundingSphere,
-        type Selection,
-        type HyperWindowsLayout,
+        type Selection, 
         WidgetStyle,
     } from "$lib/hyperwindows-types";
     import { cell7 } from "$lib/test_cell7";
@@ -43,12 +42,8 @@
     let hwModels: HWGeometry[] = []; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
     let hw3DViews: HW3DView[] = []; //~ linearized array with information only relevant for the 3D rendering
     let hwWidgets: HWSelectionWidget[] = []; //~ linearized array with information only relevant for the selection widget
-    let hwLayout: HyperWindowsLayout = { num: 0, centers: [], radii: [] };
-
-    $: updateLayout(physicsBodiesPositions);
 
     //~ Structures related to computation of the bounding sphere and final screen positions
-    let physicsBodiesPositions: Vector2[] = [];
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
 
     //~ DEBUG
@@ -61,19 +56,6 @@
     const sizeChanged = (size: { width: number, height: number }) => {
         canvasWidth = size.width;
         canvasHeight = size.height;
-    };
-
-    /*
-        The idea is to have these handlers for changing the layout:
-        - the physics: bodiesPositions could theoretically change every frame, based on the physics simulation
-        - zooming (and maybe orbiting?): when you zoom in and enlarge the HW, the physics bodies should also be updated
-        - 
-    */
-    const updateLayout = (bodiesPositions: Vector2[]) => {
-        for (let [i, bPos] of bodiesPositions.entries()) {
-            hwLayout.centers[i] = bPos;
-        }
-        hwLayout = hwLayout; //~ reactivity
     };
 
     const newSelection = (
@@ -104,14 +86,14 @@
             sourceWidget,
         );
 
-        //~ add to layout
-        const newHWPosition = uvToScreen(new Vector2(0.5, 0.5), canvasWidth, canvasHeight); //~ TODO: much more sophisticated approach
-        const newHWRadius = 100;
-        hwLayout = {
-            num: hwLayout.num + 1,
-            centers: [...hwLayout.centers, newHWPosition],
-            radii: [...hwLayout.radii, newHWRadius],
-        };
+        // //~ add to layout
+        // const newHWPosition = uvToScreen(new Vector2(0.5, 0.5), canvasWidth, canvasHeight); //~ TODO: much more sophisticated approach
+        // const newHWRadius = 100;
+        // hwLayout = {
+        //     num: hwLayout.num + 1,
+        //     centers: [...hwLayout.centers, newHWPosition],
+        //     radii: [...hwLayout.radii, newHWRadius],
+        // };
 
         hyperWindows = [...hyperWindows, newHW];
         hwModels = [...hwModels, hwModels[0]]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
@@ -120,7 +102,8 @@
 
         // scene.newHyperWindowAdded(newHW, sourceHyperWindow);
         //~ instead:
-        layoutOptimizer.addBodyForNewHyperWindow(/*TODO: parameters*/);
+        // layoutOptimizer.addBodyForNewHyperWindow(/*TODO: parameters*/);
+        layoutOptimizer.addNewHyperWindowToLayout(newHW, sourceHyperWindow);
     };
 
     const default3DView = (): HW3DView => {
@@ -134,7 +117,7 @@
         };
     };
 
-    const makeInitialHyperWindow = (): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget, HyperWindowsLayout] | null => {
+    const makeInitialHyperWindow = (): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] | null => {
         //~ 1. load the 3D model (future TODO: multiple models)
         let newModel = undefined;
         if (selectedDataset.name == "brafl") {
@@ -164,13 +147,7 @@
         const new3DView: HW3DView = default3DView();
 
         //~ 4. create HyperWindow
-        const initialRadius = 100;
-        const startScreenPosition = new Vector2(0.5, 0.5);
         const newHW: HyperWindow = {
-            // screenPosition: startScreenPosition,
-            // currentRadius: initialRadius,
-            // associatedBodyId: 0,
-            // associatedBodyIndex: 0, //~ these get filled out in Scene
             id: 0,
             model: newModel,
             widget: newWidget,
@@ -178,13 +155,13 @@
             childHyperWindows: [],
         };
 
-        const newLayout: HyperWindowsLayout = {
-            num: 1,
-            centers: [uvToScreen(startScreenPosition, canvasWidth, canvasHeight)],
-            radii: [initialRadius],
-        };
+        // const newLayout: HyperWindowsLayout = {
+        //     num: 1,
+        //     centers: [uvToScreen(startScreenPosition, canvasWidth, canvasHeight)],
+        //     radii: [initialRadius],
+        // };
 
-        return [newHW, newModel, new3DView, newWidget, newLayout];
+        return [newHW, newModel, new3DView, newWidget];
     };
 
     const makeNewHyperWindow = (
@@ -251,16 +228,17 @@
             return;
         }
 
-        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget, layout] = res;
+        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] = res;
 
         hyperWindows = [hwRoot];
         hwModels = [hwRootModel];
         hw3DViews = [hwRoot3DView];
         hwWidgets = [hwRootWidget];
-        hwLayout = layout;
+        // hwLayout = layout;
     };
 
     onMount(() => {
+        console.log("HyperWindowsPrototype::onMount");
         initWithSingle();
     });
 </script>
@@ -270,7 +248,7 @@
 
     <div id="canvas-container">
         <!-- Manages the positioning of HyperWindows (both the 3D part and the SelectionWidget) -->
-        <LayoutOptimizer bind:this={layoutOptimizer} {hyperWindows} {hwWidgets} {hwLayout} newSelectionCallback={newSelection} {widgetDesign} {matterjsDebugCanvas} {showMatterDebug} />
+        <LayoutOptimizer bind:this={layoutOptimizer} {hyperWindows} {hwWidgets} newSelectionCallback={newSelection} {widgetDesign} {matterjsDebugCanvas} {showMatterDebug} />
 
         <!-- SVG debug overlay -->
         {#if showBoundingSphereDebug}

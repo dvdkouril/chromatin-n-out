@@ -7,8 +7,9 @@
     //~ my own types and components
     import Scene from "./Scene.svelte";
     import SelectionsLayer from "./SelectionsLayer.svelte";
-    import type { BoundingSphere, HWSelectionWidget, HyperWindow, HyperWindowsLayout, Selection, WidgetStyle } from "$lib/hyperwindows-types";
+    import type { HWSelectionWidget, HyperWindow, HyperWindowsLayout, Selection, WidgetStyle } from "$lib/hyperwindows-types";
     import { canvasSize } from "$lib/stores";
+    import { uvToScreen, randomPositionAroundHyperWindow, screenToUV } from "$lib/util";
 
     //~ Matter.js physics
     let matterEngine = Matter.Engine.create();
@@ -29,17 +30,20 @@
         left: undefined,
         right: undefined,
     }; 
-    let bodiesInitialized = false;
 
     //~ Main data structures: HyperWindows, widgets, and their positioning on the canvas
     export let hyperWindows: HyperWindow[];
     export let hwWidgets: HWSelectionWidget[];
-    export let hwLayout: HyperWindowsLayout;
+    let hwLayout: HyperWindowsLayout = {
+        num: 0,
+        centers: [],
+        radii: [],
+    };
 
     let bodyToHWLookup = new Map<number, HyperWindow>();
 
     //~ Reactivity: for when we add/remove hyperwindows
-    $: updateBodies(hyperWindows);
+    $: hyperWindowsChanged(hyperWindows);
 
     export let newSelectionCallback: (
         ev: CustomEvent<{
@@ -57,36 +61,69 @@
     // $: sizeChanged(canvasWidth, canvasHeight);
     $: sizeChanged($canvasSize);
     
-    let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
-    let debugTexts: { text: string; x: number; y: number }[] = [];
+    //let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
+    //let debugTexts: { text: string; x: number; y: number }[] = [];
     let camera: PerspectiveCamera;
 
     //~ TODO: candidate for a store?
     export let showMatterDebug: boolean = false;
     export let matterjsDebugCanvas: HTMLCanvasElement | undefined = undefined;
-
+    $: initMatterDebugView(matterjsDebugCanvas, matterEngine);
 
     /*
-      Update bodies based on changed hyperwindows.
-      Current use cases in mind:
+     * Solving the initialization problem: I can't set up anything until I have some stuff
+     */
+    let layoutInitialized = false;
+    // let bodiesInitialized = false;
+    $: initializePhysicsSim(hyperWindows, canvasWidth, canvasHeight);
+
+    const initializePhysicsSim = (hws: HyperWindow[], width: number, height: number) => {
+        console.log("initializePhysicsSim");
+        console.log(layoutInitialized);
+        if (layoutInitialized) { //~ if already initialized, do nothing else
+            return;
+        }
+
+        if ((hws == undefined) || (hws.length == 0)) {
+            //~ if no hyperwindows ready, do nothing, try again later
+            return;
+        }
+
+        if ((width == 0) || (height == 0)) {
+            //~ if the canvas has zero size, do nothing, try again later
+            return;
+        }
+
+        initializeLayout();
+        initializePhysicsBodies();
+        layoutInitialized = true;
+    };
+
+    /*
+      On changed hyperwindows: the only times that happens is when:
       - init (first hyperwindows are empty => can't create bodies onMount)
       - added a new HW (although do I want to remove all previous HW bodies?)
     */
-    const updateBodies = (hws: HyperWindow[]) => {
-        console.log("LayoutOptimizer::updateBodies");
-        console.log(hws.length);
+    const hyperWindowsChanged = (hws: HyperWindow[]) => {
+        console.log("LayoutOptimizer::hyperWindowsChanged (hws:" + hws.length + ")");
+        console.log("layout.num = " + hwLayout.num);
+
+        // if (!layoutInitialized) {
+        //     console.log("initializing layout: another try");
+        //     initializeLayout();
+        // }
 
         //~ TODO: this is probably wrong! just testing;
-        Matter.Composite.remove(matterEngine.world, matter_bodies);
-        initializePhysicsBodies();
+        // Matter.Composite.remove(matterEngine.world, matter_bodies);
+        // initializePhysicsBodies();
     };
 
     //~ use case in mind: actually idk, lol
     //~ cause mainly the positions should change because of the physics
     //~ and that gets updated here in this component
-    const updateBodiesPositions = (layout: HyperWindowsLayout) => {
-        console.log(layout.num);
-    };
+    // const updateBodiesPositions = (layout: HyperWindowsLayout) => {
+    //     console.log(layout.num);
+    // };
 
     // const sizeChanged = (width: number, height: number) => {
     const sizeChanged = (size: { width: number, height: number }) => {
@@ -111,9 +148,9 @@
 
     $: toggleMatterDebugView(showMatterDebug);
     const toggleMatterDebugView = (show: boolean) => {
-        if (matterRender == undefined) {
-            initMatterDebugView();
-        }
+        // if (matterRender == undefined) {
+        //     initMatterDebugView();
+        // }
 
         if ((matterjsDebugCanvas == undefined) || (matterRender == undefined)) {
             return;
@@ -133,23 +170,30 @@
         }
     };
 
-    const initMatterDebugView = () => {
-        if (matterRender != undefined) return;
+    const initMatterDebugView = (
+        debugCanvas: HTMLCanvasElement | undefined,
+        engine: Matter.Engine
+    ) => {
+        // if (matterRender != undefined) return;
 
-        if (matterjsDebugCanvas == undefined) {
-            console.log("matterjsDebugCanvas is undefined!");
+        if (debugCanvas == undefined) {
+            console.log("matterjsDebugCanvas is undefined!~");
             return;
         }
  
         // create a renderer
         matterRender = Matter.Render.create({
-            canvas: matterjsDebugCanvas,
-            engine: matterEngine,
+            canvas: debugCanvas,
+            engine: engine,
             options: { width: canvasWidth, height: canvasHeight },
         });
     };
     
     const initializePhysicsBodies = () => {
+        if (hwLayout == undefined) {
+            console.log("ERR: hwLayout is undefined");
+            return;
+        }
         //~ creating the bodies here
         let bodies = [];
         let ids = [];
@@ -212,8 +256,50 @@
         Matter.Composite.add(matterEngine.world, [ground, leftWall, rightWall, topWall]);
     };
 
+    const layoutLookup = (hwId: number): { center: Vector2, radius: number } | undefined => {
+        if (hwId >= hwLayout.num) {
+            return undefined;
+        }
+
+        return {
+            center: hwLayout.centers[hwId],
+            radius: hwLayout.radii[hwId],
+        };
+        
+    };
+
+    export const addNewHyperWindowToLayout = (newHW: HyperWindow, sourceHW: HyperWindow) => {
+        const hwLayoutInfo = layoutLookup(sourceHW.id);
+
+        if (hwLayoutInfo  == undefined) {
+            console.log("ERR: cannot lookup hyperwindow in layout!");
+            return;
+        }
+
+        const pos = randomPositionAroundHyperWindow(hwLayoutInfo.center, hwLayoutInfo.radius);
+        //~ TODO: add a guard for screen borders (regenerate in case it fall out of bounds?)
+        const rad = 100; //~ TODO: actual radius, from newHW?
+        //~ add to layout
+        hwLayout.num += 1;
+        hwLayout.centers.push(pos); 
+        hwLayout.radii.push(rad); 
+
+        //~ add new body
+        const newBody = Matter.Bodies.circle(pos.x, pos.y, rad, {
+            restitution: 0,
+            friction: 1,
+        });
+        matter_bodies.push(newBody);
+        matter_body_ids.push(newBody.id);
+        bodyToHWLookup.set(newBody.id, newHW);
+        Matter.Composite.add(matterEngine.world, newBody);
+
+        hwLayout = hwLayout;
+    }
+
     export const addBodyForNewHyperWindow = () => {
         //~ basically do what happens in the function below
+        hwLayout.num += 1;
     };
     
     /*
@@ -260,19 +346,38 @@
         requestAnimationFrame(update); 
     };
 
+    const initializeLayout = () => {
+        if (hyperWindows.length == 1) {
+            // const [_, initialRadius] = computeBoundingCircle();
+            const initialRadius = 100;
+            const startScreenPosition = new Vector2(0.5, 0.5);
+            const newLayout: HyperWindowsLayout = {
+                num: 1,
+                centers: [uvToScreen(startScreenPosition, canvasWidth, canvasHeight)],
+                radii: [initialRadius],
+            };
+            hwLayout = newLayout;
+            
+        } else {
+            console.log("ERR: not implemented (more than one start HyperWindow");
+        }
+    };
+
     onMount(() => {
+        console.log("LayoutOptimizer::onMount");
         matterEngine.gravity.y = 0;
         var runner = Matter.Runner.create();
         Matter.Runner.run(runner, matterEngine);
 
-        initMatterDebugView();
+        // initMatterDebugView(); //~ can't init here cause we still don't have the debug canvas
 
-        if (canvasWidth != 0 && canvasHeight != 0) {
-            initializePhysicsBodies();
-            bodiesInitialized = true;
-        }
+        // initializeLayout(); //~ can't init because I don't have any hws
 
-        console.log("LayoutOptimizer::onMount");
+        //~ can't init because width/height are still zero 
+        // if ((canvasWidth != 0) && (canvasHeight != 0) && (hwLayout != undefined)) {
+        //     initializePhysicsBodies();
+        //     bodiesInitialized = true;
+        // }
 
         requestAnimationFrame(update);
 

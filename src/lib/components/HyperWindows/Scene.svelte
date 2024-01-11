@@ -37,6 +37,16 @@
             return;
         }
 
+        if (layout == undefined) {
+            console.log("layout is undefined");
+            return;
+        }
+
+        if (layout.num != hyperWindows.length) {
+            console.log("TODO: probably a new HW was added, but it wasn't reflected in the layout (" + layout.num + " vs " + hyperWindows.length + ")");
+            return;
+        }
+
         for (let [i, hw] of hyperWindows.entries()) {
             //~ TODO: there's got to be a better way: LayoutOptimizer -> HW.screenPosition -> HW.worldPosition (worldposition is what gets actually used in rendering
             //~ TODO: this is actually again wrong: the center of the bounding sphere is not the center (origin) of the model...but for now it's fine
@@ -47,22 +57,10 @@
     };
 
     const sizeChanged = (size: Size) => {
-        // previousCanvasWidth = canvasWidth;
-        // previousCanvasHeight = canvasHeight;
         canvasWidth = size.width;
         canvasHeight = size.height;
 
         $canvasSize = { width: size.width, height: size.height };
-
-        //~ TODO: this should happen in LayoutOptimizer now
-        // if ((previousCanvasWidth == 0 || previousCanvasHeight == 0) && canvasWidth != 0 && canvasHeight != 0) {
-        //     if (!bodiesInitialized) {
-        //         initializePhysicsBodies();
-        //         bodiesInitialized = true;
-        //     }
-        // }
-        //
-        // reconfigureWalls(canvasWidth, canvasHeight);
     };
     
     const onMouseDown = (e: MouseEvent) => {
