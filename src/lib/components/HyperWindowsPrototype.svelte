@@ -35,7 +35,7 @@
         { id: 2, name: "cell7" },
         { id: 3, name: "spomb" },
     ];
-    let selectedDataset: { id: number; name: string } = exampleDatasets[2];
+    let selectedDataset: { id: number; name: string } = exampleDatasets[0];
 
     //~ Main data structures
     let hyperWindows: HyperWindow[] = [];
@@ -229,6 +229,10 @@
         }
 
         const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] = res;
+
+        //~ reseting, for when this is run after dataset changed
+        layoutOptimizer.reset();
+        nextAvailableId = 1;
 
         hyperWindows = [hwRoot];
         hwModels = [hwRootModel];

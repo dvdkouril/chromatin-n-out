@@ -363,6 +363,20 @@
         }
     };
 
+    export const reset = () => {
+        hwLayout = {
+            num: 0,
+            centers: [],
+            radii: [],
+        };
+        layoutInitialized = false;
+
+        Matter.Composite.remove(matterEngine.world, matter_bodies);
+        matter_bodies = [];
+        matter_body_ids = [];
+        bodyToHWLookup = new Map<number, HyperWindow>();
+    };
+
     onMount(() => {
         console.log("LayoutOptimizer::onMount");
         matterEngine.gravity.y = 0;
