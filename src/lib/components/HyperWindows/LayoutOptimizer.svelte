@@ -292,7 +292,17 @@
         matter_bodies.push(newBody);
         matter_body_ids.push(newBody.id);
         bodyToHWLookup.set(newBody.id, newHW);
-        Matter.Composite.add(matterEngine.world, newBody);
+
+        //~ matter_bodies has only bodies for the HWs, at this point--in theory--there should be no gaps (that will come with deleting HWs). So I should be able to look up just via sourceHW.id
+        const sourceHWBody = matter_bodies[sourceHW.id];
+        const constraint = Matter.Constraint.create({
+            bodyA: sourceHWBody,
+            bodyB: newBody,
+            stiffness: 0.001,
+            damping: 0.05,
+        });
+
+        Matter.Composite.add(matterEngine.world, [newBody, constraint]);
 
         hwLayout = hwLayout;
     }
