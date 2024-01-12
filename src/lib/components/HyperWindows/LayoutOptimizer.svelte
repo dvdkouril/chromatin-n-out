@@ -267,6 +267,11 @@
         };
         
     };
+    const checkBoundsAndCorrect = (pos: Vector2, rad: number, w: number, h: number) : Vector2 => {
+        let targetOnBorder = pos.clone();
+        targetOnBorder.clamp(new Vector2(0 + rad, 0 + rad), new Vector2(w - rad, h - rad));
+        return targetOnBorder;
+    };
 
     export const addNewHyperWindowToLayout = (newHW: HyperWindow, sourceHW: HyperWindow) => {
         const hwLayoutInfo = layoutLookup(sourceHW.id);
@@ -276,9 +281,9 @@
             return;
         }
 
-        const pos = randomPositionAroundHyperWindow(hwLayoutInfo.center, hwLayoutInfo.radius);
-        //~ TODO: add a guard for screen borders (regenerate in case it fall out of bounds?)
+        let pos = randomPositionAroundHyperWindow(hwLayoutInfo.center, hwLayoutInfo.radius);
         const rad = 100; //~ TODO: actual radius, from newHW?
+        pos = checkBoundsAndCorrect(pos, rad, canvasWidth, canvasHeight);
         //~ add to layout
         hwLayout.num += 1;
         hwLayout.centers.push(pos); 
