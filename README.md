@@ -3,7 +3,7 @@ Work-in-progress: tool for visualization and exploration of spatial chromatin mo
 
 Currently prototyping a visualization & interaction method for intuitive navigation of multiscale 3D data that have a linear organization of its parts. The technique is codenamed "HyperWindows".
 
-![chromatin-n-out WIP screenshot](screenshots/20230317145700.png)
+![chromatin-n-out WIP screenshot](screenshots/2024-01-12.png)
 
 ## roadmap
 - HyperWindows exploration technique MVP
