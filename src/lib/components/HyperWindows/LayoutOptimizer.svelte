@@ -286,8 +286,8 @@
             return;
         }
 
-        let pos = randomPositionAroundHyperWindow(hwLayoutInfo.center, hwLayoutInfo.radius);
         let [_, radius] = scene.computeBoundingSphere(newHW);
+        let pos = randomPositionAroundHyperWindow(hwLayoutInfo.center, hwLayoutInfo.radius, radius);
         const rad = radius;
         pos = checkBoundsAndCorrect(pos, rad, canvasWidth, canvasHeight);
         //~ add to layout
