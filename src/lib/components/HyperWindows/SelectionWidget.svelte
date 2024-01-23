@@ -2,8 +2,9 @@
     import { arc, pie } from "d3-shape";
     import { createEventDispatcher } from "svelte";
     import { randomNiceColor } from "../../util";
-    import type { Path, Vector2 } from "three";
+    import type { Vector2 } from "three";
     import type { HWSelectionWidget, HyperWindow, Selection } from "$lib/hyperwindows-types";
+    import { hoveredBin } from "$lib/stores";
 
     const dispatch = createEventDispatcher();
 
@@ -28,7 +29,7 @@
         .endAngle(2 * Math.PI - arcGapAngle)(bins);
 
     let selectionInProgress = false;
-    let hoveredBin: number | null = null;
+    // let hoveredBin: number | null = null;
 
     $: segments = arcs.map((arc) => {
         let input = {
@@ -56,17 +57,18 @@
         endAngle: arcGapAngle,
     });
 
-    const widgetColorFromParent = "#ff0000";
+    // const widgetColorFromParent = "#ff0000";
 
     const mouseOvered = (event: MouseEvent) => {
         if (event.target == undefined) {
             return;
         }
         if (event.target instanceof Element) {
-            hoveredBin = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+            const hovered = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+            $hoveredBin = { binId: hovered, hwId: hyperWindow.id};
             //~ multiple selections version
             if (selectionInProgress) {
-                const binId = parseInt(event.target.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+                const binId = hovered; 
                 const activeSelection = selections.slice(-1)[0];
                 const selectionsMinusLast = selections.slice(0, selections.length - 1);
                 //~ figure out which direction the selection is
@@ -79,8 +81,8 @@
         }
     };
 
-    const mouseOut = (event: MouseEvent) => {
-        hoveredBin = null;
+    const mouseOut = (_: MouseEvent) => {
+        $hoveredBin = undefined;
     };
 
     const mouseDown = (event: MouseEvent) => {
@@ -101,7 +103,7 @@
         }
     };
 
-    const mouseUp = (event: MouseEvent) => {
+    const mouseUp = (_: MouseEvent) => {
         //~ => selection finished
         console.log("Selection ended.");
         selectionInProgress = false;
@@ -132,7 +134,7 @@
                 break;
         }
     };
-    const touchEnd = (event: TouchEvent) => {
+    const touchEnd = (_: TouchEvent) => {
         //~ => selection finished
         console.log("touch end.");
         selectionInProgress = false;
@@ -151,11 +153,12 @@
         if (elUnderTouch == null) {
             return;
         }
-        hoveredBin = parseInt(elUnderTouch.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+        const hovered = parseInt(elUnderTouch.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+        $hoveredBin = { binId: hovered, hwId: hyperWindow.id};
         //~ multiple selections version
         if (selectionInProgress) {
-            console.log("hoveredBin:" + hoveredBin);
-            const binId = parseInt(elUnderTouch.id.split("-")[1]); //~ this is bit of a weird solution...maybe fix later
+            console.log("hoveredBin:" + hovered);
+            const binId = hovered; //~ this is bit of a weird solution...maybe fix later
             const activeSelection = selections.slice(-1)[0];
             const selectionsMinusLast = selections.slice(0, selections.length - 1);
             //~ figure out which direction the selection is
@@ -178,14 +181,14 @@
 />
 <!-- Info about # of bins or the hovered bin -->
 <text x={position.x - 10} y={position.y - radius + 20} fill="#ffffff" font-family="sans-serif">
-    {hoveredBin == null ? "#" + N.toString() : hoveredBin}
+    {(($hoveredBin) && (hyperWindow.id == $hoveredBin.hwId)) ? $hoveredBin.binId : "#" + N.toString() }
 </text>
 <!-- Individual segments of the selection widget -->
 {#each segments as bin, i}
     <path
         d={bin}
         id={"bin-" + i}
-        fill={i == hoveredBin ? "red" : colors[i]}
+        fill={(($hoveredBin) && (i == $hoveredBin.binId) && (hyperWindow.id == $hoveredBin.hwId)) ? "red" : colors[i]}
         pointer-events="all"
         transform={"translate(" + position.x + "," + position.y + ")"}
         on:mousedown={mouseDown}

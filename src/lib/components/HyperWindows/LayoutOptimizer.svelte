@@ -9,7 +9,7 @@
     import SelectionsLayer from "./SelectionsLayer.svelte";
     import type { HWSelectionWidget, HyperWindow, HyperWindowsLayout, Selection, WidgetStyle } from "$lib/hyperwindows-types";
     import { canvasSize } from "$lib/stores";
-    import { uvToScreen, randomPositionAroundHyperWindow, screenToUV } from "$lib/util";
+    import { uvToScreen, randomPositionAroundHyperWindow, screenToUV, computeBoundingCircle } from "$lib/util";
 
     //~ Matter.js physics
     let matterEngine = Matter.Engine.create();
@@ -282,7 +282,9 @@
         }
 
         let pos = randomPositionAroundHyperWindow(hwLayoutInfo.center, hwLayoutInfo.radius);
-        const rad = 100; //~ TODO: actual radius, from newHW?
+        let rad = 100; //~ TODO: actual radius, from newHW?
+        // rad = computeBoundingCircle();
+        // rad = compute
         pos = checkBoundsAndCorrect(pos, rad, canvasWidth, canvasHeight);
         //~ add to layout
         hwLayout.num += 1;
@@ -306,6 +308,8 @@
             stiffness: 0.001,
             damping: 0.05,
         });
+
+        //matter_constraits.push(constraint);
 
         Matter.Composite.add(matterEngine.world, [newBody, constraint]);
 

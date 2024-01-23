@@ -2,17 +2,30 @@
     import { T } from "@threlte/core";
     import { Instance, InstancedMesh } from "@threlte/extras";
     import type { HW3DView, HWGeometry, Selection } from "../../hyperwindows-types";
+    import { hoveredBin } from "$lib/stores";
 
     export let model: HWGeometry;
     export let viewParams: HW3DView;
+    export let hyperWindowId: number;
 
     export let selections: Selection[];
 
+    const isHoveredBin = (binId: number, hwId: number) => {
+        if ($hoveredBin == undefined) {
+            return false;
+        }
+        if (($hoveredBin.hwId == hwId) && ($hoveredBin.binId == binId)) {
+            return true;
+        }
+        return false;
+    };
+
     const getSelectionOrBaseColor = (sels: Selection[], binId: number) => {
+        if (isHoveredBin(binId, hyperWindowId)) {
+            return "red";
+        }
         for (let sel of sels) {
-            // if (binId == hoveredBin) {
-            //     return "red";
-            // }
+            
             if (binId <= sel.end && binId >= sel.start) {
                 return sel.color;
             }
