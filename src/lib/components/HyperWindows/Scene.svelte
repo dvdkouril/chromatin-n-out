@@ -160,7 +160,7 @@
         lastMousePos = { x: x, y: y };
 
         //~ adjust Matter.js body: Scale
-        let [_, radius] = computeBoundingSphere(hprWindow, camera);
+        let [_, radius] = computeBoundingSphere(hprWindow);
         // const currentRadius = hprWindow.currentRadius;
         const currentRadius = hwLayout.radii[hprWindow.id];
         const wantedRadius = radius;
@@ -208,7 +208,7 @@
         hprWindow.threeDView.zoom += zoomingSpeed * delta;
 
         //~ adjust Matter.js body: Scale
-        let [_, radius] = computeBoundingSphere(hprWindow, camera);
+        let [_, radius] = computeBoundingSphere(hprWindow);
         const currentRadius = hwLayout.radii[hprWindow.id];
         const wantedRadius = radius;
         const scaleFactor = wantedRadius / currentRadius;
@@ -244,7 +244,7 @@
      * @param pointsIn3D an array of points in 3D which will be projected into 2D and then the computation of a bounding sphere bounding "circle"
      * returns a 2D position and a radius of the bounding circle
      */
-    const computeBoundingSphere = (hyperwindow: HyperWindow, camera: PerspectiveCamera): [Vector2, number]  => {
+    export const computeBoundingSphere = (hyperwindow: HyperWindow): [Vector2, number]  => {
         //~ 1. project points into screen space
         const pointsIn2D = projectModelToScreenSpace(hyperwindow, camera, canvasWidth, canvasHeight);
         //DEBUG

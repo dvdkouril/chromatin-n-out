@@ -94,6 +94,11 @@
             return;
         }
 
+        if (!scene) {
+            //~ if Scene hasn't been bound yet, do nothing, try again later
+            return;
+        }
+
         initializeLayout();
         initializePhysicsBodies();
         layoutInitialized = true;
@@ -282,9 +287,8 @@
         }
 
         let pos = randomPositionAroundHyperWindow(hwLayoutInfo.center, hwLayoutInfo.radius);
-        let rad = 100; //~ TODO: actual radius, from newHW?
-        // rad = computeBoundingCircle();
-        // rad = compute
+        let [_, radius] = scene.computeBoundingSphere(newHW);
+        const rad = radius;
         pos = checkBoundsAndCorrect(pos, rad, canvasWidth, canvasHeight);
         //~ add to layout
         hwLayout.num += 1;
@@ -367,8 +371,8 @@
 
     const initializeLayout = () => {
         if (hyperWindows.length == 1) {
-            // const [_, initialRadius] = computeBoundingCircle();
-            const initialRadius = 100;
+            let [_, radius] = scene.computeBoundingSphere(hyperWindows[0]);
+            const initialRadius = radius;
             const startScreenPosition = new Vector2(0.5, 0.5);
             const newLayout: HyperWindowsLayout = {
                 num: 1,
