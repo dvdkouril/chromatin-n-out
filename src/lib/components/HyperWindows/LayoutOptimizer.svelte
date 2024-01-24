@@ -9,13 +9,11 @@
     import SelectionsLayer from "./SelectionsLayer.svelte";
     import type { HWSelectionWidget, HyperWindow, HyperWindowsLayout, Selection, WidgetStyle } from "$lib/hyperwindows-types";
     import { canvasSize } from "$lib/stores";
-    import { uvToScreen, randomPositionAroundHyperWindow, screenToUV, computeBoundingCircle } from "$lib/util";
+    import { uvToScreen, randomPositionAroundHyperWindow } from "$lib/util";
 
     //~ Matter.js physics
     let matterEngine = Matter.Engine.create();
     let matterRender: Matter.Render | undefined = undefined;
-    let matter_bodies: Matter.Body[] = [];
-    let matter_body_ids: number[] = [];
 
     type WallBodies = {
         top: Matter.Body | undefined,
@@ -41,6 +39,13 @@
     };
 
     let bodyToHWLookup = new Map<number, HyperWindow>();
+
+    type HyperWindowPhysicsData = {
+        body: Matter.Body,
+        constraints: Matter.Constraint[];
+    };
+
+    let hwPhysicsData: HyperWindowPhysicsData[] = [];
 
     //~ Reactivity: for when we add/remove hyperwindows
     $: hyperWindowsChanged(hyperWindows);
@@ -200,28 +205,26 @@
             return;
         }
         //~ creating the bodies here
-        let bodies = [];
-        let ids = [];
+        hwPhysicsData = [];
+        const bodies: Matter.Body[] = [];
         bodyToHWLookup.clear();
         for (let i = 0; i < hwLayout.num; i++) {
             //~ <0, 1> -> <0, width/height>
             const position = hwLayout.centers[i];
             const radius = hwLayout.radii[i];
-            // const c = uvToScreen(hw.screenPosition, canvasWidth, canvasHeight);
             const c = position;
             const newBody = Matter.Bodies.circle(c.x, c.y, radius, {
                 restitution: 0,
                 friction: 1,
             });
-            // hw.associatedBodyId = newBody.id;
-            // hw.associatedBodyIndex = i; //~ one of these is redundant but i can't say which rn
             bodies.push(newBody);
-            ids.push(newBody.id);
+            hwPhysicsData.push({
+                body: newBody,
+                constraints: [],
+            });
             //~ I'm not 100% sure about the hyperWindows[i] access
             bodyToHWLookup.set(newBody.id, hyperWindows[i]);
         }
-        matter_bodies = bodies;
-        matter_body_ids = ids;
 
         //~ add bodies to the Matterjs engine's world
         Matter.Composite.add(matterEngine.world, bodies);
@@ -300,12 +303,13 @@
             restitution: 0,
             friction: 1,
         });
-        matter_bodies.push(newBody);
-        matter_body_ids.push(newBody.id);
+        hwPhysicsData.push({
+            body: newBody,
+            constraints: [],
+        });
         bodyToHWLookup.set(newBody.id, newHW);
 
-        //~ matter_bodies has only bodies for the HWs, at this point--in theory--there should be no gaps (that will come with deleting HWs). So I should be able to look up just via sourceHW.id
-        const sourceHWBody = matter_bodies[sourceHW.id];
+        const sourceHWBody = hwPhysicsData[sourceHW.id].body;
         const constraint = Matter.Constraint.create({
             bodyA: sourceHWBody,
             bodyB: newBody,
@@ -314,6 +318,9 @@
         });
 
         //matter_constraits.push(constraint);
+        // I'll need to fetch the constraints when changing the HW position in layout.
+        // This means that I'll have probably access to the HW that changed
+        // and from that I need to fetch all constraints "connected" to that body
 
         Matter.Composite.add(matterEngine.world, [newBody, constraint]);
 
@@ -345,7 +352,7 @@
     };
 
     const needToScaleBodyForHyperWindow = (hw: HyperWindow, scaleFactor: number) => {
-        const b = matter_bodies[hw.id];
+        const b = hwPhysicsData[hw.id].body;
         Matter.Body.scale(b, scaleFactor, scaleFactor);
         //~ hm, if I want to adjust the radius in layout, it becames really significantly choppy...
         // const prevRadius = hwLayout.radii[hw.id];
@@ -359,7 +366,8 @@
             centers: [],
             radii: [],
         };
-        for (let b of matter_bodies) {
+        for (let data of hwPhysicsData) {
+            const b = data.body;
             newLayout.centers.push(new Vector2(b.position.x, b.position.y));
             newLayout.radii.push(b.circleRadius || 0);
             newLayout.num += 1;
@@ -394,9 +402,11 @@
         };
         layoutInitialized = false;
 
-        Matter.Composite.remove(matterEngine.world, matter_bodies);
-        matter_bodies = [];
-        matter_body_ids = [];
+        const allHwBodies = hwPhysicsData.map(data => data.body);
+        const allHwConstraints = hwPhysicsData.flatMap(data => data.constraints);
+        Matter.Composite.remove(matterEngine.world, allHwBodies);
+        Matter.Composite.remove(matterEngine.world, allHwConstraints);
+        hwPhysicsData = [];
         bodyToHWLookup = new Map<number, HyperWindow>();
     };
 
