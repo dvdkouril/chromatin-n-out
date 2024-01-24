@@ -18,6 +18,17 @@ export type HW3DView = {
     }
 };
 
+export const default3DView = (): HW3DView => {
+    return {
+        rotationX: 0,
+        rotationY: 0,
+        zoom: 1,
+        viewSettings: {
+            showPivotOrigin: false,
+        },
+    };
+};
+
 /**
  * Node in a tree of HyperWindows hierarchy
  */

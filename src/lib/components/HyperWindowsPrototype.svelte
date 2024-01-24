@@ -13,21 +13,18 @@
         type BoundingSphere,
         type Selection, 
         WidgetStyle,
+        default3DView,
     } from "$lib/hyperwindows-types";
     import { cell7 } from "$lib/test_cell7";
     import DebugBar from "./HyperWindows/DebugBar.svelte";
     import LayoutOptimizer from "./HyperWindows/LayoutOptimizer.svelte";
     import { canvasSize } from "$lib/stores";
 
+    //~ internal state
     let canvasWidth = 800; //~ binding these upwards with useThrelte
     let canvasHeight = 600;
-    let matterjsDebugCanvas: HTMLCanvasElement | undefined = undefined;
-
-    $: sizeChanged($canvasSize); 
-
-    let layoutOptimizer: LayoutOptimizer;
-
     let nextAvailableId = 1; //~ 0 is hardcoded onMount
+    let widgetDesign: WidgetStyle = WidgetStyle.Boundary;
 
     //~ example dataset selection
     const exampleDatasets = [
@@ -43,15 +40,20 @@
     let hw3DViews: HW3DView[] = []; //~ linearized array with information only relevant for the 3D rendering
     let hwWidgets: HWSelectionWidget[] = []; //~ linearized array with information only relevant for the selection widget
 
+    //~ refs to other components
+    let layoutOptimizer: LayoutOptimizer;
+
     //~ Structures related to computation of the bounding sphere and final screen positions
     let boundingSpheres: BoundingSphere[] = []; //~ bound to Scene, returns bounding spheres
 
     //~ DEBUG
     let debugPositions: [Vector2, string][] = []; //~ for now used for screen space positions of model spheres
     let showMatterDebug: boolean = false;
+    let matterjsDebugCanvas: HTMLCanvasElement | undefined = undefined;
     let showBoundingSphereDebug: boolean = false;
-    let widgetDesign: WidgetStyle = WidgetStyle.Boundary;
     let debugTexts: { text: string; x: number; y: number }[] = [];
+
+    $: sizeChanged($canvasSize); 
 
     const sizeChanged = (size: { width: number, height: number }) => {
         canvasWidth = size.width;
@@ -65,8 +67,7 @@
             sourceHW: HyperWindow;
         }>,
     ): void => {
-        console.log("App: seeing change");
-        console.log(ev);
+        console.log("New Selection: adding new HyperWindow");
         const sel = ev.detail.selection;
         const sourceWidget = ev.detail.sourceWidget;
         const sourceHyperWindow = ev.detail.sourceHW;
@@ -74,47 +75,19 @@
         const newWidgetId = nextAvailableId;
         nextAvailableId += 1;
 
-        // const sourceHWPosition = sourceHyperWindow.screenPosition;
-        // const sourceHWRadius = sourceHyperWindow.currentRadius;
-        // const newHWScreenPosition = randomPositionAroundHyperWindow(sourceHWPosition, sourceHWRadius / canvasWidth);
-
         //~ Create the actual new HyperWindow
         const [newHW, _, new3DView, newSelWidget] = makeNewHyperWindow(
             newWidgetId,
-            // newHWScreenPosition,
             sel,
             sourceWidget,
         );
-
-        // //~ add to layout
-        // const newHWPosition = uvToScreen(new Vector2(0.5, 0.5), canvasWidth, canvasHeight); //~ TODO: much more sophisticated approach
-        // const newHWRadius = 100;
-        // hwLayout = {
-        //     num: hwLayout.num + 1,
-        //     centers: [...hwLayout.centers, newHWPosition],
-        //     radii: [...hwLayout.radii, newHWRadius],
-        // };
 
         hyperWindows = [...hyperWindows, newHW];
         hwModels = [...hwModels, hwModels[0]]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
         hw3DViews = [...hw3DViews, new3DView]; //~ linearized array with information only relevant for the 3D rendering
         hwWidgets = [...hwWidgets, newSelWidget];
 
-        // scene.newHyperWindowAdded(newHW, sourceHyperWindow);
-        //~ instead:
-        // layoutOptimizer.addBodyForNewHyperWindow(/*TODO: parameters*/);
         layoutOptimizer.addNewHyperWindowToLayout(newHW, sourceHyperWindow);
-    };
-
-    const default3DView = (): HW3DView => {
-        return {
-            rotationX: 0,
-            rotationY: 0,
-            zoom: 1,
-            viewSettings: {
-                showPivotOrigin: false,
-            },
-        };
     };
 
     const makeInitialHyperWindow = (): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] | null => {
@@ -155,20 +128,13 @@
             childHyperWindows: [],
         };
 
-        // const newLayout: HyperWindowsLayout = {
-        //     num: 1,
-        //     centers: [uvToScreen(startScreenPosition, canvasWidth, canvasHeight)],
-        //     radii: [initialRadius],
-        // };
-
         return [newHW, newModel, new3DView, newWidget];
     };
 
     const makeNewHyperWindow = (
         id: number,
-        // startScreenPosition: Vector2 = new Vector2(0.5, 0.5),
         selection: Selection,
-        sourceWidget: HWSelectionWidget, //~ TODO: type
+        sourceWidget: HWSelectionWidget, 
     ): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] => {
         const offset = sourceWidget.domain.start;
         const newDomain = {
@@ -205,12 +171,7 @@
         const new3DView: HW3DView = default3DView();
 
         //~ 4. create HyperWindow
-        // const initialRadius = 100;
         const newHW: HyperWindow = {
-            // screenPosition: startScreenPosition,
-            // currentRadius: initialRadius,
-            // associatedBodyId: 0,
-            // associaedBodyIndex: 0, //~ these get filled out in Scene
             id: id,
             model: newModel,
             widget: newWidget,
@@ -238,7 +199,6 @@
         hwModels = [hwRootModel];
         hw3DViews = [hwRoot3DView];
         hwWidgets = [hwRootWidget];
-        // hwLayout = layout;
     };
 
     onMount(() => {
