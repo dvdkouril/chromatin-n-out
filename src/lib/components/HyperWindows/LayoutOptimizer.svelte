@@ -303,11 +303,7 @@
             restitution: 0,
             friction: 1,
         });
-        hwPhysicsData.push({
-            body: newBody,
-            constraints: [],
-        });
-        bodyToHWLookup.set(newBody.id, newHW);
+        
 
         const sourceHWBody = hwPhysicsData[sourceHW.id].body;
         const constraint = Matter.Constraint.create({
@@ -317,13 +313,18 @@
             damping: 0.05,
         });
 
-        //matter_constraits.push(constraint);
-        // I'll need to fetch the constraints when changing the HW position in layout.
-        // This means that I'll have probably access to the HW that changed
-        // and from that I need to fetch all constraints "connected" to that body
+        //~ Update internal data structures about physics objects
+        //~ new body and constraint
+        hwPhysicsData.push({
+            body: newBody,
+            constraints: [constraint],
+        });
+        //~ add constraint to source body
+        hwPhysicsData[sourceHW.id].constraints.push(constraint);
+
+        bodyToHWLookup.set(newBody.id, newHW);
 
         Matter.Composite.add(matterEngine.world, [newBody, constraint]);
-
         hwLayout = hwLayout;
     }
 
