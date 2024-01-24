@@ -358,6 +358,15 @@
         //~ hm, if I want to adjust the radius in layout, it becames really significantly choppy...
         // const prevRadius = hwLayout.radii[hw.id];
         // hwLayout.radii[hw.id] = prevRadius * scaleFactor;
+
+        //~ adjusting the constraints 
+        const constrs = hwPhysicsData[hw.id].constraints;
+        const prevRadius = hwLayout.radii[hw.id];
+        for (let c of constrs) {
+            const currentLength = c.length;
+            const delta = prevRadius * scaleFactor - prevRadius;
+            c.length = currentLength + delta;
+        }
     };
 
     const update = () => {
