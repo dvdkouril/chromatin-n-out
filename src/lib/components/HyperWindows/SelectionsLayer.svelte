@@ -12,7 +12,7 @@
 
     export let width: number;
     export let height: number;
-    const selectionWidgetThickness = 25;
+    const selectionWidgetThickness = 50;
     export let newSelectionCallback: (
         ev: CustomEvent<{
             selection: Selection;
@@ -56,7 +56,7 @@
                 return 100;
 
             case WidgetStyle.Boundary:
-                return radius * 2 * 1.1;
+                return radius * 2;
 
             default:
                 return radius;
