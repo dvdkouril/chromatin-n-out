@@ -1,7 +1,7 @@
 <script lang="ts">
     import { arc, pie } from "d3-shape";
     import { createEventDispatcher } from "svelte";
-    import { randomNiceColor } from "../../util";
+    import { isHoveredBin, randomNiceColor } from "../../util";
     import type { Vector2 } from "three";
     import type { HWSelectionWidget, HyperWindow, Selection } from "$lib/hyperwindows-types";
     import { hoveredBin } from "$lib/stores";
@@ -188,7 +188,8 @@
     <path
         d={bin}
         id={"bin-" + i}
-        fill={(($hoveredBin) && (i == $hoveredBin.binId) && (hyperWindow.id == $hoveredBin.hwId)) ? "red" : colors[i]}
+        fill={isHoveredBin($hoveredBin, i, hyperWindow.id) ? "red" : colors[i]}
+        fill-opacity={isHoveredBin($hoveredBin, i, hyperWindow.id) ? 1.0 : 0.3}
         pointer-events="all"
         transform={"translate(" + position.x + "," + position.y + ")"}
         on:mousedown={mouseDown}

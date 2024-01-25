@@ -3,6 +3,7 @@
     import { Instance, InstancedMesh } from "@threlte/extras";
     import type { HW3DView, HWGeometry, Selection } from "../../hyperwindows-types";
     import { hoveredBin } from "$lib/stores";
+    import { isHoveredBin } from "$lib/util";
 
     export let model: HWGeometry;
     export let viewParams: HW3DView;
@@ -10,18 +11,8 @@
 
     export let selections: Selection[];
 
-    const isHoveredBin = (binId: number, hwId: number) => {
-        if ($hoveredBin == undefined) {
-            return false;
-        }
-        if (($hoveredBin.hwId == hwId) && ($hoveredBin.binId == binId)) {
-            return true;
-        }
-        return false;
-    };
-
     const getSelectionOrBaseColor = (sels: Selection[], binId: number) => {
-        if (isHoveredBin(binId, hyperWindowId)) {
+        if (isHoveredBin($hoveredBin, binId, hyperWindowId)) {
             return "red";
         }
         for (let sel of sels) {

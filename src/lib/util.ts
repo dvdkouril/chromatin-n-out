@@ -406,3 +406,13 @@ export const screenToUV = (coords: Vector2, width: number, height: number): Vect
     const uvCoords = new Vector2(coords.x / width, coords.y / height);
     return uvCoords;
 }
+
+export const isHoveredBin = (hoveredBin: {hwId: number; binId: number} | undefined, binId: number, hwId: number) => {
+    if (hoveredBin == undefined) {
+        return false;
+    }
+    if ((hoveredBin.hwId == hwId) && (hoveredBin.binId == binId)) {
+        return true;
+    }
+    return false;
+};
