@@ -29,6 +29,7 @@ export const default3DView = (): HW3DView => {
     };
 };
 
+
 /**
  * Node in a tree of HyperWindows hierarchy
  */
@@ -63,6 +64,19 @@ export type HWSelectionWidget = {
     selections: { start: number; end: number; color: string }[];
     colorForSelections: string;
     // widgets: Widget[];
+};
+
+export const defaultSelectionWidget = (id: number, binsNum: number): HWSelectionWidget => { return {
+        id: id,
+        level: 0,
+        binsNum: binsNum,
+        domain: {
+            start: 0,
+            end: binsNum - 1,
+        },
+        selections: [],
+        colorForSelections: "",
+    };
 };
 
 /**

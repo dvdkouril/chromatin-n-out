@@ -14,6 +14,7 @@
         type Selection, 
         WidgetStyle,
         default3DView,
+        defaultSelectionWidget,
     } from "$lib/hyperwindows-types";
     import { cell7 } from "$lib/test_cell7";
     import DebugBar from "./HyperWindows/DebugBar.svelte";
@@ -90,6 +91,42 @@
         layoutOptimizer.addNewHyperWindowToLayout(newHW, sourceHyperWindow);
     };
 
+    const makeInitialTwoHyperWindows = (): [HyperWindow[], HWGeometry[], HW3DView[], HWSelectionWidget[]] | null => {
+        let firstModel = load3DModel(brafl, 0.02);
+        let secondModel = load3DModel(spomb, 0.1);
+
+        const firstWidget: HWSelectionWidget = defaultSelectionWidget(0, firstModel.spheres.length);
+        const secondWidget: HWSelectionWidget = defaultSelectionWidget(1, secondModel.spheres.length);
+
+        const first3DView: HW3DView = default3DView();
+        const second3DView: HW3DView = default3DView();
+
+        const firstHW = {
+            id: 0,
+            model: firstModel,
+            widget: firstWidget,
+            threeDView: first3DView,
+            childHyperWindows: [],
+        };
+
+        const secondHW = {
+            id: 1,
+            model: secondModel,
+            widget: secondWidget,
+            threeDView: second3DView,
+            childHyperWindows: [],
+        };
+
+        return [[firstHW, secondHW], 
+                [firstModel, secondModel], 
+                [first3DView, second3DView], 
+                [firstWidget, secondWidget]];
+
+        return null;
+    };
+
+    
+
     const makeInitialHyperWindow = (): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] | null => {
         //~ 1. load the 3D model (future TODO: multiple models)
         let newModel = undefined;
@@ -104,17 +141,7 @@
         }
 
         //~ 2. create selection widget
-        const newWidget: HWSelectionWidget = {
-            id: 0,
-            level: 0,
-            binsNum: newModel.spheres.length,
-            domain: {
-                start: 0,
-                end: newModel.spheres.length - 1,
-            },
-            selections: [],
-            colorForSelections: "",
-        };
+        const newWidget: HWSelectionWidget = defaultSelectionWidget(0, newModel.spheres.length);
 
         //~ 3. create 3D view part of HyperWindow
         const new3DView: HW3DView = default3DView();
@@ -182,6 +209,25 @@
         return [newHW, newModel, new3DView, newWidget];
     };
 
+    const initWithTwo = () => {
+        const res = makeInitialTwoHyperWindows();
+
+        if (res == null) {
+            return;
+        }
+
+        const [hws, models, views, widgets] = res;
+
+        //~ reseting, for when this is run after dataset changed
+        layoutOptimizer.reset();
+        nextAvailableId = 2;
+
+        hyperWindows = hws;
+        hwModels = models;
+        hw3DViews = views;
+        hwWidgets = widgets;
+    };
+
     const initWithSingle = () => {
         const res = makeInitialHyperWindow();
 
@@ -203,7 +249,8 @@
 
     onMount(() => {
         console.log("HyperWindowsPrototype::onMount");
-        initWithSingle();
+        // initWithSingle();
+        initWithTwo();
     });
 </script>
 

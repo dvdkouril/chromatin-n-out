@@ -388,20 +388,24 @@
     };
 
     const initializeLayout = () => {
-        if (hyperWindows.length == 1) {
-            let [_, radius] = scene.computeBoundingSphere(hyperWindows[0]);
+        let newLayout: HyperWindowsLayout = {
+            num: 0,
+            centers: [],
+            radii: [],
+        };
+
+        for (let i = 0; i < hyperWindows.length; i++) {
+            let [_, radius] = scene.computeBoundingSphere(hyperWindows[i]);
             const initialRadius = radius;
             const startScreenPosition = new Vector2(0.5, 0.5);
-            const newLayout: HyperWindowsLayout = {
-                num: 1,
-                centers: [uvToScreen(startScreenPosition, canvasWidth, canvasHeight)],
-                radii: [initialRadius],
+            newLayout = {
+                num: newLayout.num + 1,
+                centers: [...newLayout.centers, uvToScreen(startScreenPosition, canvasWidth, canvasHeight)],
+                radii: [...newLayout.radii, initialRadius],
             };
-            hwLayout = newLayout;
-            
-        } else {
-            console.log("ERR: not implemented (more than one start HyperWindow");
         }
+
+        hwLayout = newLayout;
     };
 
     export const reset = () => {
