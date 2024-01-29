@@ -12,7 +12,7 @@
 
     export let width: number;
     export let height: number;
-    const selectionWidgetThickness = 50;
+    const selectionWidgetThickness = 25;
     export let newSelectionCallback: (
         ev: CustomEvent<{
             selection: Selection;
@@ -29,6 +29,24 @@
     export let widgetDesign: WidgetStyle = WidgetStyle.SmallTopLeft;
 
     $: colorMaps = generateGrayScaleColorMaps(rootModelSizes);
+
+    const computeWidgetThickness = (radius: number): number => {
+        const percentage = 20;
+        return (percentage * 0.01) * radius;
+    };
+
+    const getWidgetThicknessBasedOnStyle = (style: WidgetStyle, radius: number): number => {
+        switch (style) {
+            case WidgetStyle.SmallTopLeft:
+                return selectionWidgetThickness;
+
+            case WidgetStyle.Boundary:
+                return computeWidgetThickness(radius);
+
+            default:
+                return selectionWidgetThickness;
+        }
+    };
 
     const getPositionBasedOnStyle = (
         style: WidgetStyle,
@@ -82,7 +100,7 @@
                         widgetDesign,
                         layout.radii[i],
                     )}
-                    widgetThickness={selectionWidgetThickness}
+                    widgetThickness={getWidgetThicknessBasedOnStyle(widgetDesign, layout.radii[i])}
                     N={widget.binsNum}
                     colors={colorMaps[widget.treeId]}
                     colorForSelection={widget.colorForSelections}
