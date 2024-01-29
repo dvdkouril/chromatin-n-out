@@ -202,7 +202,10 @@
         //~ use the x,y to query the physics engine; get the body under cursor
         let hprWindow: HyperWindow | undefined = getHyperWindowAtPosition(x, y);
 
-        if (hprWindow == undefined) return;
+        if (hprWindow == undefined) {
+            console.log("TODO: scroll outside of HWs => zoom whole scene.");
+            return;
+        }
 
         const zoomingSpeed = 0.001;
         hprWindow.threeDView.zoom += zoomingSpeed * delta;
