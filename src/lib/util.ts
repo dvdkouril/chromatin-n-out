@@ -26,6 +26,15 @@ export const generateGrayScale = (numOfColors: number) => {
     return d3.quantize(d3.interpolate(lightGray, darkGray), numOfColors);
 }
 
+export const generateGrayScaleColorMaps = (binNums: number[]) => {
+    let ret: string[][] = [];
+    for (const n of binNums) {
+        const colormap = generateGrayScale(n);
+        ret = [...ret, colormap];
+    }
+    return ret;
+}
+
 export const generateNicerColors = (numOfColors: number) => {
     //~ from here: https://observablehq.com/@d3/color-schemes
     // const numOfColors = 500;

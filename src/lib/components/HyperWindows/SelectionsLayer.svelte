@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Vector2 } from "three";
-    import { generateGrayScale } from "../../util";
+    import { generateGrayScaleColorMaps } from "../../util";
     import SelectionWidget from "./SelectionWidget.svelte";
     import { WidgetStyle } from "$lib/hyperwindows-types";
     import type {
@@ -24,11 +24,11 @@
     export let widgets: HWSelectionWidget[];
     export let hyperWindows: HyperWindow[]; //~ TODO: this is really only sent to the Widget (for the new selection callback)...there's probably a better way
     export let layout: HyperWindowsLayout;
+    export let rootModelSizes: number[];
 
     export let widgetDesign: WidgetStyle = WidgetStyle.SmallTopLeft;
 
-    $: maxBinsNum = widgets.length > 0 ? widgets[0].binsNum : 0; //~ it should be that the first widget (= top level) has the most bins
-    $: grayColorMap = generateGrayScale(maxBinsNum); //~ the colormap is generated for each HW tree, subsequent HWs only get subparts
+    $: colorMaps = generateGrayScaleColorMaps(rootModelSizes);
 
     const getPositionBasedOnStyle = (
         style: WidgetStyle,
@@ -84,7 +84,7 @@
                     )}
                     widgetThickness={selectionWidgetThickness}
                     N={widget.binsNum}
-                    colors={grayColorMap}
+                    colors={colorMaps[widget.treeId]}
                     colorForSelection={widget.colorForSelections}
                     on:selectionFinished={newSelectionCallback}
                     bind:selections={widget.selections}

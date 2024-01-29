@@ -59,6 +59,7 @@
     let hwModels: HWGeometry[] = []; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
     let hw3DViews: HW3DView[] = []; //~ linearized array with information only relevant for the 3D rendering
     let hwWidgets: HWSelectionWidget[] = []; //~ linearized array with information only relevant for the selection widget
+    let rootModelSizes: number[] = [];
 
     //~ refs to other components
     let layoutOptimizer: LayoutOptimizer;
@@ -137,6 +138,7 @@
         const newWidget: HWSelectionWidget = {
             id: id,
             level: 0,
+            treeId: sourceWidget.treeId,
             binsNum: newModel.spheres.length,
             domain: {
                 start: 0,
@@ -182,7 +184,7 @@
                 return null;
             }
 
-            const widget: HWSelectionWidget = defaultSelectionWidget(nextAvailableId, model.spheres.length);
+            const widget: HWSelectionWidget = defaultSelectionWidget(nextAvailableId, nextAvailableId, model.spheres.length);
             const view: HW3DView = default3DView();
             const hw = {
                 id: nextAvailableId,
@@ -198,7 +200,9 @@
             models = [...models, model];
             views = [...views, view];
             widgets = [...widgets, widget];
+
         }
+        rootModelSizes = models.map(m => m.spheres.length);
 
         return [hws, models, views, widgets];
     };
@@ -253,7 +257,7 @@
 
     <div id="canvas-container">
         <!-- Manages the positioning of HyperWindows (both the 3D part and the SelectionWidget) -->
-        <LayoutOptimizer bind:this={layoutOptimizer} {hyperWindows} {hwWidgets} newSelectionCallback={newSelection} {widgetDesign} {matterjsDebugCanvas} {showMatterDebug} />
+        <LayoutOptimizer bind:this={layoutOptimizer} {hyperWindows} {hwWidgets} newSelectionCallback={newSelection} {widgetDesign} {matterjsDebugCanvas} {showMatterDebug} {rootModelSizes} />
 
         <!-- SVG debug overlay -->
         {#if showBoundingSphereDebug}

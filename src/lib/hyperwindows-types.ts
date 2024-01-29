@@ -59,6 +59,7 @@ export type Selection = {
 export type HWSelectionWidget = {
     id: number;
     level: number; //~ todo: probably move to HyperWindow
+    treeId: number;
     binsNum: number;
     domain: { start: number; end: number };
     selections: { start: number; end: number; color: string }[];
@@ -66,9 +67,10 @@ export type HWSelectionWidget = {
     // widgets: Widget[];
 };
 
-export const defaultSelectionWidget = (id: number, binsNum: number): HWSelectionWidget => { return {
+export const defaultSelectionWidget = (id: number, treeId: number, binsNum: number): HWSelectionWidget => { return {
         id: id,
         level: 0,
+        treeId: treeId,
         binsNum: binsNum,
         domain: {
             start: 0,

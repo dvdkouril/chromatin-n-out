@@ -32,6 +32,7 @@
     //~ Main data structures: HyperWindows, widgets, and their positioning on the canvas
     export let hyperWindows: HyperWindow[];
     export let hwWidgets: HWSelectionWidget[];
+    export let rootModelSizes: number[];
     let hwLayout: HyperWindowsLayout = {
         num: 0,
         centers: [],
@@ -471,4 +472,5 @@ The purpose of LayoutOptimizer is to manage all the Matter.js logic behind placi
     layout={hwLayout}
     {newSelectionCallback}
     {widgetDesign}
+    {rootModelSizes}
 />
