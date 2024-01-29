@@ -24,17 +24,35 @@
     //~ internal state
     let canvasWidth = 800; //~ binding these upwards with useThrelte
     let canvasHeight = 600;
-    let nextAvailableId = 1; //~ 0 is hardcoded onMount
+    let nextAvailableId = 0; 
     let widgetDesign: WidgetStyle = WidgetStyle.Boundary;
 
+    type Dataset = {
+        id: number;
+        name: string;
+        scale: number;
+    };
+
+    type Scene = {
+        id: number;
+        name: string;
+        datasetNames: string[];
+    };
+
     //~ example dataset selection
-    const exampleDatasets = [
-        { id: 1, name: "brafl" },
-        { id: 2, name: "cell7" },
-        { id: 3, name: "spomb" },
-        { id: 4, name: "brafl+spomb" },
+    const exampleDatasets: Map<string, Dataset> = new Map([
+        ["brafl", { id: 1, name: "brafl", scale: 0.02 }],
+        ["spomb", { id: 2, name: "spomb", scale: 0.1 }],
+        ["cell7", { id: 3, name: "cell7", scale: 0.2 }],
+    ]);
+    const exampleScenes: Scene[] = [
+        { id: 1, name: "brafl", datasetNames: ["brafl"] },
+        { id: 2, name: "spomb", datasetNames: ["spomb"] },
+        { id: 3, name: "cell7", datasetNames: ["cell7"] },
+        { id: 4, name: "brafl+spomb", datasetNames: ["brafl", "spomb"] },
+        { id: 5, name: "brafl+brafl", datasetNames: ["brafl", "brafl"] },
     ];
-    let selectedDataset: { id: number; name: string } = exampleDatasets[0];
+    let selectedScene: Scene = exampleScenes[0];
 
     //~ Main data structures
     let hyperWindows: HyperWindow[] = [];
@@ -143,72 +161,73 @@
         return [newHW, newModel, new3DView, newWidget];
     };
 
-    const makeInitialTwoHyperWindows = (): [HyperWindow[], HWGeometry[], HW3DView[], HWSelectionWidget[]] | null => {
-        let firstModel = load3DModel(brafl, 0.02);
-        let secondModel = load3DModel(spomb, 0.1);
+    const makeInitialHyperWindows = (datasets: Dataset[]): [HyperWindow[], HWGeometry[], HW3DView[], HWSelectionWidget[]] | null => {
+        let hws: HyperWindow[] = [];
+        let models: HWGeometry[] = [];
+        let views: HW3DView[] = [];
+        let widgets: HWSelectionWidget[] = [];
 
-        const firstWidget: HWSelectionWidget = defaultSelectionWidget(0, firstModel.spheres.length);
-        const secondWidget: HWSelectionWidget = defaultSelectionWidget(1, secondModel.spheres.length);
+        for (let d of datasets) {
+            let model: HWGeometry | null = null;
+            //~ todo: move to a different function
+            if (d.name == "brafl") {
+                model = load3DModel(brafl, d.scale);
+            } else if (d.name == "spomb") {
+                model = load3DModel(spomb, d.scale);
+            } else if (d.name == "cell7") {
+                model = load3DModel(cell7, d.scale);
+            }
 
-        const first3DView: HW3DView = default3DView();
-        const second3DView: HW3DView = default3DView();
+            if (!model) {
+                return null;
+            }
 
-        const firstHW = {
-            id: 0,
-            model: firstModel,
-            widget: firstWidget,
-            threeDView: first3DView,
-            childHyperWindows: [],
-        };
+            const widget: HWSelectionWidget = defaultSelectionWidget(nextAvailableId, model.spheres.length);
+            const view: HW3DView = default3DView();
+            const hw = {
+                id: nextAvailableId,
+                model: model,
+                widget: widget,
+                threeDView: view,
+                childHyperWindows: [],
+            };
 
-        const secondHW = {
-            id: 1,
-            model: secondModel,
-            widget: secondWidget,
-            threeDView: second3DView,
-            childHyperWindows: [],
-        };
+            nextAvailableId = nextAvailableId + 1;
 
-        return [[firstHW, secondHW], 
-                [firstModel, secondModel], 
-                [first3DView, second3DView], 
-                [firstWidget, secondWidget]];
+            hws = [...hws, hw];
+            models = [...models, model];
+            views = [...views, view];
+            widgets = [...widgets, widget];
+        }
 
+        return [hws, models, views, widgets];
     };
 
-    const makeInitialHyperWindow = (): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] | null => {
-        //~ 1. load the 3D model (future TODO: multiple models)
-        let newModel = undefined;
-        if (selectedDataset.name == "brafl") {
-            newModel = load3DModel(brafl, 0.02);
-        } else if (selectedDataset.name == "cell7") {
-            newModel = load3DModel(cell7, 0.2);
-        } else if (selectedDataset.name == "spomb") {
-            newModel = load3DModel(spomb, 0.1);
-        } else {
+    const fetchDatasetsForScene = (scene: Scene): Dataset[] | null => {
+        //~ Use the datasetNames to fetch Dataset structure
+        const datasets = scene.datasetNames.map(s => exampleDatasets.get(s));
+
+        //~ Check whether there's some typo or something which would result into not finding the dataset
+        if (datasets.includes(undefined)) {
             return null;
         }
 
-        //~ 2. create selection widget
-        const newWidget: HWSelectionWidget = defaultSelectionWidget(0, newModel.spheres.length);
-
-        //~ 3. create 3D view part of HyperWindow
-        const new3DView: HW3DView = default3DView();
-
-        //~ 4. create HyperWindow
-        const newHW: HyperWindow = {
-            id: 0,
-            model: newModel,
-            widget: newWidget,
-            threeDView: new3DView,
-            childHyperWindows: [],
-        };
-
-        return [newHW, newModel, new3DView, newWidget];
+        //~ Because of the check above, this cast should be possible
+        return datasets as Dataset[];
     };
 
-    const initWithTwo = () => {
-        const res = makeInitialTwoHyperWindows();
+    const initHyperWindows = () => {
+        const datasets = fetchDatasetsForScene(selectedScene);
+        
+        if (!datasets) {
+            return;
+        }
+
+        //~ reseting, for when this is run after dataset changed
+        layoutOptimizer.reset();
+        nextAvailableId = 0;
+
+        const res = makeInitialHyperWindows(datasets);
 
         if (res == null) {
             return;
@@ -216,58 +235,21 @@
 
         const [hws, models, views, widgets] = res;
 
-        //~ reseting, for when this is run after dataset changed
-        layoutOptimizer.reset();
-        nextAvailableId = 2;
-
         hyperWindows = hws;
         hwModels = models;
         hw3DViews = views;
         hwWidgets = widgets;
-    };
 
-    const initWithSingle = () => {
-        const res = makeInitialHyperWindow();
-
-        if (res == null) {
-            return;
-        }
-
-        const [hwRoot, hwRootModel, hwRoot3DView, hwRootWidget] = res;
-
-        //~ reseting, for when this is run after dataset changed
-        layoutOptimizer.reset();
-        nextAvailableId = 1;
-
-        hyperWindows = [hwRoot];
-        hwModels = [hwRootModel];
-        hw3DViews = [hwRoot3DView];
-        hwWidgets = [hwRootWidget];
-    };
-
-    const initHyperWindows = () => {
-        if ((selectedDataset.name == "brafl") ||
-            (selectedDataset.name == "cell7") ||
-            (selectedDataset.name == "spomb")) 
-        {
-            initWithSingle();
-        } else if (selectedDataset.name = "brafl+spomb") {
-            initWithTwo();
-        } else {
-            return null;
-        }
     };
 
     onMount(() => {
         console.log("HyperWindowsPrototype::onMount");
-        // initWithSingle();
-        // initWithTwo();
         initHyperWindows();
     });
 </script>
 
 <div id="wrapper">
-    <DebugBar onChangeCallback={initHyperWindows} bind:showMatterDebug={showMatterDebug} bind:showBoundingSphereDebug={showBoundingSphereDebug} bind:widgetDesign={widgetDesign} {exampleDatasets} bind:selectedDataset={selectedDataset} />
+    <DebugBar onChangeCallback={initHyperWindows} bind:showMatterDebug={showMatterDebug} bind:showBoundingSphereDebug={showBoundingSphereDebug} bind:widgetDesign={widgetDesign} {exampleScenes} bind:selectedScene={selectedScene} />
 
     <div id="canvas-container">
         <!-- Manages the positioning of HyperWindows (both the 3D part and the SelectionWidget) -->

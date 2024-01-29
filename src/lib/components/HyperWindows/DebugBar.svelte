@@ -8,8 +8,8 @@
 
     //~ Dataset selectbox
     export let onChangeCallback: () => any;
-    export let exampleDatasets: { id: number, name: string }[];
-    export let selectedDataset: { id: number; name: string };
+    export let exampleScenes: { id: number, name: string }[];
+    export let selectedScene: { id: number; name: string };
 </script>
 
 <div id="debug-bar">
@@ -27,10 +27,10 @@
     <button on:click={() => (widgetDesign = WidgetStyle.SmallTopLeft)}
         >~2~</button
     >
-    <select bind:value={selectedDataset} on:change={onChangeCallback}>
-        {#each exampleDatasets as dataset}
-            <option value={dataset}>
-                {dataset.name}
+    <select bind:value={selectedScene} on:change={onChangeCallback}>
+        {#each exampleScenes as scene}
+            <option value={scene}>
+                {scene.name}
             </option>
         {/each}
     </select>
