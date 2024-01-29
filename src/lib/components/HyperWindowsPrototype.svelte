@@ -123,13 +123,13 @@
         };
 
         //~ Recenter the submodel
-        let subModelPositions = hwModels[0].spheres.slice(newDomain.start, newDomain.end + 1);
+        let subModelPositions = hwModels[sourceWidget.treeId].spheres.slice(newDomain.start, newDomain.end + 1);
         subModelPositions = recenter(subModelPositions);
         let subModelTubes = computeTubes(subModelPositions); //~ TODO: probably unnecessary computation
 
-        //~ 1. load the 3D model (future TODO: multiple models)
+        //~ 1. load the 3D model 
         const newModel = {
-            ...hwModels[0], //~ TODO: still hacky..I should get the model from the source HW
+            ...hwModels[sourceWidget.treeId], 
             spheres: subModelPositions,
             tubes: subModelTubes,
         };
