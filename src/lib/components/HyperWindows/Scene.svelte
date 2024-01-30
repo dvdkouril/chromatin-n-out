@@ -5,7 +5,7 @@
     import { onDestroy, onMount } from "svelte";
     import { computeBoundingCircle, projectModelToScreenSpace, screenToUV, unprojectToWorldSpace } from "../../util";
     import type { HyperWindow, HyperWindowsLayout } from "../../hyperwindows-types";
-    import { alert, canvasSize } from "$lib/stores";
+    import { alert, canvasSize, hoveredHyperWindowId } from "$lib/stores";
    
     //~ provided from LayoutOptimizer, for querying the physics during interaction (zooming, orbiting)
     export let getHyperWindowAtPosition: (x: number, y: number) => HyperWindow | undefined;
@@ -116,6 +116,11 @@
         let rect = e.target.getBoundingClientRect();
         let x = e.clientX - rect.left; //x position within the element.
         let y = e.clientY - rect.top; //y position within the element.
+
+        //~ updating hovered hyperwindow store
+        let hprWindow: HyperWindow | undefined = getHyperWindowAtPosition(x, y);
+        $hoveredHyperWindowId = hprWindow ? hprWindow.id : undefined;
+        console.log("hovered HW: " + $hoveredHyperWindowId);
 
         if (dragging) {
             processOrbiting(x, y);

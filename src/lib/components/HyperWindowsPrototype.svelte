@@ -26,6 +26,7 @@
     let canvasHeight = 600;
     let nextAvailableId = 0; 
     let widgetDesign: WidgetStyle = WidgetStyle.Boundary;
+    let showAllWidgets = true;
 
     type Dataset = {
         id: number;
@@ -253,11 +254,11 @@
 </script>
 
 <div id="wrapper">
-    <DebugBar onChangeCallback={initHyperWindows} bind:showMatterDebug={showMatterDebug} bind:showBoundingSphereDebug={showBoundingSphereDebug} bind:widgetDesign={widgetDesign} {exampleScenes} bind:selectedScene={selectedScene} />
+    <DebugBar onChangeCallback={initHyperWindows} bind:showMatterDebug={showMatterDebug} bind:showBoundingSphereDebug={showBoundingSphereDebug} bind:widgetDesign={widgetDesign} {exampleScenes} bind:selectedScene={selectedScene} bind:showAllWidgets={showAllWidgets} />
 
     <div id="canvas-container">
         <!-- Manages the positioning of HyperWindows (both the 3D part and the SelectionWidget) -->
-        <LayoutOptimizer bind:this={layoutOptimizer} {hyperWindows} {hwWidgets} newSelectionCallback={newSelection} {widgetDesign} {matterjsDebugCanvas} {showMatterDebug} {rootModelSizes} />
+        <LayoutOptimizer bind:this={layoutOptimizer} {hyperWindows} {hwWidgets} newSelectionCallback={newSelection} {widgetDesign} {matterjsDebugCanvas} {showMatterDebug} {rootModelSizes} showingAllWidgets={showAllWidgets} />
 
         <!-- SVG debug overlay -->
         {#if showBoundingSphereDebug}

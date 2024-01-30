@@ -59,6 +59,7 @@
         }>,
     ) => void;
     export let widgetDesign: WidgetStyle; //~ TODO: I'm pretty sure this shouldn't be here
+    export let showingAllWidgets: boolean;
 
     //~ copied from elsewhere
     let scene: Scene;
@@ -473,4 +474,5 @@ The purpose of LayoutOptimizer is to manage all the Matter.js logic behind placi
     {newSelectionCallback}
     {widgetDesign}
     {rootModelSizes}
+    {showingAllWidgets}
 />

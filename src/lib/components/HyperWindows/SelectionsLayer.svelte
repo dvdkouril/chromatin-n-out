@@ -9,6 +9,7 @@
         Selection,
         HyperWindow,
     } from "$lib/hyperwindows-types";
+    import { hoveredHyperWindowId } from "$lib/stores";
 
     export let width: number;
     export let height: number;
@@ -27,8 +28,10 @@
     export let rootModelSizes: number[];
 
     export let widgetDesign: WidgetStyle = WidgetStyle.SmallTopLeft;
+    export let showingAllWidgets: boolean;
 
     $: colorMaps = generateGrayScaleColorMaps(rootModelSizes);
+    $: widgetShown = widgets.map(w => w);
 
     const computeWidgetThickness = (radius: number): number => {
         const percentage = 20;
@@ -80,36 +83,49 @@
                 return radius;
         }
     };
+
+    const shouldShouldWidget = (widgetId: number, hoveredHW: number | undefined): boolean => {
+        const shownWidgetId = hoveredHW;
+        console.log("widgetId = " + widgetId);
+        if (!shownWidgetId) {
+            false;
+        }
+        if (widgetId == shownWidgetId) {
+            return true;
+        }
+        return false;
+    }
 </script>
 
 <div id="arc-selection-widget">
     <svg {width} {height} pointer-events="none">
         {#if layout.num == widgets.length }
             {#each widgets as widget, i}
-                <SelectionWidget
-                    position={getPositionBasedOnStyle(
-                        widgetDesign,
-                        layout.centers[i],
-                        layout.radii[i],
-                    )}
-                    width={getSizeBasedOnStyle(
-                        widgetDesign,
-                        layout.radii[i],
-                    )}
-                    height={getSizeBasedOnStyle(
-                        widgetDesign,
-                        layout.radii[i],
-                    )}
-                    widgetThickness={getWidgetThicknessBasedOnStyle(widgetDesign, layout.radii[i])}
-                    N={widget.binsNum}
-                    colors={colorMaps[widget.treeId]}
-                    colorForSelection={widget.colorForSelections}
-                    on:selectionFinished={newSelectionCallback}
-                    bind:selections={widget.selections}
-                    {widget}
-                    hyperWindow={hyperWindows[i]}
-                />
-            
+                {#if showingAllWidgets || shouldShouldWidget(widget.id, $hoveredHyperWindowId) }
+                    <SelectionWidget
+                        position={getPositionBasedOnStyle(
+                            widgetDesign,
+                            layout.centers[i],
+                            layout.radii[i],
+                        )}
+                        width={getSizeBasedOnStyle(
+                            widgetDesign,
+                            layout.radii[i],
+                        )}
+                        height={getSizeBasedOnStyle(
+                            widgetDesign,
+                            layout.radii[i],
+                        )}
+                        widgetThickness={getWidgetThicknessBasedOnStyle(widgetDesign, layout.radii[i])}
+                        N={widget.binsNum}
+                        colors={colorMaps[widget.treeId]}
+                        colorForSelection={widget.colorForSelections}
+                        on:selectionFinished={newSelectionCallback}
+                        bind:selections={widget.selections}
+                        {widget}
+                        hyperWindow={hyperWindows[i]}
+                    />
+                {/if}
             {/each}
         {:else}
             ERROR: less widgets than boundingSpheres
