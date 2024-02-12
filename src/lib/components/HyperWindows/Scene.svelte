@@ -1,11 +1,14 @@
 <script lang="ts">
     import { T, useThrelte, type Size } from "@threlte/core";
+    import { interactivity } from "@threlte/extras"; 
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
     import { type PerspectiveCamera, Vector2 } from "three";
     import { onDestroy, onMount } from "svelte";
     import { computeBoundingCircle, projectModelToScreenSpace, screenToUV, unprojectToWorldSpace } from "../../util";
     import type { HyperWindow, HyperWindowsLayout } from "../../hyperwindows-types";
     import { alert, canvasSize, hoveredHyperWindowId } from "$lib/stores";
+
+    interactivity()
    
     //~ provided from LayoutOptimizer, for querying the physics during interaction (zooming, orbiting)
     export let getHyperWindowAtPosition: (x: number, y: number) => HyperWindow | undefined;

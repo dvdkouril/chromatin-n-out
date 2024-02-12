@@ -23,6 +23,23 @@
         }
         return "#ffffff";
     };
+
+    const onHoverStart = (e) => {
+        console.log("hovered!");
+        console.log(e.instanceId);
+        const binId = e.instanceId;
+        $hoveredBin = {
+            hwId: hyperWindowId,
+            binId: binId, 
+        };
+    };
+
+    const onHoverEnd = (e) => {
+        $hoveredBin = undefined;
+    };
+
+    const mapValueToColor = () => {
+    };
 </script>
 
 <T.Group
@@ -41,6 +58,10 @@
                 rotation={[tube.rotation.x, tube.rotation.y, tube.rotation.z, tube.rotation.order]}
                 color={getSelectionOrBaseColor(selections, i)}
                 scale.y={tube.scale}
+                on:click={(e) => {
+                    console.log('clicked tube');
+                    console.log(e.instanceId);
+                  }}
             />
         {/each}
     </InstancedMesh>
@@ -51,7 +72,15 @@
         <T.MeshStandardMaterial color="#ffffff" />
 
         {#each model.spheres as s, i}
-            <Instance position={s.toArray()} color={getSelectionOrBaseColor(selections, i)} />
+            <Instance position={s.toArray()} color={getSelectionOrBaseColor(selections, i)}
+                on:click={(e) => {
+                    console.log('clicked sphere');
+                    console.log(e.instanceId);
+                    console.log(e.nativeEvent.altKey);
+                  }}
+                on:pointerenter={onHoverStart}
+                on:pointerleave={onHoverEnd}
+            />
         {/each}
     </InstancedMesh>
 
