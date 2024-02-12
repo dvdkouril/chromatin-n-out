@@ -65,8 +65,11 @@ export const nextDistinctColor = (i: number) => {
 
     // Generate a categorical color scale with distinct colors
     const distinctColors = chroma.scale('Set1').mode('lch').colors(numColors);
-    console.log(distinctColors);
-    console.log(i);
+
+    if (i >= distinctColors.length) {
+        console.log("ERR: distinct colors not enough for this number of selections");
+        i = i % numColors;
+    }
 
     return distinctColors[i];
 };
