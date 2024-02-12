@@ -312,7 +312,7 @@
             bodyA: sourceHWBody,
             bodyB: newBody,
             stiffness: 0.001,
-            damping: 0.05,
+            damping: 0.1,
         });
 
         //~ Update internal data structures about physics objects
@@ -429,6 +429,7 @@
     onMount(() => {
         console.log("LayoutOptimizer::onMount");
         matterEngine.gravity.y = 0;
+        matterEngine.positionIterations = 10;
         var runner = Matter.Runner.create();
         Matter.Runner.run(runner, matterEngine);
 
