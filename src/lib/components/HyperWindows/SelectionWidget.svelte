@@ -1,7 +1,7 @@
 <script lang="ts">
     import { arc, pie } from "d3-shape";
     import { createEventDispatcher } from "svelte";
-    import { isHoveredBin, randomNiceColor } from "../../util";
+    import { isHoveredBin, nextDistinctColor } from "../../util";
     import type { Vector2 } from "three";
     import type { HWSelectionWidget, HyperWindow, Selection } from "$lib/hyperwindows-types";
     import { hoveredBin } from "$lib/stores";
@@ -93,7 +93,7 @@
             console.log("Selection started.");
             const binId = event.target.id.split("-")[1];
             const selColor =
-                colorForSelection == null || colorForSelection == "" ? randomNiceColor() : colorForSelection;
+                colorForSelection == null || colorForSelection == "" ? nextDistinctColor(selections.length) : colorForSelection;
             selections.push({
                 start: parseInt(binId),
                 end: parseInt(binId),
@@ -124,7 +124,7 @@
                 if (event.target instanceof Element) {
                     const binId = event.target.id.split("-")[1];
                     const selColor =
-                        colorForSelection == null || colorForSelection == "" ? randomNiceColor() : colorForSelection;
+                        colorForSelection == null || colorForSelection == "" ? nextDistinctColor(selections.length) : colorForSelection;
                     selections.push({ start: parseInt(binId), end: parseInt(binId), color: selColor });
                     selectionInProgress = true;
                 }
