@@ -1,8 +1,8 @@
 <script lang="ts">
     import { T } from "@threlte/core";
-    import { Instance, InstancedMesh } from "@threlte/extras";
+    import { Instance, InstancedMesh, type IntersectionEvent } from "@threlte/extras";
     import type { HW3DView, HWGeometry, Selection } from "../../hyperwindows-types";
-    import { hoveredBin } from "$lib/stores";
+    import { hoveredBin, spatialSelection } from "$lib/stores";
     import { isHoveredBin } from "$lib/util";
 
     export let model: HWGeometry;
@@ -24,19 +24,49 @@
         return "#ffffff";
     };
 
-    const onHoverStart = (e) => {
-        console.log("hovered!");
-        console.log(e.instanceId);
+    const onHoverStart = (e: IntersectionEvent<PointerEvent>) => {
         const binId = e.instanceId;
+
+        if (!binId) return;
+
         $hoveredBin = {
             hwId: hyperWindowId,
             binId: binId, 
         };
     };
 
-    const onHoverEnd = (e) => {
+    const onHoverEnd = (_: IntersectionEvent<PointerEvent>) => {
         $hoveredBin = undefined;
     };
+
+    const processPointerDown = (e: IntersectionEvent<PointerEvent>) => {
+        if (!e.nativeEvent.shiftKey) {
+            return;
+        }
+
+        console.log("starting spatial selection!");
+
+        const binId = e.instanceId; 
+        if (!binId) {
+            return;
+        }
+
+        $spatialSelection = {
+            hwId: hyperWindowId,
+            originBinId: binId,
+            radius: 0.1,
+            selection: {
+                bins: [],
+            }
+        };
+    };
+
+    // const processPointerUp = (e: IntersectionEvent<PointerEvent>) => {
+    //     $spatialSelection = undefined;
+    //     console.log("ending spatial selection!");
+    // };
+
+    //~ TODO: the actual selection will happen in Canvas:onDrag / onMouseMove, here I'm just switching the app to a state where the spatial selection is in progress
 
     const mapValueToColor = () => {
     };
@@ -58,10 +88,6 @@
                 rotation={[tube.rotation.x, tube.rotation.y, tube.rotation.z, tube.rotation.order]}
                 color={getSelectionOrBaseColor(selections, i)}
                 scale.y={tube.scale}
-                on:click={(e) => {
-                    console.log('clicked tube');
-                    console.log(e.instanceId);
-                  }}
             />
         {/each}
     </InstancedMesh>
@@ -80,6 +106,7 @@
                   }}
                 on:pointerenter={onHoverStart}
                 on:pointerleave={onHoverEnd}
+                on:pointerdown={processPointerDown}
             />
         {/each}
     </InstancedMesh>
@@ -91,4 +118,16 @@
             <T.MeshStandardMaterial color="#ff0000" />
         </T.Mesh>
     {/if}
+
+    <!-- Debug: Spatial selection sphere -->
+    <!-- {#if viewParams.viewSettings.showPivotOrigin} -->
+    {#if $spatialSelection }
+        <T.Mesh position={[model.spheres[$spatialSelection.originBinId].x,
+                            model.spheres[$spatialSelection.originBinId].y,
+                            model.spheres[$spatialSelection.originBinId].z]} >
+            <T.SphereGeometry args={[$spatialSelection.radius]} />
+            <T.MeshStandardMaterial color="#ff0000" opacity={0.5} transparent={true} />
+        </T.Mesh>
+    {/if}
+    <!-- {/if} -->
 </T.Group>

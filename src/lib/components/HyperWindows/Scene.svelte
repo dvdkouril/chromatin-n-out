@@ -2,11 +2,11 @@
     import { T, useThrelte, type Size } from "@threlte/core";
     import { interactivity } from "@threlte/extras"; 
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
-    import { type PerspectiveCamera, Vector2 } from "three";
+    import { type PerspectiveCamera, Vector2, Vector3 } from "three";
     import { onDestroy, onMount } from "svelte";
     import { computeBoundingCircle, projectModelToScreenSpace, screenToUV, unprojectToWorldSpace } from "../../util";
     import type { HyperWindow, HyperWindowsLayout } from "../../hyperwindows-types";
-    import { alert, canvasSize, hoveredHyperWindowId } from "$lib/stores";
+    import { alert, canvasSize, hoveredHyperWindowId, spatialSelection } from "$lib/stores";
 
     interactivity()
    
@@ -104,6 +104,10 @@
 
     const onMouseUp = (_: MouseEvent) => {
         dragging = false;
+        if ($spatialSelection) {
+            console.log("ending spatial selection!");
+        }
+        $spatialSelection = undefined; //~ although it was started on a certain object, I need to end it here cause the cursor is now away from the original trigger object
     };
 
     const onTouchEnd = (_: TouchEvent) => {
@@ -120,13 +124,28 @@
         let x = e.clientX - rect.left; //x position within the element.
         let y = e.clientY - rect.top; //y position within the element.
 
+        const deltaX = x - lastMousePos.x;
+        const deltaY = y - lastMousePos.y;
+        lastMousePos = { x: x, y: y };
+
         //~ updating hovered hyperwindow store
         let hprWindow: HyperWindow | undefined = getHyperWindowAtPosition(x, y);
         $hoveredHyperWindowId = hprWindow ? hprWindow.id : undefined;
-        console.log("hovered HW: " + $hoveredHyperWindowId);
+
+        //~ are we doing spatial selections?
+        if ($spatialSelection) {
+            console.log("spatial selecting!");
+            if (hprWindow) {
+                processSpatialSelection(deltaX, deltaY, hprWindow);
+            }
+
+            return; // skip the orbiting
+        }
 
         if (dragging) {
-            processOrbiting(x, y);
+            if (hprWindow) {
+                processOrbiting(deltaX, deltaY, hprWindow);
+            }
         }
     };
 
@@ -145,8 +164,16 @@
         let x = firstTouch.clientX - rect.left; //x position within the element.
         let y = firstTouch.clientY - rect.top; //y position within the element.
 
+        const deltaX = x - lastMousePos.x;
+        const deltaY = y - lastMousePos.y;
+        lastMousePos = { x: x, y: y };
+
         if (dragging) {
-            processOrbiting(x, y);
+            const hprWindow: HyperWindow | undefined = getHyperWindowAtPosition(x, y);
+
+            if (hprWindow) {
+                processOrbiting(deltaX, deltaY, hprWindow);
+            }
         }
     };
 
@@ -154,18 +181,10 @@
      * Local orbiting (ray casting the associated Matterjs body)
      * @param e
      */
-    const processOrbiting = (x: number, y: number) => {
-        let hprWindow: HyperWindow | undefined = getHyperWindowAtPosition(x, y);
-
-        if (hprWindow == undefined) return;
-
-        const deltaX = x - lastMousePos.x;
-        const deltaY = y - lastMousePos.y;
+    const processOrbiting = (deltaX: number, deltaY: number, hprWindow: HyperWindow) => {
         const orbitingSpeed = 0.8;
         hprWindow.threeDView.rotationX += orbitingSpeed * deltaX;
         hprWindow.threeDView.rotationY += orbitingSpeed * deltaY;
-
-        lastMousePos = { x: x, y: y };
 
         //~ adjust Matter.js body: Scale
         let [_, radius] = computeBoundingSphere(hprWindow);
@@ -184,6 +203,33 @@
         // const offset = wantedPos.clone().sub(currentPos);
 
         // Matter.Body.translate(b, { x: offset.x, y: offset.y });
+    };
+
+
+    const processSpatialSelection = (deltaX: number, deltaY: number, hprWindow: HyperWindow) => {
+        let currentSelection = $spatialSelection;
+        if (!currentSelection) return;
+
+        console.log("deltaX: " + deltaX);
+        const l = new Vector2(deltaX, deltaY).length();
+        $spatialSelection = {
+            ...currentSelection,
+            radius: currentSelection.radius + 0.1 * l,
+        };
+        console.log("radius: " + $spatialSelection.radius);
+
+        // const bins = hprWindow.model.spheres;
+
+        // const currentSelectionRadius = 10.0;
+        // const originalBinPosition = bins[currentSelection.originBinId];
+
+        // for (let i = 0; i < hprWindow.model.spheres.length; i++) {
+        //     const pos = bins[i];
+        //     if (pos.sub(originalBinPosition).length() < currentSelectionRadius) {
+        //         // add
+        //         currentSelection.selection.bins.push(i);
+        //     }
+        // }
     };
 
     

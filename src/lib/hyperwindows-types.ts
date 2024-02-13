@@ -47,10 +47,15 @@ export type HyperWindow = {
     childHyperWindows: HyperWindow[];
 };
 
+//~ TODO: rename to LinearSelection?
 export type Selection = {
     start: number;
     end: number;
     color: string;
+};
+
+export type SpatialSelection = {
+    bins: number[],
 };
 
 /**
