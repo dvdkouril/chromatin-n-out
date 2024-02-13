@@ -9,4 +9,4 @@ export const hoveredBin: Writable<{hwId: number; binId: number} | undefined> = w
 
 export const hoveredHyperWindowId: Writable<number | undefined> = writable(undefined);
 
-export const spatialSelection: Writable<{hwId: number; originBinId: number; radius: number; selection: SpatialSelection} | undefined> = writable(undefined);
+export const spatialSelection: Writable<{hwId: number; originBinId: number; radius: number; startMousePos: {x: number, y: number}; selection: SpatialSelection} | undefined> = writable(undefined);

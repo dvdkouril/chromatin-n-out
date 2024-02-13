@@ -44,17 +44,24 @@
             return;
         }
 
-        console.log("starting spatial selection!");
-
         const binId = e.instanceId; 
         if (!binId) {
             return;
         }
 
+        if ((e.nativeEvent.target == null) || (!(e.nativeEvent.target instanceof Element))) {
+            return;
+        }
+
+        let rect = e.nativeEvent.target.getBoundingClientRect();
+        let x = e.nativeEvent.clientX - rect.left; //x position within the element.
+        let y = e.nativeEvent.clientY - rect.top; //y position within the element.
+
         $spatialSelection = {
             hwId: hyperWindowId,
             originBinId: binId,
             radius: 0.1,
+            startMousePos: { x: x, y: y },
             selection: {
                 bins: [],
             }

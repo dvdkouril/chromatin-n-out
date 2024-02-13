@@ -136,7 +136,8 @@
         if ($spatialSelection) {
             console.log("spatial selecting!");
             if (hprWindow) {
-                processSpatialSelection(deltaX, deltaY, hprWindow);
+                // processSpatialSelection(deltaX, deltaY, hprWindow);
+                processSpatialSelection(x, y, hprWindow);
             }
 
             return; // skip the orbiting
@@ -206,30 +207,40 @@
     };
 
 
-    const processSpatialSelection = (deltaX: number, deltaY: number, hprWindow: HyperWindow) => {
+    const processSpatialSelection = (x: number, y: number, hprWindow: HyperWindow) => {
+    // const processSpatialSelection = (deltaX: number, deltaY: number, hprWindow: HyperWindow) => {
         let currentSelection = $spatialSelection;
         if (!currentSelection) return;
 
-        console.log("deltaX: " + deltaX);
-        const l = new Vector2(deltaX, deltaY).length();
+        const startMousePos = new Vector2(currentSelection.startMousePos.x, currentSelection.startMousePos.y);
+        const currentMousePos = new Vector2(x, y);
+        const l = currentMousePos.sub(startMousePos).length();
+        console.log("l: " + l);
+        const newRadius = 0.05 * l;
+
+        // const l = new Vector2(deltaX, deltaY).length();
+        // const newRadius = currentSelection.radius + 0.1 * l;
+        // $spatialSelection = {
+        //     ...currentSelection,
+        //     radius: newRadius,
+        // };
+
+        const bins = hprWindow.model.spheres;
+        const originalBinPosition = bins[currentSelection.originBinId];
+        let binsSelectedNow: number[] = [];
+        for (let i = 0; i < bins.length; i++) {
+            const pos = bins[i].clone();
+            if (pos.sub(originalBinPosition).length() < newRadius) {
+                // add
+                binsSelectedNow.push(i);
+            }
+        }
+
         $spatialSelection = {
             ...currentSelection,
-            radius: currentSelection.radius + 0.1 * l,
+            radius: newRadius,
         };
-        console.log("radius: " + $spatialSelection.radius);
-
-        // const bins = hprWindow.model.spheres;
-
-        // const currentSelectionRadius = 10.0;
-        // const originalBinPosition = bins[currentSelection.originBinId];
-
-        // for (let i = 0; i < hprWindow.model.spheres.length; i++) {
-        //     const pos = bins[i];
-        //     if (pos.sub(originalBinPosition).length() < currentSelectionRadius) {
-        //         // add
-        //         currentSelection.selection.bins.push(i);
-        //     }
-        // }
+        console.log("selected bins #" + binsSelectedNow.length);
     };
 
     
