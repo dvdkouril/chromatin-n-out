@@ -29,6 +29,8 @@
 
         if (!binId) return;
 
+        e.stopPropagation();
+
         $hoveredBin = {
             hwId: hyperWindowId,
             binId: binId, 
@@ -52,6 +54,9 @@
         if ((e.nativeEvent.target == null) || (!(e.nativeEvent.target instanceof Element))) {
             return;
         }
+
+        //~ https://threlte.xyz/docs/reference/extras/interactivity#event-propagation
+        e.stopPropagation();
 
         let rect = e.nativeEvent.target.getBoundingClientRect();
         let x = e.nativeEvent.clientX - rect.left; //x position within the element.
