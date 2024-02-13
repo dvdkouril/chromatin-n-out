@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Vector2, Vector3 } from "three";
+    import type { Euler, Vector2, Vector3 } from "three";
     import DebugOverlay from "./HyperWindows/DebugOverlay.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../test_BRAFL";
@@ -162,6 +162,25 @@
         }
 
         subModelPositions = recenter(subModelPositions);
+
+        //~ compute tubes based on the connectivity information
+        const connectedBinPositions = [];
+        for (let i = 0; i < selection.connectedBins.length; i++) {
+            const arr = selection.connectedBins[i];
+            const posArr = [];
+            for (let j = 0; j < arr.length; j++) {
+                posArr.push(sourceHW.model.spheres[arr[j]]);
+            }
+            connectedBinPositions.push(posArr);
+        }
+        console.log("connectedBinPositions.");
+        console.log(connectedBinPositions);
+
+        let allTubes: {position: Vector3; rotation: Euler; scale: number}[] = [];
+        for (let i = 0; i < connectedBinPositions.length; i++) {
+            const tubes = computeTubes(connectedBinPositions[i]);
+            allTubes = [...allTubes, ...tubes];
+        }
         // let subModelTubes = computeTubes(subModelPositions); //~ TODO: probably unnecessary computation
 
         const sourceWidget = sourceHW.widget;
@@ -171,7 +190,8 @@
             ...hwModels[sourceWidget.treeId], 
             spheres: subModelPositions,
             // tubes: subModelTubes,
-            tubes: [],
+            // tubes: [],
+            tubes: allTubes,
         };
 
         //~ 2. create selection widget

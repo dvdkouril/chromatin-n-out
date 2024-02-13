@@ -147,12 +147,9 @@
 
         //~ are we doing spatial selections?
         if ($spatialSelection) {
-            console.log("spatial selecting!");
             if (hprWindow) {
-                // processSpatialSelection(deltaX, deltaY, hprWindow);
                 processSpatialSelection(x, y, hprWindow);
             }
-
             return; // skip the orbiting
         }
 
@@ -221,39 +218,54 @@
 
 
     const processSpatialSelection = (x: number, y: number, hprWindow: HyperWindow) => {
-    // const processSpatialSelection = (deltaX: number, deltaY: number, hprWindow: HyperWindow) => {
         let currentSelection = $spatialSelection;
         if (!currentSelection) return;
 
         const startMousePos = new Vector2(currentSelection.startMousePos.x, currentSelection.startMousePos.y);
         const currentMousePos = new Vector2(x, y);
-        const l = currentMousePos.sub(startMousePos).length();
-        console.log("l: " + l);
-        const newRadius = 0.05 * l;
+        const scaleFactor = 0.05;
+        const newRadius = scaleFactor * currentMousePos.sub(startMousePos).length();
 
-        // const l = new Vector2(deltaX, deltaY).length();
-        // const newRadius = currentSelection.radius + 0.1 * l;
-        // $spatialSelection = {
-        //     ...currentSelection,
-        //     radius: newRadius,
-        // };
 
         const bins = hprWindow.model.spheres;
         const originalBinPosition = bins[currentSelection.originBinId];
         let binsSelectedNow: number[] = [];
         for (let i = 0; i < bins.length; i++) {
             const pos = bins[i].clone();
-            if (pos.sub(originalBinPosition).length() < newRadius) {
-                // add
+            const isWithinSphere = (origin: Vector3, radius: number, position: Vector3): boolean => { return position.sub(origin).length() < radius };
+            if (isWithinSphere(originalBinPosition, newRadius, pos)) {
                 binsSelectedNow.push(i);
             }
         }
+
+        const mergeSequentialNumbers = (arr: number[]) => {
+            if (arr.length === 0) {
+                return [];
+            }
+
+            const result = [[arr[0]]];
+
+            for (let i = 1; i < arr.length; i++) {
+                if (arr[i] === arr[i - 1] + 1) {
+                    result[result.length - 1].push(arr[i]);
+                } else {
+                    result.push([arr[i]]);
+                }
+            }
+
+            return result;
+        };
+
+        console.log("connectedBins:");
+        const connectedBins = mergeSequentialNumbers(binsSelectedNow);
+        console.log(connectedBins);
 
         $spatialSelection = {
             ...currentSelection,
             radius: newRadius,
             selection: {
                 bins: binsSelectedNow,
+                connectedBins: connectedBins,
             },
         };
         console.log("selected bins #" + binsSelectedNow.length);

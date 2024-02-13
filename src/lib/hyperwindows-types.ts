@@ -56,6 +56,7 @@ export type Selection = {
 
 export type SpatialSelection = {
     bins: number[],
+    connectedBins: number[][],
 };
 
 /**
