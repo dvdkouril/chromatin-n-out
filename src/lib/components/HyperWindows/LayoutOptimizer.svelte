@@ -218,6 +218,7 @@
             const newBody = Matter.Bodies.circle(c.x, c.y, radius, {
                 restitution: 0,
                 friction: 1,
+                frictionAir: 1,
             });
             bodies.push(newBody);
             hwPhysicsData.push({
@@ -304,6 +305,7 @@
         const newBody = Matter.Bodies.circle(pos.x, pos.y, rad, {
             restitution: 0,
             friction: 1,
+            frictionAir: 1,
         });
         
 
