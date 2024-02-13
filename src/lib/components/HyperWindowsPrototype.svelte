@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Vector2 } from "three";
+    import type { Vector2, Vector3 } from "three";
     import DebugOverlay from "./HyperWindows/DebugOverlay.svelte";
     import { onMount } from "svelte";
     import { brafl } from "../test_BRAFL";
@@ -127,11 +127,13 @@
         const newHWId = nextAvailableId;
         nextAvailableId += 1;
 
+        const sourceHyperWindow = hyperWindows[ev.detail.sourceHWId];
+
         //~ Create the actual new HyperWindow
-        const [newHW, _, new3DView, newSelWidget] = makeNewHyperWindow(
-            newWidgetId,
-            sel,
-            sourceWidget,
+        const [newHW, _, new3DView, newSelWidget] = makeNewHyperWindowAfterSpatialSelection(
+            newHWId,
+            ev.detail.selection,
+            sourceHyperWindow ,
         );
 
         hyperWindows = [...hyperWindows, newHW];
@@ -140,6 +142,66 @@
         hwWidgets = [...hwWidgets, newSelWidget];
 
         layoutOptimizer.addNewHyperWindowToLayout(newHW, sourceHyperWindow);
+    };
+
+    //~ TODO: this should probably be unified with the function below
+    const makeNewHyperWindowAfterSpatialSelection = (
+        id: number,
+        selection: SpatialSelection,
+        sourceHW: HyperWindow
+    ): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] => {
+
+        //~ Recenter the submodel
+        // let subModelPositions = hwModels[sourceWidget.treeId].spheres.slice(newDomain.start, newDomain.end + 1);
+        let subModelPositions: Vector3[] = [];
+        for (let i = 0; i < selection.bins.length; i++) {
+            const binId = selection.bins[i];
+            // TODO: recompute to absolute index
+            const binPos = sourceHW.model.spheres[binId];
+            subModelPositions.push(binPos);
+        }
+
+        subModelPositions = recenter(subModelPositions);
+        // let subModelTubes = computeTubes(subModelPositions); //~ TODO: probably unnecessary computation
+
+        const sourceWidget = sourceHW.widget;
+
+        //~ 1. load the 3D model 
+        const newModel = {
+            ...hwModels[sourceWidget.treeId], 
+            spheres: subModelPositions,
+            // tubes: subModelTubes,
+            tubes: [],
+        };
+
+        //~ 2. create selection widget
+        const newWidget: HWSelectionWidget = {
+            id: id,
+            level: 0,
+            treeId: sourceWidget.treeId,
+            binsNum: newModel.spheres.length,
+            domain: {
+                start: 0,
+                end: newModel.spheres.length - 1,
+            },
+            selections: [],
+            // colorForSelections: selection.color,
+            colorForSelections: "#ff0000",
+        };
+
+        //~ 3. create 3D view part of HyperWindow
+        const new3DView: HW3DView = default3DView();
+
+        //~ 4. create HyperWindow
+        const newHW: HyperWindow = {
+            id: id,
+            model: newModel,
+            widget: newWidget,
+            threeDView: new3DView,
+            childHyperWindows: [],
+        };
+
+        return [newHW, newModel, new3DView, newWidget];
     };
 
     const makeNewHyperWindow = (
