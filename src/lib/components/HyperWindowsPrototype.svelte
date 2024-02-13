@@ -15,6 +15,7 @@
         WidgetStyle,
         default3DView,
         defaultSelectionWidget,
+        type SpatialSelection,
     } from "$lib/hyperwindows-types";
     import { cell7 } from "$lib/test_cell7";
     import DebugBar from "./HyperWindows/DebugBar.svelte";
@@ -95,6 +96,35 @@
         const sourceHyperWindow = ev.detail.sourceHW;
 
         const newWidgetId = nextAvailableId;
+        nextAvailableId += 1;
+
+        //~ Create the actual new HyperWindow
+        const [newHW, _, new3DView, newSelWidget] = makeNewHyperWindow(
+            newWidgetId,
+            sel,
+            sourceWidget,
+        );
+
+        hyperWindows = [...hyperWindows, newHW];
+        hwModels = [...hwModels, hwModels[0]]; //~ top level (whole) 3D models which are subdivided for individual HyperWindows
+        hw3DViews = [...hw3DViews, new3DView]; //~ linearized array with information only relevant for the 3D rendering
+        hwWidgets = [...hwWidgets, newSelWidget];
+
+        layoutOptimizer.addNewHyperWindowToLayout(newHW, sourceHyperWindow);
+    };
+
+    const newSpatialSelection = (
+        ev: CustomEvent<{
+            selection: SpatialSelection;
+            sourceHWId: number;
+        }>,
+    ) => {
+        console.log("newSpatialSelection !!!");
+        console.log(ev.detail.selection);
+        console.log(ev.detail.sourceHWId);
+
+        // const newWidgetId = nextAvailableId;
+        const newHWId = nextAvailableId;
         nextAvailableId += 1;
 
         //~ Create the actual new HyperWindow
@@ -258,7 +288,7 @@
 
     <div id="canvas-container">
         <!-- Manages the positioning of HyperWindows (both the 3D part and the SelectionWidget) -->
-        <LayoutOptimizer bind:this={layoutOptimizer} {hyperWindows} {hwWidgets} newSelectionCallback={newSelection} {widgetDesign} {matterjsDebugCanvas} {showMatterDebug} {rootModelSizes} showingAllWidgets={showAllWidgets} />
+        <LayoutOptimizer bind:this={layoutOptimizer} {hyperWindows} {hwWidgets} on:selectionFinished={newSelection} on:spatialSelectionFinished={newSpatialSelection} {widgetDesign} {matterjsDebugCanvas} {showMatterDebug} {rootModelSizes} showingAllWidgets={showAllWidgets} />
 
         <!-- SVG debug overlay -->
         {#if showBoundingSphereDebug}

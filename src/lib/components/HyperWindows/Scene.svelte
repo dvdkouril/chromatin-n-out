@@ -3,12 +3,14 @@
     import { interactivity } from "@threlte/extras"; 
     import ModelPartWithInstancing from "./ModelPartWithInstancing.svelte";
     import { type PerspectiveCamera, Vector2, Vector3 } from "three";
-    import { onDestroy, onMount } from "svelte";
+    import { onDestroy, onMount, createEventDispatcher } from "svelte";
     import { computeBoundingCircle, projectModelToScreenSpace, screenToUV, unprojectToWorldSpace } from "../../util";
     import type { HyperWindow, HyperWindowsLayout } from "../../hyperwindows-types";
     import { alert, canvasSize, hoveredHyperWindowId, spatialSelection } from "$lib/stores";
 
     interactivity()
+
+    const dispatch = createEventDispatcher();
    
     //~ provided from LayoutOptimizer, for querying the physics during interaction (zooming, orbiting)
     export let getHyperWindowAtPosition: (x: number, y: number) => HyperWindow | undefined;
@@ -107,6 +109,17 @@
         if ($spatialSelection) {
             console.log("ending spatial selection!");
         }
+
+        if (!$spatialSelection) {
+            return;
+        }
+
+        dispatch("spatialSelectionFinished", {
+            // selection: selections.slice(-1)[0],
+            selection: $spatialSelection.selection,
+            sourceHWId: $spatialSelection.hwId,
+        });
+
         $spatialSelection = undefined; //~ although it was started on a certain object, I need to end it here cause the cursor is now away from the original trigger object
     };
 
@@ -239,6 +252,9 @@
         $spatialSelection = {
             ...currentSelection,
             radius: newRadius,
+            selection: {
+                bins: binsSelectedNow,
+            },
         };
         console.log("selected bins #" + binsSelectedNow.length);
     };

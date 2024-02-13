@@ -6,7 +6,6 @@
     import type {
         HyperWindowsLayout, 
         HWSelectionWidget,
-        Selection,
         HyperWindow,
     } from "$lib/hyperwindows-types";
     import { hoveredHyperWindowId } from "$lib/stores";
@@ -14,13 +13,6 @@
     export let width: number;
     export let height: number;
     const selectionWidgetThickness = 25;
-    export let newSelectionCallback: (
-        ev: CustomEvent<{
-            selection: Selection;
-            sourceWidget: HWSelectionWidget;
-            sourceHW: HyperWindow;
-        }>,
-    ) => void;
 
     export let widgets: HWSelectionWidget[];
     export let hyperWindows: HyperWindow[]; //~ TODO: this is really only sent to the Widget (for the new selection callback)...there's probably a better way
@@ -31,7 +23,7 @@
     export let showingAllWidgets: boolean;
 
     $: colorMaps = generateGrayScaleColorMaps(rootModelSizes);
-    $: widgetShown = widgets.map(w => w);
+    // $: widgetShown = widgets.map(w => w);
 
     const computeWidgetThickness = (radius: number): number => {
         const percentage = 20;
@@ -120,7 +112,7 @@
                         N={widget.binsNum}
                         colors={colorMaps[widget.treeId]}
                         colorForSelection={widget.colorForSelections}
-                        on:selectionFinished={newSelectionCallback}
+                        on:selectionFinished
                         bind:selections={widget.selections}
                         {widget}
                         hyperWindow={hyperWindows[i]}

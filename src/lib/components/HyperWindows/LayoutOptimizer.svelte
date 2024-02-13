@@ -7,7 +7,7 @@
     //~ my own types and components
     import Scene from "./Scene.svelte";
     import SelectionsLayer from "./SelectionsLayer.svelte";
-    import type { HWSelectionWidget, HyperWindow, HyperWindowsLayout, Selection, WidgetStyle } from "$lib/hyperwindows-types";
+    import type { HWSelectionWidget, HyperWindow, HyperWindowsLayout, WidgetStyle } from "$lib/hyperwindows-types";
     import { canvasSize } from "$lib/stores";
     import { uvToScreen, randomPositionAroundHyperWindow } from "$lib/util";
 
@@ -51,13 +51,6 @@
     //~ Reactivity: for when we add/remove hyperwindows
     $: hyperWindowsChanged(hyperWindows);
 
-    export let newSelectionCallback: (
-        ev: CustomEvent<{
-            selection: Selection;
-            sourceWidget: HWSelectionWidget;
-            sourceHW: HyperWindow;
-        }>,
-    ) => void;
     export let widgetDesign: WidgetStyle; //~ TODO: I'm pretty sure this shouldn't be here
     export let showingAllWidgets: boolean;
 
@@ -462,6 +455,7 @@ The purpose of LayoutOptimizer is to manage all the Matter.js logic behind placi
         {hwLayout}
         bind:this={scene}
         bind:camera
+        on:spatialSelectionFinished
         {getHyperWindowAtPosition}
         {needToScaleBodyForHyperWindow}
     />
@@ -474,7 +468,7 @@ The purpose of LayoutOptimizer is to manage all the Matter.js logic behind placi
     widgets={hwWidgets}
     {hyperWindows}
     layout={hwLayout}
-    {newSelectionCallback}
+    on:selectionFinished
     {widgetDesign}
     {rootModelSizes}
     {showingAllWidgets}
