@@ -144,6 +144,26 @@
         layoutOptimizer.addNewHyperWindowToLayout(newHW, sourceHyperWindow);
     };
 
+
+    //~ TODO: move to a better place
+    const mergeSequentialNumbers = (arr: number[]) => {
+        if (arr.length === 0) {
+            return [];
+        }
+
+        const result = [[arr[0]]];
+
+        for (let i = 1; i < arr.length; i++) {
+            if (arr[i] === arr[i - 1] + 1) {
+                result[result.length - 1].push(arr[i]);
+            } else {
+                result.push([arr[i]]);
+            }
+        }
+
+        return result;
+    };
+
     //~ TODO: this should probably be unified with the function below
     const makeNewHyperWindowAfterSpatialSelection = (
         id: number,
@@ -151,30 +171,34 @@
         sourceHW: HyperWindow
     ): [HyperWindow, HWGeometry, HW3DView, HWSelectionWidget] => {
 
+        const sourceWidget = sourceHW.widget;
         //~ Recenter the submodel
-        // let subModelPositions = hwModels[sourceWidget.treeId].spheres.slice(newDomain.start, newDomain.end + 1);
+        const offset = sourceWidget.domain.start;
         let subModelPositions: Vector3[] = [];
         for (let i = 0; i < selection.bins.length; i++) {
-            const binId = selection.bins[i];
-            // TODO: recompute to absolute index
+            const binId = selection.bins[i] + offset;
             const binPos = sourceHW.model.spheres[binId];
             subModelPositions.push(binPos);
         }
 
+        //~ essentially, I need a list of all positions to recenter
+        //~ => that's what subModelPositions is
+
+        const connectedBins = mergeSequentialNumbers(selection.bins);
+
         subModelPositions = recenter(subModelPositions);
 
-        //~ compute tubes based on the connectivity information
         const connectedBinPositions = [];
-        for (let i = 0; i < selection.connectedBins.length; i++) {
-            const arr = selection.connectedBins[i];
-            const posArr = [];
+        let globalIndex = 0;
+        for (let i = 0; i < connectedBins.length; i++) {
+            const arr = connectedBins[i];
+            let posArr: Vector3[] = [];
             for (let j = 0; j < arr.length; j++) {
-                posArr.push(sourceHW.model.spheres[arr[j]]);
+                posArr.push(subModelPositions[globalIndex]);
+                globalIndex += 1;
             }
             connectedBinPositions.push(posArr);
         }
-        console.log("connectedBinPositions.");
-        console.log(connectedBinPositions);
 
         let allTubes: {position: Vector3; rotation: Euler; scale: number}[] = [];
         for (let i = 0; i < connectedBinPositions.length; i++) {
@@ -183,14 +207,10 @@
         }
         // let subModelTubes = computeTubes(subModelPositions); //~ TODO: probably unnecessary computation
 
-        const sourceWidget = sourceHW.widget;
-
         //~ 1. load the 3D model 
         const newModel = {
             ...hwModels[sourceWidget.treeId], 
             spheres: subModelPositions,
-            // tubes: subModelTubes,
-            // tubes: [],
             tubes: allTubes,
         };
 

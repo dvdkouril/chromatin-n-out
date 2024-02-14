@@ -238,34 +238,18 @@
             }
         }
 
-        const mergeSequentialNumbers = (arr: number[]) => {
-            if (arr.length === 0) {
-                return [];
-            }
 
-            const result = [[arr[0]]];
-
-            for (let i = 1; i < arr.length; i++) {
-                if (arr[i] === arr[i - 1] + 1) {
-                    result[result.length - 1].push(arr[i]);
-                } else {
-                    result.push([arr[i]]);
-                }
-            }
-
-            return result;
-        };
-
-        console.log("connectedBins:");
-        const connectedBins = mergeSequentialNumbers(binsSelectedNow);
-        console.log(connectedBins);
+        // console.log("connectedBins:");
+        // const connectedBins = mergeSequentialNumbers(binsSelectedNow);
+        // console.log(connectedBins);
 
         $spatialSelection = {
             ...currentSelection,
             radius: newRadius,
             selection: {
                 bins: binsSelectedNow,
-                connectedBins: connectedBins,
+                // connectedBins: connectedBins,
+                connectedBins: [],
             },
         };
         console.log("selected bins #" + binsSelectedNow.length);
