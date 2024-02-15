@@ -31,7 +31,7 @@
                 console.log("hw: " + hyperWindowId);
             }
             if (sel.bins.includes(binId)) {
-                return "red";
+                return "yellow";
             }
         }
 

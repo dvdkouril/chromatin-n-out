@@ -114,6 +114,7 @@
                         colorForSelection={widget.colorForSelections}
                         on:selectionFinished
                         bind:selections={widget.selections}
+                        spatialSelections={hyperWindows[widget.id].threeDView.spatialSelections}
                         {widget}
                         hyperWindow={hyperWindows[i]}
                     />

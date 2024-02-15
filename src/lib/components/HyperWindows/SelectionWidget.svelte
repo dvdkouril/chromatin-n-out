@@ -3,8 +3,8 @@
     import { createEventDispatcher } from "svelte";
     import { isHoveredBin, nextDistinctColor } from "../../util";
     import type { Vector2 } from "three";
-    import type { HWSelectionWidget, HyperWindow, Selection } from "$lib/hyperwindows-types";
-    import { hoveredBin } from "$lib/stores";
+    import type { HWSelectionWidget, HyperWindow, Selection, SpatialSelection } from "$lib/hyperwindows-types";
+    import { hoveredBin, spatialSelection } from "$lib/stores";
 
     const dispatch = createEventDispatcher();
 
@@ -14,6 +14,7 @@
     export let height: number;
     export let widgetThickness = 25;
     export let selections: Selection[] = [];
+    export let spatialSelections: SpatialSelection[] = [];
     export let widget: HWSelectionWidget;
     export let hyperWindow: HyperWindow;
     export let colorForSelection: string | null = null; //~ if this is null, generate new color; otherwise use this one
@@ -42,6 +43,31 @@
     });
 
     $: selectionsArcs = selections.map((sel) =>
+        arcGen({
+            innerRadius: radius - widgetThickness,
+            outerRadius: radius,
+            startAngle: arcs[sel.start].startAngle,
+            endAngle: arcs[sel.end].endAngle,
+        }),
+    );
+
+    //~ from list of connected bins for each spatial selection
+    //~ from: [{bins: [...], connectedBins: [...]},...]
+    //~ I want: [{start: 123, end: 123}, {start: ..., end: ...}]
+    //~ basically also flatten
+    $: spatialSelectionsProcessed = spatialSelections.map( sel => {
+        let segments: {start: number; end: number}[] = [];
+        for (const segment of sel.connectedBins) {
+            if (segment.length > 0) {
+                const first = segment[0];
+                const last = segment[segment.length - 1];
+                segments = [...segments, { start: first, end: last }];
+            }
+        }
+        return segments;
+    }).flat();
+    
+    $: spatialSelectionsArcs = spatialSelectionsProcessed.map((sel) =>
         arcGen({
             innerRadius: radius - widgetThickness,
             outerRadius: radius,
@@ -211,6 +237,17 @@
             d={selArc}
             id={"selection-arc-" + i}
             style="stroke-width: 5px; stroke: {selections[i].color}; fill: none; pointer-events:none"
+            transform={"translate(" + position.x + "," + position.y + ")"}
+        />
+    {/each}
+{/if}
+<!-- Spatial Selections indication overlay -->
+{#if spatialSelections.length > 0}
+    {#each spatialSelectionsArcs as selArc, i}
+        <path
+            d={selArc}
+            id={"spatial-selection-arc-" + i}
+            style="stroke-width: 5px; stroke: yellow; fill: none; pointer-events:none"
             transform={"translate(" + position.x + "," + position.y + ")"}
         />
     {/each}

@@ -145,24 +145,6 @@
     };
 
 
-    //~ TODO: move to a better place
-    const mergeSequentialNumbers = (arr: number[]) => {
-        if (arr.length === 0) {
-            return [];
-        }
-
-        const result = [[arr[0]]];
-
-        for (let i = 1; i < arr.length; i++) {
-            if (arr[i] === arr[i - 1] + 1) {
-                result[result.length - 1].push(arr[i]);
-            } else {
-                result.push([arr[i]]);
-            }
-        }
-
-        return result;
-    };
 
     //~ TODO: this should probably be unified with the function below
     const makeNewHyperWindowAfterSpatialSelection = (
@@ -183,15 +165,12 @@
 
         //~ essentially, I need a list of all positions to recenter
         //~ => that's what subModelPositions is
-
-        const connectedBins = mergeSequentialNumbers(selection.bins);
-
         subModelPositions = recenter(subModelPositions);
 
         const connectedBinPositions = [];
         let globalIndex = 0;
-        for (let i = 0; i < connectedBins.length; i++) {
-            const arr = connectedBins[i];
+        for (let i = 0; i < selection.connectedBins.length; i++) {
+            const arr = selection.connectedBins[i];
             let posArr: Vector3[] = [];
             for (let j = 0; j < arr.length; j++) {
                 posArr.push(subModelPositions[globalIndex]);

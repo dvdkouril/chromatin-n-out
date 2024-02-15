@@ -216,6 +216,24 @@
         // Matter.Body.translate(b, { x: offset.x, y: offset.y });
     };
 
+    //~ TODO: move to a better place
+    const mergeSequentialNumbers = (arr: number[]) => {
+        if (arr.length === 0) {
+            return [];
+        }
+
+        const result = [[arr[0]]];
+
+        for (let i = 1; i < arr.length; i++) {
+            if (arr[i] === arr[i - 1] + 1) {
+                result[result.length - 1].push(arr[i]);
+            } else {
+                result.push([arr[i]]);
+            }
+        }
+
+        return result;
+    };
 
     const processSpatialSelection = (x: number, y: number, hprWindow: HyperWindow) => {
         let currentSelection = $spatialSelection;
@@ -238,17 +256,18 @@
             }
         }
 
+        const connectedBins = mergeSequentialNumbers(binsSelectedNow);
+
         $spatialSelection = {
             ...currentSelection,
             radius: newRadius,
             selection: {
                 bins: binsSelectedNow,
-                // connectedBins: connectedBins,
-                connectedBins: [],
+                connectedBins: connectedBins,
             },
         };
         const currentSelectionId = $spatialSelection.selectionId;
-        hprWindow.threeDView.spatialSelections[currentSelectionId] = { bins: binsSelectedNow, connectedBins: []};
+        hprWindow.threeDView.spatialSelections[currentSelectionId] = { bins: binsSelectedNow, connectedBins: connectedBins};
         console.log("selected bins #" + binsSelectedNow.length);
     };
 
