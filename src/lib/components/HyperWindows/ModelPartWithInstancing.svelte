@@ -1,7 +1,7 @@
 <script lang="ts">
     import { T } from "@threlte/core";
     import { Instance, InstancedMesh, type IntersectionEvent } from "@threlte/extras";
-    import type { HW3DView, HWGeometry, Selection } from "../../hyperwindows-types";
+    import type { HW3DView, HWGeometry, Selection, SpatialSelection } from "../../hyperwindows-types";
     import { hoveredBin, spatialSelection } from "$lib/stores";
     import { isHoveredBin } from "$lib/util";
 
@@ -10,17 +10,31 @@
     export let hyperWindowId: number;
 
     export let selections: Selection[];
+    export let spatialSelections: SpatialSelection[];
 
     const getSelectionOrBaseColor = (sels: Selection[], binId: number) => {
         if (isHoveredBin($hoveredBin, binId, hyperWindowId)) {
             return "red";
         }
+        //~ linear selection
         for (let sel of sels) {
             
             if (binId <= sel.end && binId >= sel.start) {
                 return sel.color;
             }
         }
+        //~ spatial selection
+        for (let sel of spatialSelections) {
+            if (sel == undefined) {
+                console.log("found it!");
+                console.log(spatialSelections);
+                console.log("hw: " + hyperWindowId);
+            }
+            if (sel.bins.includes(binId)) {
+                return "red";
+            }
+        }
+
         return "#ffffff";
     };
 
@@ -67,11 +81,13 @@
             originBinId: binId,
             radius: 0.1,
             startMousePos: { x: x, y: y },
+            selectionId: viewParams.spatialSelections.length,
             selection: {
                 bins: [],
                 connectedBins: [],
             }
         };
+        viewParams.spatialSelections = [...viewParams.spatialSelections, {bins: [], connectedBins: []}];
     };
 
     // const processPointerUp = (e: IntersectionEvent<PointerEvent>) => {
@@ -138,7 +154,7 @@
                             model.spheres[$spatialSelection.originBinId].y,
                             model.spheres[$spatialSelection.originBinId].z]} >
             <T.SphereGeometry args={[$spatialSelection.radius]} />
-            <T.MeshStandardMaterial color="#ff0000" opacity={0.5} transparent={true} />
+            <T.MeshStandardMaterial color="#ff0000" opacity={0.3} transparent={true} />
         </T.Mesh>
     {/if}
 </T.Group>

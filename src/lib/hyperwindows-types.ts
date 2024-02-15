@@ -12,6 +12,7 @@ export type HW3DView = {
     rotationX: number;
     rotationY: number;
     zoom: number;
+    spatialSelections: SpatialSelection[];
 
     viewSettings: {
         showPivotOrigin: boolean,
@@ -23,6 +24,7 @@ export const default3DView = (): HW3DView => {
         rotationX: 0,
         rotationY: 0,
         zoom: 1,
+        spatialSelections: [],
         viewSettings: {
             showPivotOrigin: false,
         },
