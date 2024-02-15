@@ -69,6 +69,7 @@
             startMousePos: { x: x, y: y },
             selection: {
                 bins: [],
+                connectedBins: [],
             }
         };
     };
@@ -80,8 +81,8 @@
 
     //~ TODO: the actual selection will happen in Canvas:onDrag / onMouseMove, here I'm just switching the app to a state where the spatial selection is in progress
 
-    const mapValueToColor = () => {
-    };
+    // const mapValueToColor = () => {
+    // };
 </script>
 
 <T.Group
@@ -132,8 +133,7 @@
     {/if}
 
     <!-- Debug: Spatial selection sphere -->
-    <!-- {#if viewParams.viewSettings.showPivotOrigin} -->
-    {#if $spatialSelection }
+    {#if ($spatialSelection && ($spatialSelection.hwId == hyperWindowId)) }
         <T.Mesh position={[model.spheres[$spatialSelection.originBinId].x,
                             model.spheres[$spatialSelection.originBinId].y,
                             model.spheres[$spatialSelection.originBinId].z]} >
@@ -141,5 +141,4 @@
             <T.MeshStandardMaterial color="#ff0000" opacity={0.5} transparent={true} />
         </T.Mesh>
     {/if}
-    <!-- {/if} -->
 </T.Group>

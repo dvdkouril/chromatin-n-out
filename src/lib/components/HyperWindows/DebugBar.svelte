@@ -1,6 +1,6 @@
 <script lang="ts">
     import { WidgetStyle } from "../../hyperwindows-types";
-    import { hoveredHyperWindowId } from "$lib/stores";
+    import { hoveredHyperWindowId, spatialSelection } from "$lib/stores";
 
     //~ General settings
     export let showMatterDebug: boolean;
@@ -40,6 +40,11 @@
     </select>
     <span>
         Hovered HyperWindow: {$hoveredHyperWindowId}.
+    </span>
+    <span>
+        {#if $spatialSelection != undefined }
+            $spatialSelection.originBinId: {$spatialSelection.originBinId} .
+        {/if}
     </span>
 </div>
 
