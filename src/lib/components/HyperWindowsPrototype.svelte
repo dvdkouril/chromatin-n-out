@@ -205,7 +205,7 @@
             },
             selections: [],
             // colorForSelections: selection.color,
-            colorForSelections: "#ff0000",
+            colorForSelections: "yellow",
         };
 
         //~ 3. create 3D view part of HyperWindow
