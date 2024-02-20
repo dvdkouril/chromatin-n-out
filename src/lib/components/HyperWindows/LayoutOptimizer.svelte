@@ -75,11 +75,10 @@
      */
     let layoutInitialized = false;
     // let bodiesInitialized = false;
-    $: initializePhysicsSim(hyperWindows, canvasWidth, canvasHeight);
+    $: initializePhysicsSim(hyperWindows, canvasWidth, canvasHeight, scene);
 
-    const initializePhysicsSim = (hws: HyperWindow[], width: number, height: number) => {
-        console.log("initializePhysicsSim");
-        console.log(layoutInitialized);
+    const initializePhysicsSim = (hws: HyperWindow[], width: number, height: number, scene: Scene) => {
+        console.log(`initializePhysicsSim (${hws.length}, ${layoutInitialized}, ${width} x ${height}, ${scene})`);
         if (layoutInitialized) { //~ if already initialized, do nothing else
             return;
         }
