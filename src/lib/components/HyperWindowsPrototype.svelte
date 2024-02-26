@@ -4,7 +4,7 @@
     import { onMount } from "svelte";
     import { brafl } from "../test_BRAFL";
     import { spomb } from "../test_SPOMB";
-    import { dros } from "../test_dros";
+    import { dros1, dros2, dros3, dros4, dros5  } from "../test_dros";
     import { computeTubes, load3DModel, recenter } from "../util";
     import {
         type HWGeometry,
@@ -47,7 +47,11 @@
         ["brafl", { id: 1, name: "brafl", scale: 0.02 }],
         ["spomb", { id: 2, name: "spomb", scale: 0.1 }],
         ["cell7", { id: 3, name: "cell7", scale: 0.2 }],
-        ["dros", { id: 4, name: "dros", scale: 0.01 }],
+        ["dros1", { id: 4, name: "dros1", scale: 0.01 }],
+        ["dros2", { id: 4, name: "dros2", scale: 0.01 }],
+        ["dros3", { id: 4, name: "dros3", scale: 0.01 }],
+        ["dros4", { id: 4, name: "dros4", scale: 0.01 }],
+        ["dros5", { id: 4, name: "dros5", scale: 0.01 }],
     ]);
     const exampleScenes: Scene[] = [
         { id: 1, name: "brafl", datasetNames: ["brafl"] },
@@ -55,7 +59,8 @@
         { id: 3, name: "cell7", datasetNames: ["cell7"] },
         { id: 4, name: "brafl+spomb", datasetNames: ["brafl", "spomb"] },
         { id: 5, name: "brafl+brafl", datasetNames: ["brafl", "brafl"] },
-        { id: 6, name: "drosophila", datasetNames: ["dros"] },
+        { id: 6, name: "drosophila", datasetNames: ["dros1"] },
+        { id: 7, name: "many drosophilas", datasetNames: ["dros1", "dros2", "dros3", "dros4", "dros5"] },
     ];
     let selectedScene: Scene = exampleScenes[0];
 
@@ -293,8 +298,16 @@
                 model = load3DModel(spomb, d.scale, "pdb");
             } else if (d.name == "cell7") {
                 model = load3DModel(cell7, d.scale, "pdb");
-            } else if (d.name == "dros") {
-                model = load3DModel(dros, d.scale, "tsv");
+            } else if (d.name == "dros1") {
+                model = load3DModel(dros1, d.scale, "tsv");
+            } else if (d.name == "dros2") {
+                model = load3DModel(dros2, d.scale, "tsv");
+            } else if (d.name == "dros3") {
+                model = load3DModel(dros3, d.scale, "tsv");
+            } else if (d.name == "dros4") {
+                model = load3DModel(dros4, d.scale, "tsv");
+            } else if (d.name == "dros5") {
+                model = load3DModel(dros5, d.scale, "tsv");
             }
 
             if (!model) {
