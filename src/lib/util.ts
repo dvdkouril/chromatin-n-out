@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import { vec3 } from "gl-matrix";
 import { Euler, PerspectiveCamera, Quaternion, Vector2, Vector3 } from "three";
 import type { HWGeometry, HyperWindow } from "./hyperwindows-types";
-import { parsePdb } from "./pdb";
+import { parsePdb, parseTsv } from "./pdb";
 import chroma from "chroma-js";
 
 export const generateColors = (numOfColors: number) => {
@@ -381,14 +381,21 @@ export const generateStartingPositions = (
 export const load3DModel = (
     file: string,
     scale: number,
+    filetype: string,
     sphereRadius: number = 0.1,
     tubeSize: number = 0.05
 ): HWGeometry => {
-    const spheres = parsePdb(file).bins.map(({ x, y, z }) => ({
-        x: x * scale,
-        y: y * scale,
-        z: z * scale,
-    }));
+
+    let spheres: {x: number, y: number, z: number}[] = [];
+    if (filetype == "pdb") {
+        spheres = parsePdb(file).bins.map(({ x, y, z }) => ({
+            x: x * scale,
+            y: y * scale,
+            z: z * scale,
+        }));
+    } else if (filetype == "tsv") {
+        spheres = parseTsv(file).map(({x, y, z}) => ({x: x * scale, y: y * scale, z: z * scale}));
+    }
 
     //~ convert to Vector3
     const spheresConverted: Vector3[] = spheres.map(({x, y, z} : {x: number, y: number, z: number}) : Vector3 => { return new Vector3(x, y, z)});

@@ -87,3 +87,24 @@ export function parsePdb(pdb: string): ChromatinModel {
     connectivityBitset
   };
 }
+
+//~ TODO: move to more appropriate place
+export const parseTsv = (fileContent: string): {x: number, y: number, z: number}[] => {
+    const tsvLines = fileContent.split('\n');
+
+    let bins: {x: number, y: number, z: number}[] = [];
+    tsvLines.forEach((line) => {
+        const tokens = line.split('\t');
+        if (tokens.length < 3) {
+            return;
+        }
+
+        const x = parseFloat(tokens[0]);
+        const y = parseFloat(tokens[1]);
+        const z = parseFloat(tokens[2]);
+
+        bins.push({x: x, y: y, z: z});
+    });
+
+    return bins;
+};
